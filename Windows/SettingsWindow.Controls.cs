@@ -78,6 +78,19 @@ public partial class SettingsWindow
         ClipboardHotkeyHint.Text = _clipboardHotkeyError?.Invoke() ?? Loc.Get("settings.clipboardHotkey.hint");
     }
 
+    private void SettingsHotkey_LostFocus(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        string gesture = SettingsHotkeyBox.Text.Trim();
+        if (gesture.Length > 0 && !VNotch.Controllers.SettingsHotkeyController.TryParse(gesture, out _, out _))
+        {
+            SettingsHotkeyHint.Text = "Kombinasi shortcut tidak valid. Format: Win+Alt+Space, Ctrl+Alt+S, dll.";
+            return;
+        }
+        ApplyPreview(ReadSettingsFromUi());
+        SettingsHotkeyHint.Text = "Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Noch.";
+    }
+
     #region Slider Value Changed Handlers
 
     private void WidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

@@ -1534,6 +1534,11 @@
                                                 <TextBlock x:Name="HideCameraHint" Text="Hide the camera tab and stop its preview." Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
                                             </StackPanel></Border>
                                         <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4"><StackPanel>
+                                                <TextBlock x:Name="SettingsHotkeyLabel" Text="Shortcut Buka Settings Pinn-Noch ⚙️" Style="{StaticResource SettingTitleText}"/>
+                                                <TextBox x:Name="SettingsHotkeyBox" Text="Win+Alt+Space" LostFocus="SettingsHotkey_LostFocus" MinHeight="32" Margin="0,8,0,0"/>
+                                                <TextBlock x:Name="SettingsHotkeyHint" Text="Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Noch." Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
+                                            </StackPanel></Border>
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4"><StackPanel>
                                                 <TextBlock x:Name="ClipboardHotkeyLabel" Text="Clipboard tray shortcut" Style="{StaticResource SettingTitleText}"/>
                                                 <TextBox x:Name="ClipboardHotkeyBox" Text="" LostFocus="ClipboardHotkey_LostFocus" MinHeight="32" Margin="0,8,0,0"/>
                                                 <TextBlock x:Name="ClipboardHotkeyHint" Text="Optional. For example: Ctrl+Alt+V" Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>

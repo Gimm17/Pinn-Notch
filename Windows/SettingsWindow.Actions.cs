@@ -97,6 +97,7 @@ public partial class SettingsWindow
             ShowBatteryCheck.IsChecked = defaults.ShowBatteryIndicator;
             HideCameraCheck.IsChecked = defaults.HideCamera;
             ClipboardHotkeyBox.Text = defaults.ClipboardHotkey;
+            SettingsHotkeyBox.Text = defaults.SettingsHotkey;
             LoadTrayAdvanced(defaults);
             _settings.BatteryDeviceId = defaults.BatteryDeviceId;
             HideOnExclusiveFullscreenCheck.IsChecked = defaults.HideOnExclusiveFullscreen;
@@ -634,6 +635,7 @@ public partial class SettingsWindow
         snapshot.ShowBatteryIndicator = ShowBatteryCheck.IsChecked ?? true;
         snapshot.HideCamera = HideCameraCheck.IsChecked ?? false;
         snapshot.ClipboardHotkey = ClipboardHotkeyBox.Text.Trim();
+        snapshot.SettingsHotkey = SettingsHotkeyBox.Text.Trim();
         snapshot.ClipboardAutoDeleteSensitive = TraySensitiveCheck.IsChecked == true;
         snapshot.ClipboardCaptureText = TrayTextCheck.IsChecked == true;
         snapshot.ClipboardCaptureImages = TrayImagesCheck.IsChecked == true;

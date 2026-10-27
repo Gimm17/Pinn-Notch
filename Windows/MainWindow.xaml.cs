@@ -58,6 +58,7 @@ public partial class MainWindow : Window
     private IntPtr _hwnd => _shellState.Hwnd;
 
     private readonly OverlayWindowController _overlayWindow;
+    private VNotch.Controllers.SettingsHotkeyController? _settingsHotkey;
     private readonly ClipboardListenerController _clipboardListener;
     private readonly ISpotlightController _spotlightController;
     private bool _spotlightMorphSessionActive;
@@ -513,6 +514,8 @@ public partial class MainWindow : Window
         InitializeSessionUnlockFeedback();
         InitNotchSmartAutoHide();
         _invisibleHotkey ??= new VNotch.Controllers.InvisibleHotkeyController(this, ToggleInvisibleMode);
+        _settingsHotkey ??= new VNotch.Controllers.SettingsHotkeyController(this, ToggleSettingsWindowFromHotkey);
+        _settingsHotkey.Apply(_settings.SettingsHotkey);
         _overlayWindow.Initialize();
         _spotlightController.Initialize(this, _settings);
         InitializeLiveTranslation();
@@ -704,6 +707,8 @@ public partial class MainWindow : Window
         _clipboardShutdown = _clipboardHistory?.DisposeAsync().AsTask() ?? Task.CompletedTask;
         _clipboardShutdown.SafeFireAndForget("CLIPBOARD-SHUTDOWN");
         DisposeClipboardHotkey();
+        _settingsHotkey?.Dispose();
+        _settingsHotkey = null;
         _invisibleHotkey?.Dispose();
         _invisibleHotkey = null;
         _liveTranslation?.Dispose();
@@ -1441,6 +1446,24 @@ public partial class MainWindow : Window
         NotchShadowScale.BeginAnimation(ScaleTransform.ScaleYProperty, bounce);
     }
 
+    private void ToggleSettingsWindowFromHotkey()
+    {
+        if (IsGreetingInteractionBlocked) return;
+        if (_activeSettingsWindow is { IsVisible: true } activeSettings)
+        {
+            if (activeSettings.IsActive)
+            {
+                activeSettings.Close();
+            }
+            else
+            {
+                activeSettings.Activate();
+            }
+            return;
+        }
+        OpenAppSettings();
+    }
+
     private void OpenAppSettings(bool showTranslation = false)
     {
         if (IsGreetingInteractionBlocked) return;
@@ -1498,6 +1521,7 @@ public partial class MainWindow : Window
 
         _settings = newSettings.Clone();
         _clipboardHotkey?.Apply(_settings.ClipboardHotkey);
+        _settingsHotkey?.Apply(_settings.SettingsHotkey);
         _clipboardHistory?.ApplySettings(_settings);
         if (_settings.HideCamera && IsCameraPreviewLifecycleActive) StopCameraPreviewForViewExit();
         NetworkPrivacy.Current.Apply(_settings);

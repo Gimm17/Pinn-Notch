@@ -362,6 +362,7 @@ public partial class SettingsWindow : Window
         ClipboardHotkeyHint.Text = _clipboardHotkeyError?.Invoke() ?? Loc.Get("settings.clipboardHotkey.hint");
         HideCameraCheck.IsChecked = _settings.HideCamera;
         ClipboardHotkeyBox.Text = _settings.ClipboardHotkey;
+        SettingsHotkeyBox.Text = string.IsNullOrWhiteSpace(_settings.SettingsHotkey) ? "Win+Alt+Space" : _settings.SettingsHotkey;
         LoadTrayAdvanced(_settings);
 
         LanguageCombo.Items.Clear();
