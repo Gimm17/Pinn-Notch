@@ -25,7 +25,7 @@ public sealed partial class SingleInstanceGuard : IDisposable
         Span<char> buf = stackalloc char[256];
         if (NativeFormatMutexName(sid.AsSpan(), sid.Length, buf, buf.Length, out int len) == 0 && len > 0)
             return new string(buf.Slice(0, len));
-        return $@"Local\VNotch_SingleInstance_{sid}";
+        return $@"Local\PinnNoch_SingleInstance_{sid}";
     }
 
     private Mutex? _mutex;

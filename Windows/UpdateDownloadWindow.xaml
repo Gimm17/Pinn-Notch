@@ -1,7 +1,7 @@
 <Window x:Class="VNotch.UpdateDownloadWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Updating V-Notch"
+        Title="Updating Pinn-Noch"
         Width="360"
         Height="170"
         WindowStyle="None"

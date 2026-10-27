@@ -17,7 +17,7 @@
     <CETCompat>false</CETCompat>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>V-Notch</AssemblyName>
+    <AssemblyName>Pinn-Noch</AssemblyName>
     <RootNamespace>VNotch</RootNamespace>
 
     <PublishSingleFile>true</PublishSingleFile>
@@ -37,15 +37,15 @@
     <Version>2.2.0</Version>
     <AssemblyVersion>2.2.0</AssemblyVersion>
     <FileVersion>2.2.0</FileVersion>
-    <Authors>w0otdev</Authors>
-    <Company>V-Notch</Company>
-    <Product>V-Notch</Product>
-    <Copyright>Copyright © 2026 w0otdev</Copyright>
-    <PackageId>V-Notch</PackageId>
+    <Authors>Pinn-Noch</Authors>
+    <Company>Pinn-Noch</Company>
+    <Product>Pinn-Noch</Product>
+    <Copyright>Copyright © 2026 Pinn-Noch</Copyright>
+    <PackageId>Pinn-Noch</PackageId>
     <PackageProjectUrl>https://github.com/w0otdev/V-Notch</PackageProjectUrl>
     <RepositoryUrl>https://github.com/w0otdev/V-Notch</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Description>A desktop status and media companion for Windows</Description>
+    <Description>A versatile, flexible, cute, and lightweight Windows notch bar companion</Description>
     <ApplicationIcon>Services\icons\logo.ico</ApplicationIcon>
 
     <ApplicationManifest>app.manifest</ApplicationManifest>

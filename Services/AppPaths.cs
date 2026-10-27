@@ -20,8 +20,9 @@ internal static partial class AppPaths
         int attributes,
         out byte outIsDir);
 
-    internal const string DirectoryName = "V-Notch";
-    internal const string LegacyDirectoryName = "VNotch";
+    internal const string DirectoryName = "Pinn-Noch";
+    internal const string LegacyDirectoryName = "V-Notch";
+    internal const string OldLegacyDirectoryName = "VNotch";
     internal static string LocalAppDataRoot => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DirectoryName);
     internal static string LegacyLocalAppDataRoot => Path.Combine(
@@ -34,8 +35,16 @@ internal static partial class AppPaths
     internal static void MigrateLegacyLocalData(string? localAppData = null)
     {
         string parent = Path.GetFullPath(localAppData ?? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-        string source = Path.Combine(parent, LegacyDirectoryName);
-        string destination = Path.Combine(parent, DirectoryName);
+        MigrateFolder(Path.Combine(parent, LegacyDirectoryName), Path.Combine(parent, DirectoryName));
+        MigrateFolder(Path.Combine(parent, OldLegacyDirectoryName), Path.Combine(parent, DirectoryName));
+
+        string roamingParent = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        MigrateFolder(Path.Combine(roamingParent, LegacyDirectoryName), Path.Combine(roamingParent, DirectoryName));
+        MigrateFolder(Path.Combine(roamingParent, OldLegacyDirectoryName), Path.Combine(roamingParent, DirectoryName));
+    }
+
+    private static void MigrateFolder(string source, string destination)
+    {
         if (!Directory.Exists(source)) return;
         try
         {
@@ -45,7 +54,7 @@ internal static partial class AppPaths
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Trace.TraceWarning("Legacy V-Notch data migration deferred: {0}", ex.GetType().Name);
+            Trace.TraceWarning("Legacy data migration deferred: {0}", ex.GetType().Name);
         }
     }
 

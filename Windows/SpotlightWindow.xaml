@@ -5,7 +5,7 @@
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         xmlns:controls="clr-namespace:VNotch.Controls"
         xmlns:local="clr-namespace:VNotch"
-        Title="V-Notch Spotlight"
+        Title="Pinn-Noch Spotlight"
         Width="968"
         Height="650"
         WindowStyle="None"

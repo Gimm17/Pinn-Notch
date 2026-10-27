@@ -136,7 +136,7 @@ public static class TrayAppIcons
         var image = new BitmapImage();
         image.BeginInit();
         image.CacheOption = BitmapCacheOption.OnLoad;
-        image.UriSource = new Uri("pack://application:,,,/V-Notch;component/Assets/TrayIcons/" + name);
+        image.UriSource = new Uri("pack://application:,,,/Pinn-Noch;component/Assets/TrayIcons/" + name);
         image.EndInit();
         image.Freeze();
         return image;

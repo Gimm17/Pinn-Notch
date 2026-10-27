@@ -2,7 +2,7 @@
         x:Class="VNotch.DebugWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="V-Notch Inspector"
+        Title="Pinn-Noch Inspector"
         Width="Auto"
         Height="Auto"
         SizeToContent="WidthAndHeight"

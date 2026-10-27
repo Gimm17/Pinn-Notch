@@ -125,7 +125,7 @@ public partial class App : Application
                 {
                     AppIntegrityService.ShowIntegrityAlert(
                         Loc.Get(IntegrityWarningTitleKey),
-                        Loc.Get("integrity.untrustedSource", "https://untrusted.example.invalid/V-Notch.exe"));
+                        Loc.Get("integrity.untrustedSource", "https://untrusted.example.invalid/Pinn-Noch.exe"));
                 }
                 Shutdown(0);
                 return;
@@ -189,8 +189,8 @@ public partial class App : Application
         try
         {
             MessageBox.Show(
-                $"V-Notch encountered a fatal error during startup and must close.\n\nCrash details saved to:\n{CrashReporter.CrashLogPath}\n\nError: {ex.Message}",
-                "V-Notch Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                $"Pinn-Noch encountered a fatal error during startup and must close.\n\nCrash details saved to:\n{CrashReporter.CrashLogPath}\n\nError: {ex.Message}",
+                "Pinn-Noch Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch
         {
@@ -286,7 +286,7 @@ public partial class App : Application
 
         if (!ownsMutex)
         {
-            MessageBox.Show(Loc.Get("error.alreadyRunning"), "V-Notch",
+            MessageBox.Show(Loc.Get("error.alreadyRunning"), "Pinn-Noch",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return false;
@@ -345,10 +345,10 @@ public partial class App : Application
         try
         {
             string message =
-                $"V-Notch encountered an unexpected error and must close. Details were written to:\n{RuntimeLog.LogPath}\n\nCrash Report:\n{CrashReporter.CrashLogPath}";
+                $"Pinn-Noch encountered an unexpected error and must close. Details were written to:\n{RuntimeLog.LogPath}\n\nCrash Report:\n{CrashReporter.CrashLogPath}";
             MessageBox.Show(
                 message,
-                "V-Notch Error",
+                "Pinn-Noch Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
