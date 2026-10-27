@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Pinn-Dock"
-        Height="115"
+        Height="136"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -32,32 +32,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid x:Name="DockRootGrid" Height="115" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-        <!-- Floating Tooltip Badge (Positioned dynamically above hovered icon) -->
-        <Border x:Name="TooltipBadge"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Margin="0,8,0,0"
-                CornerRadius="9"
-                Background="#EE202026"
-                BorderBrush="#40FFFFFF"
-                BorderThickness="1"
-                Padding="12,3"
-                Opacity="0"
-                IsHitTestVisible="False"
-                Effect="{StaticResource BadgeShadow}">
-            <Border.RenderTransform>
-                <TranslateTransform x:Name="TooltipTranslate" X="0" Y="0"/>
-            </Border.RenderTransform>
-            <TextBlock x:Name="TooltipText"
-                       Text="Musik"
-                       FontSize="11.5"
-                       FontWeight="SemiBold"
-                       Foreground="#FFFFFFFF"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
-        </Border>
-
+    <Grid x:Name="DockRootGrid" Height="136" VerticalAlignment="Bottom" HorizontalAlignment="Center">
         <!-- Main Dock Glass Pill (Milky Frosted Glass - Reference Image 1 & 2) -->
         <Border x:Name="DockPill"
                 Height="66"
@@ -119,11 +94,11 @@
                                 MouseMove="IconsPanel_MouseMove" MouseLeave="IconsPanel_MouseLeave">
 
                         <!-- Item 1: Files / Explorer (Yellow Squircle) -->
-                        <Grid x:Name="ItemExplorer" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppExplorer_Click">
+                        <Grid x:Name="ItemExplorer" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppExplorer_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleExplorer" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransExplorer" Y="0"/>
+                                    <TranslateTransform x:Name="TransExplorer" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -143,11 +118,11 @@
                         </Grid>
 
                         <!-- Item 2: Browser / Web (Blue Squircle) -->
-                        <Grid x:Name="ItemBrowser" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppBrowser_Click">
+                        <Grid x:Name="ItemBrowser" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppBrowser_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleBrowser" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransBrowser" Y="0"/>
+                                    <TranslateTransform x:Name="TransBrowser" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -167,11 +142,11 @@
                         </Grid>
 
                         <!-- Item 3: Messages / Chat (Green Squircle) -->
-                        <Grid x:Name="ItemChat" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppChat_Click">
+                        <Grid x:Name="ItemChat" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppChat_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleChat" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransChat" Y="0"/>
+                                    <TranslateTransform x:Name="TransChat" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -188,11 +163,11 @@
                         </Grid>
 
                         <!-- Item 4: Music (Magenta/Purple Squircle) -->
-                        <Grid x:Name="ItemMusic" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppMusic_Click">
+                        <Grid x:Name="ItemMusic" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppMusic_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleMusic" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransMusic" Y="0"/>
+                                    <TranslateTransform x:Name="TransMusic" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -209,11 +184,11 @@
                         </Grid>
 
                         <!-- Item 5: Notes (Yellow/Amber Squircle) -->
-                        <Grid x:Name="ItemNotes" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppNotes_Click">
+                        <Grid x:Name="ItemNotes" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppNotes_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleNotes" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransNotes" Y="0"/>
+                                    <TranslateTransform x:Name="TransNotes" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -234,11 +209,11 @@
                         </Grid>
 
                         <!-- Item 6: Calendar (White Card with Red Header) -->
-                        <Grid x:Name="ItemCalendar" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppCalendar_Click">
+                        <Grid x:Name="ItemCalendar" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppCalendar_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleCalendar" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransCalendar" Y="0"/>
+                                    <TranslateTransform x:Name="TransCalendar" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top" Background="#FFFFFFFF">
@@ -259,11 +234,11 @@
                         </Grid>
 
                         <!-- Item 7: Settings (Dark Slate Gear Squircle) -->
-                        <Grid x:Name="ItemSettings" Width="46" Height="54" Margin="3,0" Cursor="Hand" MouseLeftButtonDown="AppSettings_Click">
+                        <Grid x:Name="ItemSettings" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppSettings_Click">
                             <Grid.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform x:Name="ScaleSettings" ScaleX="1.0" ScaleY="1.0" CenterX="23" CenterY="46"/>
-                                    <TranslateTransform x:Name="TransSettings" Y="0"/>
+                                    <TranslateTransform x:Name="TransSettings" X="0" Y="0"/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
                             <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top">
@@ -303,6 +278,31 @@
 
                 </StackPanel>
             </Grid>
+        </Border>
+
+        <!-- Floating Tooltip Badge (Rendered after DockPill for top-most z-order) -->
+        <Border x:Name="TooltipBadge"
+                Panel.ZIndex="999"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                CornerRadius="8"
+                Background="#EE181820"
+                BorderBrush="#60FFFFFF"
+                BorderThickness="1"
+                Padding="12,4"
+                Opacity="0"
+                IsHitTestVisible="False"
+                Effect="{StaticResource BadgeShadow}">
+            <Border.RenderTransform>
+                <TranslateTransform x:Name="TooltipTranslate" X="0" Y="0"/>
+            </Border.RenderTransform>
+            <TextBlock x:Name="TooltipText"
+                       Text="Musik"
+                       FontSize="11.5"
+                       FontWeight="SemiBold"
+                       Foreground="#FFFFFFFF"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
         </Border>
     </Grid>
 </Window>

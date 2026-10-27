@@ -216,6 +216,10 @@ public partial class MainWindow
         _settings.LayoutMode = mode;
         _settingsService.Save(_settings);
 
+        if (MenuModeNotchAndDock != null) MenuModeNotchAndDock.IsChecked = mode == "NotchAndDock";
+        if (MenuModeNotchOnly != null) MenuModeNotchOnly.IsChecked = mode == "NotchOnly";
+        if (MenuModeDockOnly != null) MenuModeDockOnly.IsChecked = mode == "DockOnly";
+
         var dockWindow = App.Services?.GetService(typeof(Windows.DockWindow)) as Windows.DockWindow;
 
         if (mode == "DockOnly")

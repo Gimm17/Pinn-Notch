@@ -395,13 +395,33 @@
                             <TextBlock x:Name="MenuSettingsText" Text="Notch settings" Style="{StaticResource TrayMenuItemText}"/>
                         </MenuItem.Header>
                     </MenuItem>
-                    <MenuItem Style="{StaticResource TrayMenuItemStyle}">
+                    <Separator Style="{StaticResource TraySeparatorStyle}"/>
+                    <MenuItem x:Name="MenuModeNotchAndDock"
+                              Style="{StaticResource TrayMenuItemStyle}"
+                              IsCheckable="True"
+                              Tag="NotchAndDock"
+                              Click="LayoutMode_Click">
                         <MenuItem.Header>
-                            <TextBlock Text="Mode Tampilan" Style="{StaticResource TrayMenuItemText}"/>
+                            <TextBlock Text="🌟 Mode: Notch + Dock" Style="{StaticResource TrayMenuItemText}"/>
                         </MenuItem.Header>
-                        <MenuItem Header="🌟 Notch + Dock" Tag="NotchAndDock" Click="LayoutMode_Click"/>
-                        <MenuItem Header="📱 Notch Saja" Tag="NotchOnly" Click="LayoutMode_Click"/>
-                        <MenuItem Header="💻 Dock Saja" Tag="DockOnly" Click="LayoutMode_Click"/>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuModeNotchOnly"
+                              Style="{StaticResource TrayMenuItemStyle}"
+                              IsCheckable="True"
+                              Tag="NotchOnly"
+                              Click="LayoutMode_Click">
+                        <MenuItem.Header>
+                            <TextBlock Text="📱 Mode: Notch Saja" Style="{StaticResource TrayMenuItemText}"/>
+                        </MenuItem.Header>
+                    </MenuItem>
+                    <MenuItem x:Name="MenuModeDockOnly"
+                              Style="{StaticResource TrayMenuItemStyle}"
+                              IsCheckable="True"
+                              Tag="DockOnly"
+                              Click="LayoutMode_Click">
+                        <MenuItem.Header>
+                            <TextBlock Text="💻 Mode: Dock Saja" Style="{StaticResource TrayMenuItemText}"/>
+                        </MenuItem.Header>
                     </MenuItem>
                     <Separator Style="{StaticResource TraySeparatorStyle}"/>
                     <MenuItem x:Name="MenuGhost"

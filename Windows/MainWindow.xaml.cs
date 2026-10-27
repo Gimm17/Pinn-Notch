@@ -2738,6 +2738,11 @@ public partial class MainWindow : Window
         MenuToggleText.Text = Loc.Get(_isNotchVisible ? "tray.hide" : "tray.show");
         MenuToggle.Icon = TryFindResource(_isNotchVisible ? "TrayHideNotchIconGeometry" : "TrayVisibleIconGeometry");
 
+        string currentLayoutMode = string.IsNullOrEmpty(_settings.LayoutMode) ? "NotchAndDock" : _settings.LayoutMode;
+        if (MenuModeNotchAndDock != null) MenuModeNotchAndDock.IsChecked = string.Equals(currentLayoutMode, "NotchAndDock", StringComparison.OrdinalIgnoreCase);
+        if (MenuModeNotchOnly != null) MenuModeNotchOnly.IsChecked = string.Equals(currentLayoutMode, "NotchOnly", StringComparison.OrdinalIgnoreCase);
+        if (MenuModeDockOnly != null) MenuModeDockOnly.IsChecked = string.Equals(currentLayoutMode, "DockOnly", StringComparison.OrdinalIgnoreCase);
+
         if (sender is System.Windows.Controls.ContextMenu menu)
         {
             if (menu.Parent is System.Windows.Controls.Primitives.Popup popup)

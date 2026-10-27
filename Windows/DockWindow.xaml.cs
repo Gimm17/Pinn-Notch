@@ -123,9 +123,10 @@ public partial class DockWindow : Window
     private void IconsPanel_MouseMove(object sender, MouseEventArgs e)
     {
         var mousePos = e.GetPosition(IconsPanel);
-        const double range = 90.0;
-        const double maxScale = 1.45;
-        const double maxLift = 13.0;
+        const double range = 100.0;
+        const double maxScale = 1.30;
+        const double maxLift = 14.0;
+        const double maxPush = 8.0;
 
         (Grid Grid, ScaleTransform Scale, TranslateTransform Trans, Ellipse Dot, string Title)? closestItem = null;
         double minDistance = double.MaxValue;
@@ -133,49 +134,64 @@ public partial class DockWindow : Window
         foreach (var item in _items)
         {
             var itemPos = item.Grid.TransformToAncestor(IconsPanel).Transform(new Point(item.Grid.ActualWidth / 2, item.Grid.ActualHeight / 2));
-            double dist = Math.Abs(mousePos.X - itemPos.X);
+            double distX = itemPos.X - mousePos.X;
+            double absDist = Math.Abs(distX);
 
-            if (dist < minDistance)
+            if (absDist < minDistance)
             {
-                minDistance = dist;
+                minDistance = absDist;
                 closestItem = item;
             }
 
-            if (dist < range)
+            if (absDist < range)
             {
-                double factor = Math.Cos((dist / range) * (Math.PI / 2)); // 1.0 down to 0.0
+                double factor = Math.Cos((absDist / range) * (Math.PI / 2)); // 1.0 down to 0.0
                 double targetScale = 1.0 + factor * (maxScale - 1.0);
                 double targetY = -factor * maxLift;
 
+                // Push adjacent icons outward to prevent any overlapping
+                double pushFactor = Math.Sin((absDist / range) * Math.PI);
+                double targetX = (distX >= 0 ? 1.0 : -1.0) * pushFactor * maxPush;
+
                 item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
                 item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                item.Trans.BeginAnimation(TranslateTransform.XProperty, null);
                 item.Trans.BeginAnimation(TranslateTransform.YProperty, null);
 
                 item.Scale.ScaleX = targetScale;
                 item.Scale.ScaleY = targetScale;
+                item.Trans.X = targetX;
                 item.Trans.Y = targetY;
             }
             else
             {
                 item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
                 item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+                item.Trans.BeginAnimation(TranslateTransform.XProperty, null);
                 item.Trans.BeginAnimation(TranslateTransform.YProperty, null);
 
                 item.Scale.ScaleX = 1.0;
                 item.Scale.ScaleY = 1.0;
+                item.Trans.X = 0.0;
                 item.Trans.Y = 0.0;
             }
         }
 
         // Tooltip badge over closest icon
-        if (closestItem != null && minDistance < 42.0)
+        if (closestItem != null && minDistance < 36.0)
         {
             var rootPos = closestItem.Value.Grid.TransformToAncestor(DockRootGrid).Transform(new Point(closestItem.Value.Grid.ActualWidth / 2, 0));
             TooltipText.Text = closestItem.Value.Title;
             TooltipBadge.UpdateLayout();
 
-            double badgeX = rootPos.X - (TooltipBadge.ActualWidth / 2);
-            TooltipTranslate.X = Math.Max(10, badgeX);
+            double badgeW = TooltipBadge.ActualWidth > 0 ? TooltipBadge.ActualWidth : 60;
+            double badgeH = TooltipBadge.ActualHeight > 0 ? TooltipBadge.ActualHeight : 24;
+
+            double badgeX = rootPos.X - (badgeW / 2);
+            TooltipTranslate.X = Math.Max(12, badgeX);
+
+            double badgeY = Math.Max(6, rootPos.Y - badgeH - 10);
+            TooltipTranslate.Y = badgeY;
 
             var fadeAnim = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(120)) { EasingFunction = new QuadraticEase() };
             TooltipBadge.BeginAnimation(OpacityProperty, fadeAnim);
@@ -201,10 +217,12 @@ public partial class DockWindow : Window
         {
             var scaleAnimX = new DoubleAnimation(1.0, animDuration) { EasingFunction = ease };
             var scaleAnimY = new DoubleAnimation(1.0, animDuration) { EasingFunction = ease };
+            var transAnimX = new DoubleAnimation(0.0, animDuration) { EasingFunction = ease };
             var transAnimY = new DoubleAnimation(0.0, animDuration) { EasingFunction = ease };
 
             item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimX);
             item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnimY);
+            item.Trans.BeginAnimation(TranslateTransform.XProperty, transAnimX);
             item.Trans.BeginAnimation(TranslateTransform.YProperty, transAnimY);
         }
     }
