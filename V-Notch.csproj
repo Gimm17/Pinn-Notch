@@ -6,10 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <!-- Audit snapshots are not application source, XAML pages, or resources. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**\*</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**\*;_reference\**\*</DefaultItemExcludes>
 
     <!-- Opt out of CET shadow-stack enforcement. Added with the LiquidGlass D3D interop
          work (490e198); the app loads native GPU/audio/LLM libraries and hooks that are
@@ -56,12 +56,8 @@
     <PackageReference Include="ComputeSharp.D2D1" Version="3.2.0" />
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
     <PackageReference Include="LanguageDetection.Ai" Version="1.1.0" />
-    <PackageReference Include="LLamaSharp" Version="0.27.0" />
-    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
-    <PackageReference Include="LLamaSharp.Backend.Vulkan.Windows" Version="0.27.0" />
     <PackageReference Include="Markdig" Version="0.41.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
     <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
     <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
@@ -102,16 +98,9 @@
     <None Update="Assets\Translation\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Update="Assets\SPL_CLICK_SFX.m4a" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
-  <Target Name="KeepTranslationNativeLibrariesBesideExecutable" BeforeTargets="AssignTargetPaths">
-    <ItemGroup>
-      <Content Update="@(Content)" Condition="$([System.String]::Copy('%(Content.Identity)').Contains('LLamaSharpRuntimes'))" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    </ItemGroup>
-  </Target>
+  
 
   <ItemGroup>
-    <None Update="Models\yolox_nano.onnx" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <None Update="Models\YOLOX-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <None Update="Models\model-provenance.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Include="Package.appxmanifest" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

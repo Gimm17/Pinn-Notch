@@ -9,8 +9,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
 
 namespace VNotch.Services;
 
@@ -27,7 +25,6 @@ public sealed partial class SmartThumbnailCropService : IDisposable
     private bool _disposed;
     private bool _modelExists;
     private bool _modelExistsChecked;
-    private InferenceSession? _cachedSession;
 
     private const int MaxInferenceCacheEntries = 24;
     private readonly Dictionary<ArtworkFingerprint, InferenceCacheEntry> _inferenceCache = new();
@@ -183,8 +180,6 @@ public sealed partial class SmartThumbnailCropService : IDisposable
     {
         lock (_lock)
         {
-            _cachedSession?.Dispose();
-            _cachedSession = null;
             _idleTimer?.Dispose();
             _idleTimer = null;
         }
@@ -200,22 +195,8 @@ public sealed partial class SmartThumbnailCropService : IDisposable
     {
         lock (_lock)
         {
-            if (_cachedSession == null)
-            {
-                _idleTimer?.Dispose();
-                _idleTimer = null;
-                return;
-            }
-
-            if (DateTime.UtcNow - _lastUsedUtc >= IdleTimeout)
-            {
-                _cachedSession.Dispose();
-                _cachedSession = null;
-                _idleTimer?.Dispose();
-                _idleTimer = null;
-                VNotch.Services.RuntimeLog.Log(LogCategory, "Session unloaded after idle timeout");
-                TryMinimizeNativeHeap(trimWorkingSet: true);
-            }
+            _idleTimer?.Dispose();
+            _idleTimer = null;
         }
     }
 
@@ -246,8 +227,6 @@ public sealed partial class SmartThumbnailCropService : IDisposable
             catch (Exception ex)
             {
                 VNotch.Services.RuntimeLog.Error("SUBJECT-BOUNDS", $"Inference failed: {ex.GetType().Name}: {ex.Message}");
-                _cachedSession?.Dispose();
-                _cachedSession = null;
                 return null;
             }
         }
@@ -372,8 +351,6 @@ public sealed partial class SmartThumbnailCropService : IDisposable
             {
                 VNotch.Services.RuntimeLog.Error(LogCategory, $"Inference failed: {ex.GetType().Name}: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"[SmartCrop] Inference failed: {ex.Message}");
-                _cachedSession?.Dispose();
-                _cachedSession = null;
                 return null;
             }
         }
@@ -381,82 +358,7 @@ public sealed partial class SmartThumbnailCropService : IDisposable
 
     private Detection[] GetOrRunInferenceLocked(BitmapSource source, int imgWidth, int imgHeight)
     {
-        ArtworkFingerprint fingerprint = _fingerprintCache
-            .GetValue(source, static bitmap => new FingerprintHolder(ArtworkFingerprint.Create(bitmap)))
-            .Value;
-
-        if (_inferenceCache.TryGetValue(fingerprint, out var cached))
-        {
-            cached.LastAccess = ++_inferenceCacheAccess;
-            VNotch.Services.RuntimeLog.Debug(LogCategory, () =>
-                $"ONNX cache hit artwork={fingerprint.ContentHash:X16} detections={cached.Detections.Length}");
-            return cached.Detections;
-        }
-
-        if (source is CroppedBitmap crop && TryGetCachedCropDetections(crop, out var croppedDetections))
-        {
-            AddInferenceCacheEntryLocked(fingerprint, croppedDetections);
-            return croppedDetections;
-        }
-
-        EnsureSessionLoadedLocked();
-        MarkSessionUsed();
-
-        float[]? tensorBuffer = null;
-        try
-        {
-            int requiredLength = 3 * ModelInputSize * ModelInputSize;
-            tensorBuffer = ArrayPool<float>.Shared.Rent(requiredLength);
-
-            float scale = PreprocessImageFast(source, tensorBuffer);
-            var tensor = new DenseTensor<float>(
-                new Memory<float>(tensorBuffer, 0, requiredLength),
-                new[] { 1, 3, ModelInputSize, ModelInputSize });
-            var inputs = new List<NamedOnnxValue>(1)
-            {
-                NamedOnnxValue.CreateFromTensor(_cachedSession!.InputNames[0], tensor)
-            };
-
-            using var results = _cachedSession.Run(inputs);
-            var output = results[0].AsTensor<float>();
-            Detection[] detections = ParseYoloxOutput(output, imgWidth, imgHeight, scale).ToArray();
-
-            AddInferenceCacheEntryLocked(fingerprint, detections);
-            return detections;
-        }
-        finally
-        {
-            if (tensorBuffer != null)
-                ArrayPool<float>.Shared.Return(tensorBuffer);
-            TryMinimizeNativeHeap();
-        }
-    }
-
-    private void EnsureSessionLoadedLocked()
-    {
-        if (_cachedSession != null)
-            return;
-
-        using var options = new SessionOptions
-        {
-            GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
-            ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
-            InterOpNumThreads = 1,
-            IntraOpNumThreads = 2,
-            EnableMemoryPattern = false,
-            EnableCpuMemArena = false
-        };
-
-        var session = new InferenceSession(GetModelPath(), options);
-        if (session.InputMetadata.Count != 1 || session.OutputMetadata.Count != 1 ||
-            !session.InputMetadata.Single().Value.Dimensions.SequenceEqual(new[] { 1, 3, ModelInputSize, ModelInputSize }) ||
-            !session.OutputMetadata.Single().Value.Dimensions.SequenceEqual(new[] { 1, 3549, 85 }))
-        {
-            session.Dispose();
-            throw new InvalidDataException("Smart crop requires the bundled YOLOX-Nano raw-output model.");
-        }
-        _cachedSession = session;
-        System.Diagnostics.Debug.WriteLine("[SmartCrop] Model loaded (cached session).");
+        return Array.Empty<Detection>();
     }
 
     private bool TryGetCachedCropDetections(CroppedBitmap crop, out Detection[] detections)
@@ -546,65 +448,9 @@ public sealed partial class SmartThumbnailCropService : IDisposable
         return scale;
     }
 
-    internal static List<Detection> ParseYoloxOutput(Tensor<float> output, int imgWidth, int imgHeight, float scale)
+    internal static List<Detection> ParseYoloxOutput(object output, int imgWidth, int imgHeight, float scale)
     {
-        var dims = output.Dimensions;
-        if (dims.Length != 3 || dims[0] != 1 || dims[1] != 3549 || dims[2] != 85)
-            throw new InvalidDataException("Unexpected YOLOX-Nano output shape.");
-        if (imgWidth <= 0 || imgHeight <= 0 || !float.IsFinite(scale) || scale <= 0)
-            throw new ArgumentOutOfRangeException(nameof(scale));
-
-        const int totalElements = 3549 * 85;
-        float[]? rented = null;
-        try
-        {
-            ReadOnlySpan<float> buffer;
-            if (output is DenseTensor<float> dense && dense.Buffer.Span.Length == totalElements)
-            {
-                buffer = dense.Buffer.Span;
-            }
-            else
-            {
-                rented = ArrayPool<float>.Shared.Rent(totalElements);
-                int idx = 0;
-                for (int i = 0; i < 3549; i++)
-                {
-                    for (int c = 0; c < 85; c++)
-                    {
-                        rented[idx++] = output[0, i, c];
-                    }
-                }
-                buffer = rented.AsSpan(0, totalElements);
-            }
-
-            Span<Detection> stackBuf = stackalloc Detection[128];
-            int rc = vn_smartcrop_parse_yolox_and_nms(buffer, imgWidth, imgHeight, scale, stackBuf, stackBuf.Length, out int rawCount, out int nmsCount);
-            VNotch.Services.RuntimeLog.Log(LogCategory,
-                $"ParseYolox: raw={rawCount} predictions scanned=3549 classes=80");
-
-            if (rc == 0)
-            {
-                var list = new List<Detection>(nmsCount);
-                for (int i = 0; i < nmsCount; i++) list.Add(stackBuf[i]);
-                return list;
-            }
-            if (rc == -2 && nmsCount > 0)
-            {
-                var arr = new Detection[nmsCount];
-                if (vn_smartcrop_parse_yolox_and_nms(buffer, imgWidth, imgHeight, scale, arr, arr.Length, out _, out int actualCount) == 0)
-                {
-                    var list = new List<Detection>(actualCount);
-                    for (int i = 0; i < actualCount; i++) list.Add(arr[i]);
-                    return list;
-                }
-            }
-            return new List<Detection>();
-        }
-        finally
-        {
-            if (rented != null)
-                ArrayPool<float>.Shared.Return(rented);
-        }
+        return new List<Detection>();
     }
 
     internal static List<Detection> ApplyNms(List<Detection> detections)
@@ -899,8 +745,6 @@ public sealed partial class SmartThumbnailCropService : IDisposable
         {
             _idleTimer?.Dispose();
             _idleTimer = null;
-            _cachedSession?.Dispose();
-            _cachedSession = null;
             _inferenceCache.Clear();
             _cropCache.Clear();
             _cropCacheOrder.Clear();

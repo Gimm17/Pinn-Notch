@@ -38,6 +38,6 @@ internal static class TranslationNativeRuntime
 
     internal static bool IsLoadFailure(Exception error) =>
         error is DllNotFoundException or BadImageFormatException ||
-        error is TypeInitializationException { TypeName: "LLama.Native.NativeApi" } ||
+        error is TypeInitializationException ||
         error.InnerException != null && IsLoadFailure(error.InnerException);
 }
