@@ -18,7 +18,6 @@ public partial class SettingsWindow
         EnableUsbNotifCheck.IsChecked = settings.EnableUsbNotifications;
 
         PinnThemeCombo.ItemsSource = UiPalette.AllThemes;
-        PinnThemeCombo.DisplayMemberPath = nameof(PinnThemeDefinition.DisplayName);
         PinnThemeCombo.SelectedValuePath = nameof(PinnThemeDefinition.Id);
         PinnThemeCombo.SelectedValue = settings.PinnTheme;
 

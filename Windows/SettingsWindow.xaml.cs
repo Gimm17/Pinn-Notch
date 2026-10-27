@@ -179,6 +179,39 @@ public partial class SettingsWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         CompleteFirstRealShow();
+        InputMonitorService.MouseActionTriggered += OnGlobalMouseClickOutside;
+    }
+
+    private void Window_Deactivated(object? sender, EventArgs e)
+    {
+        TryCloseFromOutside();
+    }
+
+    private void OnGlobalMouseClickOutside(object? sender, InputMonitorService.POINT pt)
+    {
+        if (!IsLoaded || !IsVisible || _isClosing) return;
+        if (IsAnyComboBoxDropDownOpen()) return;
+        if (OwnedWindows.Cast<Window>().Any(w => w.IsVisible)) return;
+
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+
+        if (Win32Interop.GetWindowRect(hwnd, out var rect))
+        {
+            // If the mouse click happened outside the settings window's physical bounds
+            if (pt.x < rect.Left || pt.x > rect.Right || pt.y < rect.Top || pt.y > rect.Bottom)
+            {
+                Dispatcher.BeginInvoke(TryCloseFromOutside, DispatcherPriority.Normal);
+            }
+        }
+    }
+
+    private void TryCloseFromOutside()
+    {
+        if (_isClosing || IsAnyComboBoxDropDownOpen()) return;
+        if (OwnedWindows.Cast<Window>().Any(w => w.IsVisible)) return;
+
+        CloseWithAnimation();
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

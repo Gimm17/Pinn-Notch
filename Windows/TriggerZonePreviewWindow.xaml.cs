@@ -1,7 +1,9 @@
 using System;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using VNotch.Services;
 
 namespace VNotch.Windows;
 
@@ -19,6 +21,14 @@ public partial class TriggerZonePreviewWindow : Window
             _fadeTimer.Stop();
             FadeOut();
         };
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        var hwnd = new WindowInteropHelper(this).Handle;
+        int exStyle = Win32Interop.GetWindowLong(hwnd, Win32Interop.GWL_EXSTYLE);
+        Win32Interop.SetWindowLong(hwnd, Win32Interop.GWL_EXSTYLE, exStyle | Win32Interop.WS_EX_NOACTIVATE | Win32Interop.WS_EX_TOOLWINDOW);
     }
 
     public static void ShowPreview(Rect screenRect, string label)

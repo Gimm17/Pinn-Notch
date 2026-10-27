@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -22,14 +23,12 @@ namespace VNotch;
 
 public partial class SettingsWindow
 {
-    #region Smooth Scroll
+    #region Smooth Scroll (60Hz / 120Hz / 144Hz Frame-Synced Spring Inertia)
 
-    private double _scrollVelocity;
     private double _scrollTarget;
     private bool _isScrollAnimating;
-    private const double ScrollFriction = 0.82;
-    private const double ScrollSensitivity = 1.2;
-    private const double ScrollMinVelocity = 0.3;
+    private long _lastScrollTimestamp;
+    private const double ScrollStepPerNotch = 86.0;
 
     private bool IsAnyComboBoxDropDownOpen()
     {
@@ -41,7 +40,10 @@ public partial class SettingsWindow
             SkinCombo?.IsDropDownOpen == true ||
             GlassPresetCombo?.IsDropDownOpen == true ||
             ProcessPriorityCombo?.IsDropDownOpen == true ||
-            GpuPreferenceCombo?.IsDropDownOpen == true)
+            GpuPreferenceCombo?.IsDropDownOpen == true ||
+            PinnThemeCombo?.IsDropDownOpen == true ||
+            DockAutoHideModeCombo?.IsDropDownOpen == true ||
+            NotchAutoHideModeCombo?.IsDropDownOpen == true)
         {
             return true;
         }
@@ -53,7 +55,7 @@ public partial class SettingsWindow
     {
         if (IsAnyComboBoxDropDownOpen())
         {
-            // A ComboBox popup is logically connected to this window, so this
+            // A ComboBox popup is logically connected to this window
             var dropdownScrollViewer = FindVisualAncestor<ScrollViewer>(e.OriginalSource as DependencyObject);
             if (dropdownScrollViewer != null && !ReferenceEquals(dropdownScrollViewer, SettingsScrollViewer))
             {
@@ -71,21 +73,34 @@ public partial class SettingsWindow
 
         e.Handled = true;
 
-        double delta = -e.Delta * ScrollSensitivity;
         double maxScroll = SettingsScrollViewer.ScrollableHeight;
+        if (maxScroll <= 0) return;
+
+        // Smooth normalized wheel delta
+        double wheelSteps = (double)e.Delta / 120.0;
+        double delta = -wheelSteps * ScrollStepPerNotch;
 
         if (!_isScrollAnimating)
         {
             _scrollTarget = SettingsScrollViewer.VerticalOffset;
         }
 
-        _scrollVelocity += delta * 0.3;
         _scrollTarget = Math.Clamp(_scrollTarget + delta, 0, maxScroll);
 
         if (!_isScrollAnimating)
         {
             _isScrollAnimating = true;
+            _lastScrollTimestamp = Stopwatch.GetTimestamp();
             CompositionTarget.Rendering += SmoothScroll_Tick;
+        }
+    }
+
+    private void SettingsScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        // When user scrolls via scrollbar or mouse drag, keep _scrollTarget in sync
+        if (!_isScrollAnimating)
+        {
+            _scrollTarget = SettingsScrollViewer.VerticalOffset;
         }
     }
 
@@ -113,23 +128,35 @@ public partial class SettingsWindow
 
     private void SmoothScroll_Tick(object? sender, EventArgs e)
     {
-        _scrollTarget = Math.Clamp(_scrollTarget, 0, SettingsScrollViewer.ScrollableHeight);
+        long now = Stopwatch.GetTimestamp();
+        double dt = _lastScrollTimestamp == 0 ? 0.016 : (double)(now - _lastScrollTimestamp) / Stopwatch.Frequency;
+        _lastScrollTimestamp = now;
+        dt = Math.Clamp(dt, 0.001, 0.05);
+
+        double maxScroll = SettingsScrollViewer.ScrollableHeight;
+        _scrollTarget = Math.Clamp(_scrollTarget, 0, maxScroll);
         double current = SettingsScrollViewer.VerticalOffset;
         double diff = _scrollTarget - current;
 
-        _scrollVelocity *= ScrollFriction;
-
-        double step = diff * 0.18 + _scrollVelocity * 0.4;
-        double newOffset = Math.Clamp(current + step, 0, SettingsScrollViewer.ScrollableHeight);
+        // Exponential ease-out critically damped curve (speed: 16.0 provides buttery smooth glide in ~140ms)
+        double factor = 1.0 - Math.Exp(-16.0 * dt);
+        double step = diff * factor;
+        double newOffset = Math.Clamp(current + step, 0, maxScroll);
         SettingsScrollViewer.ScrollToVerticalOffset(newOffset);
 
-        if (Math.Abs(diff) < ScrollMinVelocity && Math.Abs(_scrollVelocity) < ScrollMinVelocity)
+        if (Math.Abs(_scrollTarget - newOffset) < 0.25)
         {
             SettingsScrollViewer.ScrollToVerticalOffset(_scrollTarget);
-            _scrollVelocity = 0;
-            _isScrollAnimating = false;
-            CompositionTarget.Rendering -= SmoothScroll_Tick;
+            StopSmoothScroll();
         }
+    }
+
+    public void StopSmoothScroll()
+    {
+        if (!_isScrollAnimating) return;
+        _isScrollAnimating = false;
+        _lastScrollTimestamp = 0;
+        CompositionTarget.Rendering -= SmoothScroll_Tick;
     }
 
     #endregion

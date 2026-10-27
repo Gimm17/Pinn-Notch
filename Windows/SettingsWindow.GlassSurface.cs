@@ -118,8 +118,8 @@ public partial class SettingsWindow
 
     protected override void OnClosed(EventArgs e)
     {
-        CompositionTarget.Rendering -= SmoothScroll_Tick;
-        _isScrollAnimating = false;
+        InputMonitorService.MouseActionTriggered -= OnGlobalMouseClickOutside;
+        StopSmoothScroll();
         _livePreviewDebounce?.Dispose();
         _searchDebounce?.Dispose();
         _updatePresenter.Dispose();

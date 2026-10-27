@@ -13,6 +13,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         Loaded="Window_Loaded"
+        Deactivated="Window_Deactivated"
         FocusManager.FocusedElement="{Binding ElementName=MainShell}"
         FontFamily="{fonts:AppFont Fallbacks='Nirmala UI, Segoe UI'}"
         UseLayoutRounding="False"
@@ -798,7 +799,8 @@
                                   HorizontalScrollBarVisibility="Disabled"
                                   Padding="20,0,14,14"
                                   CanContentScroll="False"
-                                   PreviewMouseWheel="SettingsScrollViewer_PreviewMouseWheel">
+                                  ScrollChanged="SettingsScrollViewer_ScrollChanged"
+                                  PreviewMouseWheel="SettingsScrollViewer_PreviewMouseWheel">
                         <Grid x:Name="ContentHost">
 
                             <StackPanel x:Name="PanelSearching" Visibility="Collapsed">
@@ -892,10 +894,16 @@
                                                            Style="{StaticResource SettingHintText}"
                                                            Margin="0,2,0,8"/>
                                                 <ComboBox x:Name="PinnThemeCombo"
-                                                          Height="30"
+                                                          Height="34"
                                                           SelectionChanged="PinnThemeCombo_SelectionChanged"
                                                           Background="#1E1E2E"
-                                                          Foreground="White"/>
+                                                          Foreground="White">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="13" VerticalAlignment="Center"/>
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
                                             </StackPanel>
                                         </Border>
 

@@ -157,7 +157,7 @@ public partial class SettingsWindow
                 newPanel.Visibility = Visibility.Visible;
 
             _scrollTarget = 0;
-            _scrollVelocity = 0;
+            StopSmoothScroll();
             SettingsScrollViewer.ScrollToTop();
             AnimateActivePanel(section, direction);
         }
