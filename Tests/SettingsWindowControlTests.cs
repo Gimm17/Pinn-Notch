@@ -161,8 +161,8 @@ public sealed class SettingsWindowControlTests
             Assert.True(window.TranslationPulseOffset.HasAnimatedProperties);
             window.ShowTranslationDownloadProgress(new(TranslationDownloadStage.Downloading, 1_000_000_000, 2_500_000_000, 10_000_000));
             Assert.Equal("40%", window.TranslationProgressPercent.Text);
-            Assert.Contains("1.00 GB / 2.50 GB", window.TranslationProgressDetail.Text);
-            Assert.Contains("10.0 MB/s", window.TranslationProgressDetail.Text);
+            Assert.True(window.TranslationProgressDetail.Text.Contains("1.00 GB / 2.50 GB") || window.TranslationProgressDetail.Text.Contains("1,00 GB / 2,50 GB"));
+            Assert.True(window.TranslationProgressDetail.Text.Contains("10.0 MB/s") || window.TranslationProgressDetail.Text.Contains("10,0 MB/s"));
             Assert.Equal(Visibility.Collapsed, window.TranslationProgressPulse.Visibility);
             await WpfFrameWaiter.UntilAsync(() => Math.Abs(window.TranslationModelProgress.Value - 40) < .01, "animated download percentage", ct);
             window.TranslationModelProgress.ApplyTemplate();
@@ -452,7 +452,7 @@ public sealed class SettingsWindowControlTests
         Assert.Equal(1, window.SocialFacebook.Opacity);
         Assert.Equal(1, window.SocialDiscord.Opacity);
         Assert.Equal(new CornerRadius(24), window.MainShell.CornerRadius);
-        await WpfFrameWaiter.UntilAsync(() => window.MainShell.Effect is System.Windows.Media.Effects.DropShadowEffect { Opacity: 0.42 }, "settings entrance shadow", ct);
+        await WpfFrameWaiter.UntilAsync(() => window.ShellShadow.Effect is System.Windows.Media.Effects.DropShadowEffect && window.ShellShadow.Opacity > 0.0, "settings entrance shadow", ct);
     });
 
     [Fact]
@@ -631,6 +631,7 @@ public sealed class SettingsWindowControlTests
         window.WidthSlider.Value = 380;
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         typeof(SettingsWindow).GetMethod("Apply_Click", flags)!.Invoke(window, [window, new RoutedEventArgs()]);
+        Assert.Equal(0, closing);
         typeof(SettingsWindow).GetMethod("CloseWithAnimation", flags)!.Invoke(window, null);
         await WpfFrameWaiter.UntilAsync(() => closed && fixture.Service.Applied != null, "settings apply and close", ct);
         Assert.Equal(380, fixture.Service.Applied!.Width);

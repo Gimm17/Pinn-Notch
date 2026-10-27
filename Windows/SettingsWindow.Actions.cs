@@ -310,10 +310,29 @@ public partial class SettingsWindow
         return count;
     }
 
-    private void Apply_Click(object sender, RoutedEventArgs e)
+    private async void Apply_Click(object sender, RoutedEventArgs e)
     {
         ApplySettingsFromUi(persist: true);
-        CloseWithAnimation();
+
+        // Keep window open for continuous tuning; provide visual feedback on the button
+        if (ApplyButton != null && Dispatcher.CheckAccess())
+        {
+            var originalContent = ApplyButton.Content;
+            ApplyButton.Content = "✓ " + (originalContent ?? Loc.Get("settings.btn.apply"));
+            ApplyButton.IsEnabled = false;
+            try
+            {
+                await Task.Delay(900);
+            }
+            finally
+            {
+                if (!_isClosing && IsLoaded)
+                {
+                    ApplyButton.Content = originalContent ?? Loc.Get("settings.btn.apply");
+                    ApplyButton.IsEnabled = true;
+                }
+            }
+        }
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
