@@ -68,6 +68,7 @@ public static class ServiceConfigurator
             return host;
         });
 
+        services.AddSingleton<WindowOverlapMonitor>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<DockWindow>();
     }

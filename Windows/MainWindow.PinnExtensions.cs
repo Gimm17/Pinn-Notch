@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using VNotch.Controls;
 using VNotch.Services;
 using static VNotch.Services.AnimationPrimitives;
@@ -141,6 +142,7 @@ public partial class MainWindow
         UsbNotificationTranslate.BeginAnimation(TranslateTransform.YProperty, slideUp);
 
         InteractionSounds.Play(InteractionCue.Click);
+        NotifyNotchNotificationPresented();
 
         _usbDismissTimer?.Stop();
         _usbDismissTimer?.Dispose();
@@ -263,5 +265,194 @@ public partial class MainWindow
         {
             SetLayoutMode(mode);
         }
+    }
+
+    // --- 6. NOTCH SMART AUTO-HIDE & PRECISION REVEAL ---
+    private WindowOverlapMonitor? _notchOverlapMonitor;
+    private bool _isNotchOverlapped;
+    private bool _isNotchSmartHidden;
+    private bool _isNotchRevealedByMouse;
+    private bool _isNotchTemporarilyRevealed;
+    private long _notchRevealStartTick;
+    private long _notchHideStartTick;
+    private UiScheduledTimer? _notchNotificationRevealTimer;
+    private UiScheduledTimer? _notchCursorPollTimer;
+
+    public void InitNotchSmartAutoHide()
+    {
+        _notchOverlapMonitor = App.Services?.GetService(typeof(WindowOverlapMonitor)) as WindowOverlapMonitor;
+        if (_notchOverlapMonitor != null)
+        {
+            _notchOverlapMonitor.RegisterNotchRegionProvider(GetNotchScreenBounds);
+            _notchOverlapMonitor.NotchOverlapChanged += OnNotchOverlapChanged;
+        }
+
+        _notchCursorPollTimer = new UiScheduledTimer(DispatcherPriority.Input, Dispatcher)
+        {
+            Interval = TimeSpan.FromMilliseconds(50)
+        };
+        _notchCursorPollTimer.Tick += NotchCursorPollTimer_Tick;
+        _notchCursorPollTimer.Start();
+    }
+
+    public Rect? GetNotchScreenBounds()
+    {
+        if (!IsLoaded || !_isNotchVisible || NotchBorder == null) return null;
+        try
+        {
+            Point topLeft = NotchBorder.PointToScreen(new Point(0, 0));
+            Point bottomRight = NotchBorder.PointToScreen(new Point(NotchBorder.ActualWidth, NotchBorder.ActualHeight));
+            return new Rect(topLeft, bottomRight);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void OnNotchOverlapChanged(bool isOverlapped)
+    {
+        _isNotchOverlapped = isOverlapped;
+        UpdateNotchSmartAutoHideState();
+    }
+
+    private void NotchCursorPollTimer_Tick(object? sender, EventArgs e)
+    {
+        if (!IsLoaded || !_isNotchVisible) return;
+
+        if (_settings.NotchAutoHideMode == "Never")
+        {
+            if (_isNotchSmartHidden)
+            {
+                _isNotchSmartHidden = false;
+                ApplyNotchSmartAutoHideSlide(false);
+            }
+            return;
+        }
+
+        if (Win32Interop.GetCursorPos(out var mousePt))
+        {
+            double notchWidth = NotchBorder?.ActualWidth > 0 ? NotchBorder.ActualWidth : 200;
+            var triggerZone = TriggerZoneCalculator.CalculateNotchTriggerZone(
+                Left, Width, notchWidth, _settings.NotchRevealHeightPx, _settings.NotchRevealExtraWidthPx);
+
+            bool inTriggerZone = TriggerZoneCalculator.IsPointInZone(triggerZone, new Point(mousePt.X, mousePt.Y));
+            bool isOverNotch = mousePt.X >= Left && mousePt.X <= Left + Width &&
+                               mousePt.Y >= Top && mousePt.Y <= Top + (NotchBorder?.ActualHeight ?? 40) + 10;
+
+            if (inTriggerZone || isOverNotch || _isExpanded || _isMusicExpanded)
+            {
+                if (!_isNotchRevealedByMouse)
+                {
+                    long now = Environment.TickCount64;
+                    if (_notchRevealStartTick == 0)
+                    {
+                        _notchRevealStartTick = now;
+                    }
+                    else if (now - _notchRevealStartTick >= _settings.NotchRevealDelayMs)
+                    {
+                        _isNotchRevealedByMouse = true;
+                        _notchRevealStartTick = 0;
+                        _notchHideStartTick = 0;
+                        UpdateNotchSmartAutoHideState();
+                    }
+                }
+            }
+            else
+            {
+                _notchRevealStartTick = 0;
+                if (_isNotchRevealedByMouse)
+                {
+                    long now = Environment.TickCount64;
+                    if (_notchHideStartTick == 0)
+                    {
+                        _notchHideStartTick = now;
+                    }
+                    else if (now - _notchHideStartTick >= _settings.NotchHideDelayMs)
+                    {
+                        _isNotchRevealedByMouse = false;
+                        _notchHideStartTick = 0;
+                        UpdateNotchSmartAutoHideState();
+                    }
+                }
+            }
+        }
+    }
+
+    public void NotifyNotchNotificationPresented()
+    {
+        if (!_settings.NotchNotificationRevealEnabled || !_isNotchSmartHidden) return;
+
+        _isNotchTemporarilyRevealed = true;
+        UpdateNotchSmartAutoHideState();
+
+        _notchNotificationRevealTimer?.Stop();
+        _notchNotificationRevealTimer = new UiScheduledTimer(DispatcherPriority.Normal, Dispatcher)
+        {
+            Interval = TimeSpan.FromMilliseconds(_settings.NotchNotificationRevealDurationMs)
+        };
+        _notchNotificationRevealTimer.Tick += (s, e) =>
+        {
+            _notchNotificationRevealTimer.Stop();
+            _isNotchTemporarilyRevealed = false;
+            UpdateNotchSmartAutoHideState();
+        };
+        _notchNotificationRevealTimer.Start();
+    }
+
+    public void UpdateNotchSmartAutoHideState()
+    {
+        bool shouldHide = false;
+        if (_settings.NotchAutoHideMode == "Always")
+        {
+            shouldHide = !_isNotchRevealedByMouse && !_isNotchTemporarilyRevealed && !_isExpanded && !_isMusicExpanded;
+        }
+        else if (_settings.NotchAutoHideMode == "Smart")
+        {
+            shouldHide = _isNotchOverlapped && !_isNotchRevealedByMouse && !_isNotchTemporarilyRevealed && !_isExpanded && !_isMusicExpanded;
+        }
+        else // "Never"
+        {
+            shouldHide = false;
+        }
+
+        if (shouldHide != _isNotchSmartHidden)
+        {
+            _isNotchSmartHidden = shouldHide;
+            ApplyNotchSmartAutoHideSlide(shouldHide);
+        }
+    }
+
+    private void ApplyNotchSmartAutoHideSlide(bool hide)
+    {
+        if (NotchContainer == null || NotchContainerTranslate == null) return;
+
+        double slideDistance = NotchBorder.ActualHeight > 0 ? NotchBorder.ActualHeight + 10 : _collapsedHeight + 10;
+        double targetY = 0;
+        double targetOpacity = 1.0;
+
+        if (hide)
+        {
+            if (_settings.NotchHiddenPeekEnabled)
+            {
+                double peekHeight = Math.Clamp(_settings.NotchHiddenPeekHeightPx, 1, 12);
+                targetY = -(slideDistance - peekHeight);
+                targetOpacity = 0.92;
+            }
+            else
+            {
+                targetY = -slideDistance;
+                targetOpacity = 0.0;
+            }
+        }
+
+        var animDuration = TimeSpan.FromMilliseconds(220);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+        var transAnim = new DoubleAnimation(targetY, animDuration) { EasingFunction = ease };
+        var opacityAnim = new DoubleAnimation(targetOpacity, animDuration) { EasingFunction = ease };
+
+        NotchContainerTranslate.BeginAnimation(TranslateTransform.YProperty, transAnim);
+        NotchContainer.BeginAnimation(OpacityProperty, opacityAnim);
     }
 }

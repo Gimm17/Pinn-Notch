@@ -156,4 +156,87 @@ public class PinnNochFeaturesTests
         Assert.True(settings.EnableDockMagnification);
         Assert.True(settings.EnableDockRunningIndicators);
     }
+
+    [Fact]
+    public void NotchSettings_AutoHideDefaultsAndClampingAreConfigured()
+    {
+        var settings = new NotchSettings();
+        Assert.Equal("Smart", settings.DockAutoHideMode);
+        Assert.Equal(4, settings.DockRevealHeightPx);
+        Assert.Equal(0, settings.DockRevealExtraWidthPx);
+        Assert.Equal(120, settings.DockRevealDelayMs);
+        Assert.Equal(400, settings.DockHideDelayMs);
+
+        Assert.Equal("Smart", settings.NotchAutoHideMode);
+        Assert.Equal(3, settings.NotchRevealHeightPx);
+        Assert.Equal(0, settings.NotchRevealExtraWidthPx);
+        Assert.Equal(100, settings.NotchRevealDelayMs);
+        Assert.Equal(500, settings.NotchHideDelayMs);
+
+        Assert.True(settings.NotchHiddenPeekEnabled);
+        Assert.Equal(2, settings.NotchHiddenPeekHeightPx);
+        Assert.True(settings.NotchNotificationRevealEnabled);
+        Assert.Equal(2500, settings.NotchNotificationRevealDurationMs);
+
+        // Clamping test
+        settings.DockRevealHeightPx = 999;
+        Assert.Equal(40, settings.DockRevealHeightPx);
+        settings.DockRevealHeightPx = -10;
+        Assert.Equal(1, settings.DockRevealHeightPx);
+
+        settings.NotchHiddenPeekHeightPx = 999;
+        Assert.Equal(12, settings.NotchHiddenPeekHeightPx);
+        settings.NotchHiddenPeekHeightPx = 0;
+        Assert.Equal(1, settings.NotchHiddenPeekHeightPx);
+    }
+
+    [Fact]
+    public void TriggerZoneCalculator_CalculatesPreciseNotchZone()
+    {
+        var zone = TriggerZoneCalculator.CalculateNotchTriggerZone(0, 1920, 200, 3, 0);
+        Assert.Equal(860, zone.Left);
+        Assert.Equal(0, zone.Top);
+        Assert.Equal(200, zone.Width);
+        Assert.Equal(3, zone.Height);
+
+        Assert.True(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(900, 1)));
+        Assert.False(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(800, 1))); // left of notch
+        Assert.False(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(900, 5))); // below 3px trigger strip
+    }
+
+    [Fact]
+    public void TriggerZoneCalculator_CalculatesPreciseDockZone()
+    {
+        var zone = TriggerZoneCalculator.CalculateDockTriggerZone(670, 580, 1080, 4, 0);
+        Assert.Equal(670, zone.Left);
+        Assert.Equal(1076, zone.Top);
+        Assert.Equal(580, zone.Width);
+        Assert.Equal(4, zone.Height);
+
+        Assert.True(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(700, 1078)));
+        Assert.False(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(600, 1078))); // left of dock
+        Assert.False(TriggerZoneCalculator.IsPointInZone(zone, new System.Windows.Point(700, 1070))); // above 4px trigger strip
+    }
+
+    [Fact]
+    public void SpringValue_UpdatesTowardsTargetSmoothly()
+    {
+        var spring = new Controllers.SpringValue(1.0)
+        {
+            Target = 1.30
+        };
+
+        bool moving = spring.Update(0.016, 28.0);
+        Assert.True(moving);
+        Assert.True(spring.Current > 1.0 && spring.Current < 1.30);
+
+        // Simulate convergence
+        for (int i = 0; i < 30; i++)
+        {
+            moving = spring.Update(0.016, 28.0);
+        }
+
+        Assert.False(moving);
+        Assert.Equal(1.30, spring.Current);
+    }
 }

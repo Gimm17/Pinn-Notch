@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,7 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using System.Windows.Interop;
+using VNotch.Controllers;
 using VNotch.Models;
 using VNotch.Services;
 
@@ -18,32 +19,56 @@ namespace VNotch.Windows;
 
 public partial class DockWindow : Window
 {
+    private class DockItemState
+    {
+        public Grid Grid { get; set; } = null!;
+        public ScaleTransform Scale { get; set; } = null!;
+        public TranslateTransform Trans { get; set; } = null!;
+        public Ellipse Dot { get; set; } = null!;
+        public string Title { get; set; } = "";
+        public SpringValue ScaleSpring = new(1.0);
+        public SpringValue TransXSpring = new(0.0);
+        public SpringValue TransYSpring = new(0.0);
+    }
+
     private readonly ISettingsService _settingsService;
+    private readonly WindowOverlapMonitor _overlapMonitor;
     private readonly DispatcherTimer _clockTimer;
     private readonly DispatcherTimer _procCheckTimer;
-    private readonly DispatcherTimer _autoHideTimer;
-    private readonly (Grid Grid, ScaleTransform Scale, TranslateTransform Trans, Ellipse Dot, string Title)[] _items;
+    private readonly DispatcherTimer _cursorPollTimer;
+    private readonly DockItemState[] _items;
+
+    private bool _isRenderLoopActive;
+    private long _lastRenderTimestamp;
+    private SpringValue _tooltipXSpring = new(0.0);
+    private SpringValue _tooltipYSpring = new(0.0);
+
+    private bool _isDockOverlapped;
     private bool _isDockSlidDown;
     private bool _isRevealedByMouse;
-    private long _mouseLeaveTime;
+    private long _revealStartTick;
+    private long _hideStartTick;
 
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-    public DockWindow(ISettingsService settingsService)
+    public DockWindow(ISettingsService settingsService, WindowOverlapMonitor overlapMonitor)
     {
         InitializeComponent();
         _settingsService = settingsService;
+        _overlapMonitor = overlapMonitor;
+        _overlapMonitor.RegisterDockRegionProvider(GetDockScreenBounds);
+        _overlapMonitor.DockOverlapChanged += OnDockOverlapChanged;
 
         _items = new[]
         {
-            (ItemExplorer, ScaleExplorer, TransExplorer, DotExplorer, "File Explorer"),
-            (ItemBrowser, ScaleBrowser, TransBrowser, DotBrowser, "Browser"),
-            (ItemChat, ScaleChat, TransChat, DotChat, "Pesan & Chat"),
-            (ItemMusic, ScaleMusic, TransMusic, DotMusic, "Musik"),
-            (ItemNotes, ScaleNotes, TransNotes, DotNotes, "Catatan"),
-            (ItemCalendar, ScaleCalendar, TransCalendar, DotCalendar, "Kalender"),
-            (ItemSettings, ScaleSettings, TransSettings, DotSettings, "Pengaturan")
+            new DockItemState { Grid = ItemExplorer, Scale = ScaleExplorer, Trans = TransExplorer, Dot = DotExplorer, Title = "File Explorer" },
+            new DockItemState { Grid = ItemBrowser, Scale = ScaleBrowser, Trans = TransBrowser, Dot = DotBrowser, Title = "Browser" },
+            new DockItemState { Grid = ItemChat, Scale = ScaleChat, Trans = TransChat, Dot = DotChat, Title = "Pesan & Chat" },
+            new DockItemState { Grid = ItemMusic, Scale = ScaleMusic, Trans = TransMusic, Dot = DotMusic, Title = "Musik" },
+            new DockItemState { Grid = ItemNotes, Scale = ScaleNotes, Trans = TransNotes, Dot = DotNotes, Title = "Catatan" },
+            new DockItemState { Grid = ItemCalendar, Scale = ScaleCalendar, Trans = TransCalendar, Dot = DotCalendar, Title = "Kalender" },
+            new DockItemState { Grid = ItemSettings, Scale = ScaleSettings, Trans = TransSettings, Dot = DotSettings, Title = "Pengaturan" }
         };
 
         // Live Clock Timer
@@ -52,16 +77,16 @@ public partial class DockWindow : Window
         _clockTimer.Start();
         UpdateClockAndCalendar();
 
-        // Process running check timer
+        // Process running check timer (offloaded to background thread)
         _procCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
         _procCheckTimer.Tick += (_, _) => CheckRunningApps();
         _procCheckTimer.Start();
         CheckRunningApps();
 
-        // Intelligent Auto-Hide & Collision Detection Timer (macOS style window dodging)
-        _autoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(160) };
-        _autoHideTimer.Tick += AutoHideTimer_Tick;
-        _autoHideTimer.Start();
+        // High-frequency, lightweight cursor poll timer (checks only point-in-rect for reveal trigger)
+        _cursorPollTimer = new DispatcherTimer(DispatcherPriority.Input) { Interval = TimeSpan.FromMilliseconds(50) };
+        _cursorPollTimer.Tick += CursorPollTimer_Tick;
+        _cursorPollTimer.Start();
 
         Loaded += DockWindow_Loaded;
         SizeChanged += DockWindow_SizeChanged;
@@ -70,12 +95,13 @@ public partial class DockWindow : Window
     private void DockWindow_Loaded(object sender, RoutedEventArgs e)
     {
         RepositionAtBottom();
-        EvaluateDockAutoHide();
+        _overlapMonitor.TriggerRecheck();
     }
 
     private void DockWindow_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         RepositionAtBottom();
+        _overlapMonitor.TriggerRecheck();
     }
 
     public void RepositionAtBottom()
@@ -111,25 +137,38 @@ public partial class DockWindow : Window
 
     private void CheckRunningApps()
     {
-        try
+        Task.Run(() =>
         {
-            var procs = Process.GetProcesses().Select(p => p.ProcessName.ToLowerInvariant()).ToHashSet();
+            try
+            {
+                var procs = Process.GetProcesses().Select(p => p.ProcessName.ToLowerInvariant()).ToHashSet();
+                bool hasExplorer = procs.Contains("explorer");
+                bool hasBrowser = procs.Contains("chrome") || procs.Contains("msedge") || procs.Contains("firefox") || procs.Contains("brave");
+                bool hasChat = procs.Contains("whatsapp") || procs.Contains("discord") || procs.Contains("telegram") || procs.Contains("teams");
+                bool hasMusic = procs.Contains("spotify") || procs.Contains("music") || procs.Contains("itunes");
+                bool hasNotes = procs.Contains("notepad") || procs.Contains("onenote");
+                bool hasCalendar = procs.Contains("olk") || procs.Contains("outlook");
+                bool hasSettings = procs.Contains("systemsettings");
 
-            DotExplorer.Opacity = procs.Contains("explorer") ? 1.0 : 0.0;
-            DotBrowser.Opacity = (procs.Contains("chrome") || procs.Contains("msedge") || procs.Contains("firefox") || procs.Contains("brave")) ? 1.0 : 0.0;
-            DotChat.Opacity = (procs.Contains("whatsapp") || procs.Contains("discord") || procs.Contains("telegram") || procs.Contains("teams")) ? 1.0 : 0.0;
-            DotMusic.Opacity = (procs.Contains("spotify") || procs.Contains("music") || procs.Contains("itunes")) ? 1.0 : 0.0;
-            DotNotes.Opacity = (procs.Contains("notepad") || procs.Contains("onenote")) ? 1.0 : 0.0;
-            DotCalendar.Opacity = procs.Contains("olk") || procs.Contains("outlook") ? 1.0 : 0.0;
-            DotSettings.Opacity = procs.Contains("systemsettings") ? 1.0 : 0.0;
-        }
-        catch
-        {
-            // Best effort process check
-        }
+                Dispatcher.BeginInvoke(() =>
+                {
+                    DotExplorer.Opacity = hasExplorer ? 1.0 : 0.0;
+                    DotBrowser.Opacity = hasBrowser ? 1.0 : 0.0;
+                    DotChat.Opacity = hasChat ? 1.0 : 0.0;
+                    DotMusic.Opacity = hasMusic ? 1.0 : 0.0;
+                    DotNotes.Opacity = hasNotes ? 1.0 : 0.0;
+                    DotCalendar.Opacity = hasCalendar ? 1.0 : 0.0;
+                    DotSettings.Opacity = hasSettings ? 1.0 : 0.0;
+                });
+            }
+            catch
+            {
+                // Best effort background check
+            }
+        });
     }
 
-    #region macOS Dock Magnification & Tooltip
+    #region macOS Dock Frame-Synced Spring Magnification & Tooltip
 
     private void IconsPanel_MouseMove(object sender, MouseEventArgs e)
     {
@@ -139,7 +178,7 @@ public partial class DockWindow : Window
         const double maxLift = 14.0;
         const double maxPush = 8.0;
 
-        (Grid Grid, ScaleTransform Scale, TranslateTransform Trans, Ellipse Dot, string Title)? closestItem = null;
+        DockItemState? closestItem = null;
         double minDistance = double.MaxValue;
 
         foreach (var item in _items)
@@ -156,53 +195,34 @@ public partial class DockWindow : Window
 
             if (absDist < range)
             {
-                double factor = Math.Cos((absDist / range) * (Math.PI / 2)); // 1.0 down to 0.0
-                double targetScale = 1.0 + factor * (maxScale - 1.0);
-                double targetY = -factor * maxLift;
+                double factor = Math.Cos((absDist / range) * (Math.PI / 2));
+                item.ScaleSpring.Target = 1.0 + factor * (maxScale - 1.0);
+                item.TransYSpring.Target = -factor * maxLift;
 
-                // Push adjacent icons outward to prevent any overlapping
                 double pushFactor = Math.Sin((absDist / range) * Math.PI);
-                double targetX = (distX >= 0 ? 1.0 : -1.0) * pushFactor * maxPush;
-
-                item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-                item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-                item.Trans.BeginAnimation(TranslateTransform.XProperty, null);
-                item.Trans.BeginAnimation(TranslateTransform.YProperty, null);
-
-                item.Scale.ScaleX = targetScale;
-                item.Scale.ScaleY = targetScale;
-                item.Trans.X = targetX;
-                item.Trans.Y = targetY;
+                item.TransXSpring.Target = (distX >= 0 ? 1.0 : -1.0) * pushFactor * maxPush;
             }
             else
             {
-                item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
-                item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
-                item.Trans.BeginAnimation(TranslateTransform.XProperty, null);
-                item.Trans.BeginAnimation(TranslateTransform.YProperty, null);
-
-                item.Scale.ScaleX = 1.0;
-                item.Scale.ScaleY = 1.0;
-                item.Trans.X = 0.0;
-                item.Trans.Y = 0.0;
+                item.ScaleSpring.Target = 1.0;
+                item.TransXSpring.Target = 0.0;
+                item.TransYSpring.Target = 0.0;
             }
         }
 
-        // Tooltip badge over closest icon
+        StartRenderLoop();
+
+        // Tooltip badge target calculation
         if (closestItem != null && minDistance < 36.0)
         {
-            var rootPos = closestItem.Value.Grid.TransformToAncestor(DockRootGrid).Transform(new Point(closestItem.Value.Grid.ActualWidth / 2, 0));
-            TooltipText.Text = closestItem.Value.Title;
-            TooltipBadge.UpdateLayout();
+            var rootPos = closestItem.Grid.TransformToAncestor(DockRootGrid).Transform(new Point(closestItem.Grid.ActualWidth / 2, 0));
+            TooltipText.Text = closestItem.Title;
 
             double badgeW = TooltipBadge.ActualWidth > 0 ? TooltipBadge.ActualWidth : 60;
             double badgeH = TooltipBadge.ActualHeight > 0 ? TooltipBadge.ActualHeight : 24;
 
-            double badgeX = rootPos.X - (badgeW / 2);
-            TooltipTranslate.X = Math.Max(12, badgeX);
-
-            double badgeY = Math.Max(6, rootPos.Y - badgeH - 10);
-            TooltipTranslate.Y = badgeY;
+            _tooltipXSpring.Target = Math.Max(12, rootPos.X - (badgeW / 2));
+            _tooltipYSpring.Target = Math.Max(6, rootPos.Y - badgeH - 10);
 
             var fadeAnim = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(120)) { EasingFunction = new QuadraticEase() };
             TooltipBadge.BeginAnimation(OpacityProperty, fadeAnim);
@@ -215,26 +235,63 @@ public partial class DockWindow : Window
 
     private void IconsPanel_MouseLeave(object sender, MouseEventArgs e)
     {
-        ResetAllIcons();
+        foreach (var item in _items)
+        {
+            item.ScaleSpring.Target = 1.0;
+            item.TransXSpring.Target = 0.0;
+            item.TransYSpring.Target = 0.0;
+        }
+        StartRenderLoop();
         HideTooltip();
     }
 
-    private void ResetAllIcons()
+    private void StartRenderLoop()
     {
-        var animDuration = TimeSpan.FromMilliseconds(180);
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        if (_isRenderLoopActive) return;
+        _isRenderLoopActive = true;
+        _lastRenderTimestamp = Stopwatch.GetTimestamp();
+        CompositionTarget.Rendering += OnRenderFrame;
+    }
 
+    private void StopRenderLoop()
+    {
+        if (!_isRenderLoopActive) return;
+        _isRenderLoopActive = false;
+        _lastRenderTimestamp = 0;
+        CompositionTarget.Rendering -= OnRenderFrame;
+    }
+
+    private void OnRenderFrame(object? sender, EventArgs e)
+    {
+        long now = Stopwatch.GetTimestamp();
+        double dt = _lastRenderTimestamp == 0 ? 0.016 : (double)(now - _lastRenderTimestamp) / Stopwatch.Frequency;
+        _lastRenderTimestamp = now;
+        dt = Math.Clamp(dt, 0.001, 0.05);
+
+        bool stillMoving = false;
         foreach (var item in _items)
         {
-            var scaleAnimX = new DoubleAnimation(1.0, animDuration) { EasingFunction = ease };
-            var scaleAnimY = new DoubleAnimation(1.0, animDuration) { EasingFunction = ease };
-            var transAnimX = new DoubleAnimation(0.0, animDuration) { EasingFunction = ease };
-            var transAnimY = new DoubleAnimation(0.0, animDuration) { EasingFunction = ease };
+            bool sMove = item.ScaleSpring.Update(dt, speed: 28.0);
+            bool xMove = item.TransXSpring.Update(dt, speed: 28.0);
+            bool yMove = item.TransYSpring.Update(dt, speed: 28.0);
 
-            item.Scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnimX);
-            item.Scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnimY);
-            item.Trans.BeginAnimation(TranslateTransform.XProperty, transAnimX);
-            item.Trans.BeginAnimation(TranslateTransform.YProperty, transAnimY);
+            item.Scale.ScaleX = item.ScaleSpring.Current;
+            item.Scale.ScaleY = item.ScaleSpring.Current;
+            item.Trans.X = item.TransXSpring.Current;
+            item.Trans.Y = item.TransYSpring.Current;
+
+            stillMoving |= sMove || xMove || yMove;
+        }
+
+        bool txMove = _tooltipXSpring.Update(dt, speed: 32.0);
+        bool tyMove = _tooltipYSpring.Update(dt, speed: 32.0);
+        TooltipTranslate.X = _tooltipXSpring.Current;
+        TooltipTranslate.Y = _tooltipYSpring.Current;
+        stillMoving |= txMove || tyMove;
+
+        if (!stillMoving)
+        {
+            StopRenderLoop();
         }
     }
 
@@ -242,6 +299,133 @@ public partial class DockWindow : Window
     {
         var fadeOut = new DoubleAnimation(0.0, TimeSpan.FromMilliseconds(150)) { EasingFunction = new QuadraticEase() };
         TooltipBadge.BeginAnimation(OpacityProperty, fadeOut);
+    }
+
+    #endregion
+
+    #region Intelligent Auto-Hide & Precision Trigger Zone
+
+    public Rect? GetDockScreenBounds()
+    {
+        if (!IsLoaded || Visibility != Visibility.Visible || ActualWidth <= 0 || ActualHeight <= 0)
+            return null;
+        try
+        {
+            Point topLeft = PointToScreen(new Point(12, 50));
+            Point bottomRight = PointToScreen(new Point(ActualWidth - 12, Height));
+            return new Rect(topLeft, bottomRight);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void OnDockOverlapChanged(bool isOverlapped)
+    {
+        _isDockOverlapped = isOverlapped;
+        UpdateDockSlideState();
+    }
+
+    private void CursorPollTimer_Tick(object? sender, EventArgs e)
+    {
+        if (!IsLoaded || Visibility != Visibility.Visible) return;
+
+        var settings = _settingsService.Load();
+        if (settings.DockAutoHideMode == "Never")
+        {
+            if (_isDockSlidDown) SlideDock(false);
+            return;
+        }
+
+        if (Win32Interop.GetCursorPos(out var mousePt))
+        {
+            var workArea = SystemParameters.WorkArea;
+            double dockWidth = ActualWidth > 0 ? ActualWidth : 580;
+            var triggerZone = TriggerZoneCalculator.CalculateDockTriggerZone(
+                Left, dockWidth, workArea.Bottom,
+                settings.DockRevealHeightPx, settings.DockRevealExtraWidthPx);
+
+            bool inTriggerZone = TriggerZoneCalculator.IsPointInZone(triggerZone, new Point(mousePt.X, mousePt.Y));
+            bool isOverDockWindow = mousePt.X >= Left - 15 && mousePt.X <= Left + dockWidth + 15 &&
+                                   mousePt.Y >= Top && mousePt.Y <= Top + Height + 25;
+
+            if (inTriggerZone || isOverDockWindow)
+            {
+                if (!_isRevealedByMouse)
+                {
+                    long now = Environment.TickCount64;
+                    if (_revealStartTick == 0)
+                    {
+                        _revealStartTick = now;
+                    }
+                    else if (now - _revealStartTick >= settings.DockRevealDelayMs)
+                    {
+                        _isRevealedByMouse = true;
+                        _revealStartTick = 0;
+                        _hideStartTick = 0;
+                        UpdateDockSlideState();
+                    }
+                }
+            }
+            else
+            {
+                _revealStartTick = 0;
+                if (_isRevealedByMouse)
+                {
+                    long now = Environment.TickCount64;
+                    if (_hideStartTick == 0)
+                    {
+                        _hideStartTick = now;
+                    }
+                    else if (now - _hideStartTick >= settings.DockHideDelayMs)
+                    {
+                        _isRevealedByMouse = false;
+                        _hideStartTick = 0;
+                        UpdateDockSlideState();
+                    }
+                }
+            }
+        }
+    }
+
+    private void UpdateDockSlideState()
+    {
+        var settings = _settingsService.Load();
+        bool shouldHide = false;
+        if (settings.DockAutoHideMode == "Always")
+        {
+            shouldHide = !_isRevealedByMouse;
+        }
+        else if (settings.DockAutoHideMode == "Smart")
+        {
+            shouldHide = _isDockOverlapped && !_isRevealedByMouse;
+        }
+        else // "Never"
+        {
+            shouldHide = false;
+        }
+
+        if (shouldHide != _isDockSlidDown)
+        {
+            _isDockSlidDown = shouldHide;
+            SlideDock(shouldHide);
+        }
+    }
+
+    private void SlideDock(bool hide)
+    {
+        var animDuration = TimeSpan.FromMilliseconds(220);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+        double targetY = hide ? 95.0 : 0.0;
+        double targetOpacity = hide ? 0.0 : 1.0;
+
+        var transAnim = new DoubleAnimation(targetY, animDuration) { EasingFunction = ease };
+        var opacityAnim = new DoubleAnimation(targetOpacity, animDuration) { EasingFunction = ease };
+
+        DockRootTranslate.BeginAnimation(TranslateTransform.YProperty, transAnim);
+        DockRootGrid.BeginAnimation(OpacityProperty, opacityAnim);
     }
 
     #endregion
@@ -266,14 +450,13 @@ public partial class DockWindow : Window
     private void Launcher_Click(object sender, MouseButtonEventArgs e)
     {
         AnimateBounce(LauncherContainer);
-        // Toggle Windows Start menu
         keybd_event(0x5B, 0, 0, UIntPtr.Zero);
         keybd_event(0x5B, 0, 2, UIntPtr.Zero);
     }
 
     private void Launcher_MouseEnter(object sender, MouseEventArgs e)
     {
-        var anim = new DoubleAnimation(1.1, TimeSpan.FromMilliseconds(120));
+        var anim = new DoubleAnimation(1.15, TimeSpan.FromMilliseconds(150)) { EasingFunction = new QuadraticEase() };
         LauncherScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
         LauncherScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
     }
@@ -300,7 +483,6 @@ public partial class DockWindow : Window
     private void AppChat_Click(object sender, MouseButtonEventArgs e)
     {
         AnimateBounce(ItemChat);
-        // Try WhatsApp protocol, fallback to Discord, fallback to web
         try
         {
             Process.Start(new ProcessStartInfo("whatsapp:") { UseShellExecute = true });
@@ -379,162 +561,13 @@ public partial class DockWindow : Window
 
     #endregion
 
-    #region Intelligent Auto-Hide & Window Collision Dodging
-
-    private void AutoHideTimer_Tick(object? sender, EventArgs e)
-    {
-        EvaluateDockAutoHide();
-    }
-
-    private void EvaluateDockAutoHide()
-    {
-        if (!IsLoaded || Visibility != Visibility.Visible || ActualWidth <= 0 || ActualHeight <= 0)
-            return;
-
-        // 1. Get current mouse position in physical screen coordinates
-        bool hasMouse = Win32Interop.GetCursorPos(out var mousePt);
-
-        Point dockTopLeft;
-        Point dockBottomRight;
-        try
-        {
-            dockTopLeft = PointToScreen(new Point(0, 0));
-            dockBottomRight = PointToScreen(new Point(ActualWidth, ActualHeight));
-        }
-        catch
-        {
-            return;
-        }
-
-        // Is mouse cursor hovering over the dock window?
-        bool isMouseOverDock = hasMouse &&
-            mousePt.X >= dockTopLeft.X - 15 && mousePt.X <= dockBottomRight.X + 15 &&
-            mousePt.Y >= dockTopLeft.Y && mousePt.Y <= dockBottomRight.Y + 25;
-
-        // Is mouse touching the bottom reveal strip of the screen where the dock sits?
-        bool isMouseAtBottomEdge = hasMouse &&
-            mousePt.X >= dockTopLeft.X - 35 && mousePt.X <= dockBottomRight.X + 35 &&
-            mousePt.Y >= dockBottomRight.Y - 8;
-
-        if (isMouseAtBottomEdge || isMouseOverDock)
-        {
-            _isRevealedByMouse = true;
-            _mouseLeaveTime = 0;
-        }
-        else if (_isRevealedByMouse)
-        {
-            long now = Environment.TickCount64;
-            if (_mouseLeaveTime == 0)
-            {
-                _mouseLeaveTime = now;
-            }
-            else if (now - _mouseLeaveTime > 320) // 320ms grace period after cursor leaves
-            {
-                _isRevealedByMouse = false;
-                _mouseLeaveTime = 0;
-            }
-        }
-
-        // 2. Check if any application window is actively overlapping the dock area
-        bool isOverlapping = IsAnyWindowOverlappingDock();
-
-        // 3. Dock hides only if there is an overlapping window AND mouse is not actively revealing it
-        bool shouldHide = isOverlapping && !_isRevealedByMouse;
-
-        if (shouldHide != _isDockSlidDown)
-        {
-            _isDockSlidDown = shouldHide;
-            AnimateDockSlide(shouldHide);
-        }
-    }
-
-    private bool IsAnyWindowOverlappingDock()
-    {
-        if (!IsLoaded || ActualWidth <= 0 || ActualHeight <= 0) return false;
-
-        Point topLeft;
-        Point bottomRight;
-        try
-        {
-            // Visual dock pill bounds in screen coordinates (from Y=50 down to window height)
-            topLeft = PointToScreen(new Point(12, 50));
-            bottomRight = PointToScreen(new Point(ActualWidth - 12, Height));
-        }
-        catch
-        {
-            return false;
-        }
-
-        double dockLeft = topLeft.X;
-        double dockRight = bottomRight.X;
-        double dockTop = topLeft.Y;
-        double dockBottom = bottomRight.Y;
-
-        uint currentPid = (uint)Environment.ProcessId;
-        IntPtr dockHwnd = new WindowInteropHelper(this).Handle;
-        bool hasOverlap = false;
-
-        Win32Interop.EnumWindows((hWnd, lParam) =>
-        {
-            if (hWnd == dockHwnd) return true;
-
-            // Ignore our own process windows (Settings, Notch, Tray Menu, Spotlight)
-            Win32Interop.GetWindowThreadProcessId(hWnd, out uint pid);
-            if (pid == currentPid) return true;
-
-            // Ignore invisible, minimized, or cloaked windows
-            if (!Win32Interop.IsWindowVisible(hWnd) || Win32Interop.IsIconic(hWnd)) return true;
-            if (FullscreenDetector.IsWindowCloaked(hWnd)) return true;
-            if (FullscreenDetector.IsBlockedClass(hWnd)) return true;
-
-            // Get window bounds using DwmGetWindowAttribute (excludes drop shadows)
-            if (FullscreenDetector.TryGetWindowBounds(hWnd, out var wr))
-            {
-                int width = wr.Right - wr.Left;
-                int height = wr.Bottom - wr.Top;
-                if (width < 80 || height < 80) return true; // ignore tiny tooltips/widgets
-
-                // Check intersection with the Dock area
-                bool intersects = wr.Right > dockLeft &&
-                                 wr.Left < dockRight &&
-                                 wr.Bottom > dockTop &&
-                                 wr.Top < dockBottom;
-
-                if (intersects)
-                {
-                    hasOverlap = true;
-                    return false; // Found overlapping window! Stop enum.
-                }
-            }
-
-            return true;
-        }, IntPtr.Zero);
-
-        return hasOverlap;
-    }
-
-    private void AnimateDockSlide(bool hide)
-    {
-        var animDuration = TimeSpan.FromMilliseconds(240);
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-
-        double targetY = hide ? 95.0 : 0.0;
-        double targetOpacity = hide ? 0.0 : 1.0;
-
-        var transAnim = new DoubleAnimation(targetY, animDuration) { EasingFunction = ease };
-        var opacityAnim = new DoubleAnimation(targetOpacity, animDuration) { EasingFunction = ease };
-
-        DockRootTranslate.BeginAnimation(TranslateTransform.YProperty, transAnim);
-        DockRootGrid.BeginAnimation(OpacityProperty, opacityAnim);
-    }
-
-    #endregion
-
     protected override void OnClosed(EventArgs e)
     {
         _clockTimer.Stop();
         _procCheckTimer.Stop();
-        _autoHideTimer.Stop();
+        _cursorPollTimer.Stop();
+        StopRenderLoop();
+        _overlapMonitor.DockOverlapChanged -= OnDockOverlapChanged;
         base.OnClosed(e);
     }
 }

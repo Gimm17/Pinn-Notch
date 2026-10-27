@@ -1,0 +1,46 @@
+<Window x:Class="VNotch.Windows.TriggerZonePreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TriggerZonePreview"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        IsHitTestVisible="False"
+        ResizeMode="NoResize"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+
+    <Grid>
+        <!-- Glowing visual zone indicator -->
+        <Border x:Name="ZoneBorder"
+                CornerRadius="6"
+                Background="#2600E5FF"
+                BorderBrush="#B000E5FF"
+                BorderThickness="1.5">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="14" Color="#00E5FF" Opacity="0.6" ShadowDepth="0"/>
+            </Border.Effect>
+        </Border>
+
+        <!-- Floating description tag -->
+        <Border x:Name="TagBadge"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#EE14141E"
+                BorderBrush="#7000E5FF"
+                BorderThickness="1"
+                CornerRadius="5"
+                Padding="8,2"
+                Margin="2">
+            <TextBlock x:Name="TagText"
+                       Text="Area Trigger"
+                       FontSize="10.5"
+                       FontWeight="SemiBold"
+                       Foreground="#FF00E5FF"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</Window>

@@ -75,6 +75,34 @@ public partial class NotchSettings
     public bool EnableDockMagnification { get; set; } = true;
     public bool EnableDockRunningIndicators { get; set; } = true;
 
+    // Pinn Intelligent Auto-Hide & Precision Trigger Zones
+    public string DockAutoHideMode { get; set; } = "Smart"; // "Smart", "Always", "Never"
+    private int _dockRevealHeightPx = 4;
+    public int DockRevealHeightPx { get => _dockRevealHeightPx; set => _dockRevealHeightPx = ClampInt(value, 1, 40); }
+    private int _dockRevealExtraWidthPx = 0;
+    public int DockRevealExtraWidthPx { get => _dockRevealExtraWidthPx; set => _dockRevealExtraWidthPx = ClampInt(value, 0, 300); }
+    private int _dockRevealDelayMs = 120;
+    public int DockRevealDelayMs { get => _dockRevealDelayMs; set => _dockRevealDelayMs = ClampInt(value, 0, 1000); }
+    private int _dockHideDelayMs = 400;
+    public int DockHideDelayMs { get => _dockHideDelayMs; set => _dockHideDelayMs = ClampInt(value, 0, 3000); }
+
+    public string NotchAutoHideMode { get; set; } = "Smart"; // "Smart", "Always", "Never"
+    private int _notchRevealHeightPx = 3;
+    public int NotchRevealHeightPx { get => _notchRevealHeightPx; set => _notchRevealHeightPx = ClampInt(value, 1, 40); }
+    private int _notchRevealExtraWidthPx = 0;
+    public int NotchRevealExtraWidthPx { get => _notchRevealExtraWidthPx; set => _notchRevealExtraWidthPx = ClampInt(value, 0, 300); }
+    private int _notchRevealDelayMs = 100;
+    public int NotchRevealDelayMs { get => _notchRevealDelayMs; set => _notchRevealDelayMs = ClampInt(value, 0, 1000); }
+    private int _notchHideDelayMs = 500;
+    public int NotchHideDelayMs { get => _notchHideDelayMs; set => _notchHideDelayMs = ClampInt(value, 0, 3000); }
+
+    public bool NotchHiddenPeekEnabled { get; set; } = true;
+    private int _notchHiddenPeekHeightPx = 2;
+    public int NotchHiddenPeekHeightPx { get => _notchHiddenPeekHeightPx; set => _notchHiddenPeekHeightPx = ClampInt(value, 1, 12); }
+    public bool NotchNotificationRevealEnabled { get; set; } = true;
+    private int _notchNotificationRevealDurationMs = 2500;
+    public int NotchNotificationRevealDurationMs { get => _notchNotificationRevealDurationMs; set => _notchNotificationRevealDurationMs = ClampInt(value, 500, 10000); }
+
     public bool HideCamera { get; set; } = false;
     public bool ClipboardAutoDeleteSensitive { get; set; }
     public bool ClipboardCaptureText { get; set; } = true;

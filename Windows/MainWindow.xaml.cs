@@ -511,6 +511,7 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         InitializeSessionUnlockFeedback();
+        InitNotchSmartAutoHide();
         _invisibleHotkey ??= new VNotch.Controllers.InvisibleHotkeyController(this, ToggleInvisibleMode);
         _overlayWindow.Initialize();
         _spotlightController.Initialize(this, _settings);

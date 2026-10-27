@@ -923,6 +923,108 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <!-- Auto-Hide & Precision Trigger Area Section -->
+                                        <TextBlock Text="AUTO-HIDE &amp; AREA TRIGGER" Style="{StaticResource SectionHeader}" Margin="0,16,0,8"/>
+
+                                        <!-- Dock Auto-Hide Mode -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <TextBlock Text="Mode Auto-Hide Dock 💻" Style="{StaticResource SettingTitleText}"/>
+                                                <TextBlock Text="Pilih kapan Dock harus bersembunyi otomatis." Style="{StaticResource SettingHintText}" Margin="0,2,0,6"/>
+                                                <ComboBox x:Name="DockAutoHideModeCombo" Height="30" SelectionChanged="DockAutoHideModeCombo_SelectionChanged" Background="#1E1E2E" Foreground="White">
+                                                    <ComboBoxItem Content="Smart (Sembunyi otomatis saat tertimpa jendela)" Tag="Smart"/>
+                                                    <ComboBoxItem Content="Selalu Sembunyi (Hanya muncul saat kursor ke bawah)" Tag="Always"/>
+                                                    <ComboBoxItem Content="Jangan Pernah Sembunyi (Selalu tampil)" Tag="Never"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Dock Reveal Height Slider -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <controls:ElasticSlider x:Name="DockRevealHeightSlider"
+                                                                        Label="Tinggi Area Trigger Dock (Tepi Bawah)" Unit=" px"
+                                                                        Description="Tinggi zona sensitif di tepi bawah layar untuk memunculkan Dock saat sembunyi."
+                                                                        Minimum="1" Maximum="30" Value="4" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                                        ValueChanged="DockRevealHeightSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Dock Reveal Extra Width Slider -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <controls:ElasticSlider x:Name="DockRevealExtraWidthSlider"
+                                                                        Label="Lebar Ekstra Trigger Dock" Unit=" px"
+                                                                        Description="Perluasan area trigger ke sisi kiri dan kanan Dock (0 px = presisi selebar Dock saja)."
+                                                                        Minimum="0" Maximum="200" Value="0" TickFrequency="10" IsSnapToTickEnabled="True"
+                                                                        ValueChanged="DockRevealExtraWidthSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Notch Auto-Hide Mode -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <TextBlock Text="Mode Auto-Hide Notch 📱" Style="{StaticResource SettingTitleText}"/>
+                                                <TextBlock Text="Pilih kapan Notch harus bersembunyi otomatis agar tidak menutupi tab/jendela aktif." Style="{StaticResource SettingHintText}" Margin="0,2,0,6"/>
+                                                <ComboBox x:Name="NotchAutoHideModeCombo" Height="30" SelectionChanged="NotchAutoHideModeCombo_SelectionChanged" Background="#1E1E2E" Foreground="White">
+                                                    <ComboBoxItem Content="Smart (Sembunyi otomatis saat tertimpa jendela)" Tag="Smart"/>
+                                                    <ComboBoxItem Content="Selalu Sembunyi (Hanya muncul saat kursor ke atas)" Tag="Always"/>
+                                                    <ComboBoxItem Content="Jangan Pernah Sembunyi (Selalu tampil)" Tag="Never"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Notch Reveal Height Slider -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <controls:ElasticSlider x:Name="NotchRevealHeightSlider"
+                                                                        Label="Tinggi Area Trigger Notch (Tepi Atas)" Unit=" px"
+                                                                        Description="Tinggi zona sensitif di tepi paling atas layar untuk memunculkan Notch saat sembunyi."
+                                                                        Minimum="1" Maximum="30" Value="3" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                                        ValueChanged="NotchRevealHeightSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Notch Reveal Extra Width Slider -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <controls:ElasticSlider x:Name="NotchRevealExtraWidthSlider"
+                                                                        Label="Lebar Ekstra Trigger Notch" Unit=" px"
+                                                                        Description="Perluasan area trigger ke kiri dan kanan dari lebar Notch (0 px = presisi selebar Notch saja)."
+                                                                        Minimum="0" Maximum="200" Value="0" TickFrequency="10" IsSnapToTickEnabled="True"
+                                                                        ValueChanged="NotchRevealExtraWidthSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Notch Peek Indicator Check & Height -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="NotchHiddenPeekCheck"
+                                                          Content="Garis Tipis Penanda Notch (Peek Indicator) 📏"
+                                                          Checked="NotchHiddenPeekCheck_Changed"
+                                                          Unchecked="NotchHiddenPeekCheck_Changed"/>
+                                                <TextBlock Text="Menyisakan garis tipis di atas layar saat Notch sembunyi agar user tahu posisi presisi untuk mengarahkan mouse."
+                                                           Style="{StaticResource SettingHintText}" Margin="0,4,0,8"/>
+                                                <controls:ElasticSlider x:Name="NotchHiddenPeekHeightSlider"
+                                                                        Label="Ketebalan Garis Penanda" Unit=" px"
+                                                                        Description="Ketebalan garis penanda (default 2 px)."
+                                                                        Minimum="1" Maximum="8" Value="2" TickFrequency="1" IsSnapToTickEnabled="True"
+                                                                        ValueChanged="NotchHiddenPeekHeightSlider_ValueChanged"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Notch Notification Reveal -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="NotchNotificationRevealCheck"
+                                                          Content="Tampilkan Notifikasi Saat Notch Sembunyi 🔔"
+                                                          Checked="NotchNotificationRevealCheck_Changed"
+                                                          Unchecked="NotchNotificationRevealCheck_Changed"/>
+                                                <TextBlock Text="Otomatis memunculkan Notch sementara (2.5 detik) saat ada notifikasi ganti lagu, USB, atau bluetooth."
+                                                           Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Navigation Tabs Order & Visibility -->
                                         <Border Style="{StaticResource SettingRowBorder}">
                                             <StackPanel>
