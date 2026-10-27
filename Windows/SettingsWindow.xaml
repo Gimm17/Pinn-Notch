@@ -860,6 +860,69 @@
                                     <StackPanel>
                                         <TextBlock x:Name="AppearanceHeader" Text="APPEARANCE" Style="{StaticResource SectionHeader}" Visibility="Collapsed"/>
 
+                                        <!-- Pinn Cute Mascot & Themes -->
+                                        <Border Style="{StaticResource SettingRowBorder}">
+                                            <StackPanel>
+                                                <CheckBox x:Name="EnablePinnMascotCheck"
+                                                          Content="Enable Pinn the Cat mascot 🐱"
+                                                          Checked="EnablePinnMascotCheck_Changed"
+                                                          Unchecked="EnablePinnMascotCheck_Changed"/>
+                                                <TextBlock Text="A cute chibi cat companion sitting on your notch with reactive eyes and animations."
+                                                           Style="{StaticResource SettingHintText}"
+                                                           Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="PinnMusicReactionCheck"
+                                                          Content="Pinn dances &amp; wears headphones to music 🎧"
+                                                          Checked="PinnMusicReactionCheck_Changed"
+                                                          Unchecked="PinnMusicReactionCheck_Changed"/>
+                                                <TextBlock Text="Pinn puts on mini headphones and bobs its head while songs are playing."
+                                                           Style="{StaticResource SettingHintText}"
+                                                           Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <TextBlock Text="Cute Notch Theme 🎨" Style="{StaticResource SettingTitleText}"/>
+                                                <TextBlock Text="Choose a beautiful pastel or dark aesthetic for Pinn-Noch."
+                                                           Style="{StaticResource SettingHintText}"
+                                                           Margin="0,2,0,8"/>
+                                                <ComboBox x:Name="PinnThemeCombo"
+                                                          Height="30"
+                                                          SelectionChanged="PinnThemeCombo_SelectionChanged"
+                                                          Background="#1E1E2E"
+                                                          Foreground="White"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="EnableGhostModeCheck"
+                                                          Content="Enable Ghost / Focus Mode (Triple-Click) 👻"
+                                                          Checked="EnableGhostModeCheck_Changed"
+                                                          Unchecked="EnableGhostModeCheck_Changed"/>
+                                                <TextBlock Text="Triple-click the notch to make it semi-transparent and click-through for zero distraction."
+                                                           Style="{StaticResource SettingHintText}"
+                                                           Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="EnableUsbNotifCheck"
+                                                          Content="Hardware USB Connect/Disconnect alerts 🔌"
+                                                          Checked="EnableUsbNotifCheck_Changed"
+                                                          Unchecked="EnableUsbNotifCheck_Changed"/>
+                                                <TextBlock Text="Receive instant pill notification alerts whenever a USB device or drive is plugged in or detached."
+                                                           Style="{StaticResource SettingHintText}"
+                                                           Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Navigation Tabs Order & Visibility -->
                                         <Border Style="{StaticResource SettingRowBorder}">
                                             <StackPanel>

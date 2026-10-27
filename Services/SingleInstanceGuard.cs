@@ -22,9 +22,6 @@ public sealed partial class SingleInstanceGuard : IDisposable
         using var identity = WindowsIdentity.GetCurrent();
         var sid = identity.User?.Value ?? throw new InvalidOperationException("The current user SID is unavailable.");
         // Scope to this Windows session and user; same-user processes are still a trust boundary limitation.
-        Span<char> buf = stackalloc char[256];
-        if (NativeFormatMutexName(sid.AsSpan(), sid.Length, buf, buf.Length, out int len) == 0 && len > 0)
-            return new string(buf.Slice(0, len));
         return $@"Local\PinnNoch_SingleInstance_{sid}";
     }
 

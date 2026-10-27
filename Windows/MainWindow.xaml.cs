@@ -306,6 +306,8 @@ public partial class MainWindow : Window
         AnimationPrimitives.ApplyFpsToTree(this);
         _settingsService = settingsService;
         _settings = _settingsService.Load();
+        UiPalette.ApplyTheme(_settings.PinnTheme, Resources);
+        InitializePinnMascot();
         UpdateInvisibleTrayVisibility();
         if (string.IsNullOrEmpty(_settings.MonitorDeviceId))
         {
@@ -404,6 +406,7 @@ public partial class MainWindow : Window
         _overlayWindow.TargetScreen = () => MonitorSelection.Resolve(_settings);
         _overlayWindow.IsZOrderSuspended = isTopmostSuspended;
         _overlayWindow.IsPointInteractive = IsPointInteractive;
+        _overlayWindow.OnUsbDeviceChanged = HandleUsbDeviceChanged;
 
         _lyricsTimer = new UiScheduledTimer(DispatcherPriority.Background)
         {
@@ -2205,6 +2208,12 @@ public partial class MainWindow : Window
 
     private void NotchBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (_settings.EnableGhostMode && e.ClickCount == 3)
+        {
+            ToggleGhostMode();
+            e.Handled = true;
+            return;
+        }
 
         if (_isDebugDraggable)
         {
@@ -2890,6 +2899,7 @@ public partial class MainWindow : Window
 
     private bool IsPointInteractive(Point windowPt)
     {
+        if (_isGhostMode) return false;
         if (System.Windows.Input.Mouse.Captured != null) return true;
         if (windowPt.X < 0 || windowPt.Y < 0 || windowPt.X > ActualWidth || windowPt.Y > ActualHeight)
             return false;
@@ -2901,12 +2911,15 @@ public partial class MainWindow : Window
         while (current != null && current != this)
         {
             if (ReferenceEquals(current, NotchWrapper) ||
+                (PinnMascot != null && ReferenceEquals(current, PinnMascot)) ||
+                (NotesContent != null && ReferenceEquals(current, NotesContent)) ||
                 ReferenceEquals(current, NavIconsPanel) ||
                 ReferenceEquals(current, AudioContent.AudioOverlay) ||
                 ReferenceEquals(current, CompactHoverInfo) ||
                 (ChargingNotification != null && ReferenceEquals(current, ChargingNotification)) ||
                 (BluetoothNotification != null && ReferenceEquals(current, BluetoothNotification)) ||
                 (BluetoothDisconnectNotification != null && ReferenceEquals(current, BluetoothDisconnectNotification)) ||
+                (UsbNotification != null && ReferenceEquals(current, UsbNotification)) ||
                 (UpdateNotificationButton != null && ReferenceEquals(current, UpdateNotificationButton)))
             {
                 return true;

@@ -52,7 +52,14 @@ public partial class MainWindow
             {
                 BluetoothDeviceName.Text = device.Name;
                 BluetoothIcon.Data = BluetoothNotificationController.GetIconGeometry(device.DeviceType);
-                BluetoothStatusText.Text = Loc.Get("bluetooth.connected");
+                if (device.BatteryPercentage.HasValue && device.BatteryPercentage.Value > 0)
+                {
+                    BluetoothStatusText.Text = $"🔋 {device.BatteryPercentage.Value}%";
+                }
+                else
+                {
+                    BluetoothStatusText.Text = Loc.Get("bluetooth.connected");
+                }
             }
             else
             {

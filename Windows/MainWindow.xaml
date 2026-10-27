@@ -396,6 +396,15 @@
                         </MenuItem.Header>
                     </MenuItem>
                     <Separator Style="{StaticResource TraySeparatorStyle}"/>
+                    <MenuItem x:Name="MenuGhost"
+                              Style="{StaticResource TrayMenuItemStyle}"
+                              Icon="{StaticResource TrayInvisibleIconGeometry}"
+                              IsCheckable="True"
+                              Click="ToggleGhost_Click">
+                        <MenuItem.Header>
+                            <TextBlock x:Name="MenuGhostText" Text="Ghost Mode (Triple-click)" Style="{StaticResource TrayMenuItemText}"/>
+                        </MenuItem.Header>
+                    </MenuItem>
                     <MenuItem x:Name="MenuInvisible"
                               Style="{StaticResource TrayMenuItemStyle}"
                               Icon="{StaticResource TrayInvisibleIconGeometry}"
@@ -510,7 +519,7 @@
                 <Path x:Name="LeftEar"
                       Grid.Column="0"
                       Data="M 0,0 L 11,0 L 11,10 C 11,4.4 6.2,0 0,0 Z"
-                      Fill="{StaticResource NotchGradient}"
+                      Fill="{DynamicResource NotchGradient}"
                       Width="11" Height="10"
                       Margin="0,0,-1,0"
                       VerticalAlignment="Top"
@@ -541,7 +550,7 @@
                         </Border>
 
                         <Border x:Name="NotchBackground"
-                                Background="{StaticResource NotchGradient}"
+                                Background="{DynamicResource NotchGradient}"
                                 IsHitTestVisible="False"
                                 CornerRadius="0,0,20,20"/>
 
@@ -831,6 +840,34 @@
                                     HorizontalAlignment="Left" VerticalAlignment="Top"
                                     Margin="14,3,0,0"
                                     Background="Transparent">
+                            <ctrl:ActionBorder x:Name="NotesIconButton"
+                                    Tag="Notes"
+                                    Width="22" Height="22"
+                                    Background="Transparent"
+                                    Cursor="Hand"
+                                    Opacity="0.45"
+                                    Margin="0,0,4,0"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    PreviewMouseLeftButtonDown="NavIcon_PreviewMouseLeftButtonDown"
+                                    PreviewMouseMove="NavIcon_PreviewMouseMove"
+                                    PreviewMouseLeftButtonUp="NavIcon_PreviewMouseLeftButtonUp"
+                                    LostMouseCapture="NavIcon_LostMouseCapture"
+                                    Click="NotesIconButton_Click">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                        <TranslateTransform X="0" Y="0"/>
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
+                                </Border.Effect>
+                                <Viewbox Width="15" Height="15" Stretch="Uniform"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                                          Fill="{x:Static svc:UiPalette.PrimaryBrush}"/>
+                                </Viewbox>
+                            </ctrl:ActionBorder>
                             <ctrl:ActionBorder x:Name="HomeIconButton"
                                     Tag="Media"
                                     Width="22" Height="22"
@@ -1055,6 +1092,37 @@
                                        FontFamily="{StaticResource MainSystemFont}"
                                        VerticalAlignment="Center"
                                        Margin="5,2,0,0"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="UsbNotification"
+                          Opacity="0"
+                          Visibility="Collapsed"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Margin="10,0">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="UsbNotificationTranslate" Y="0"/>
+                        </Grid.RenderTransform>
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Margin="0,0,0,6">
+                            <TextBlock x:Name="UsbNotificationIcon"
+                                       Text="🔌"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,6,0"/>
+                            <TextBlock x:Name="UsbNotificationText"
+                                       Text="USB Connected"
+                                       Foreground="{x:Static svc:UiPalette.PrimaryBrush}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       FontFamily="{StaticResource MainSystemFont}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,2,0,0"
+                                       MaxWidth="180"
+                                       TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Grid>
 
@@ -1388,7 +1456,7 @@
                           Margin="8,2,8,8"
                           HorizontalAlignment="Center"
                           VerticalAlignment="Top"
-                          Background="{StaticResource NotchGradient}"
+                          Background="{DynamicResource NotchGradient}"
                           ClipToBounds="False"
                           RenderOptions.ClearTypeHint="Enabled"
                           UseLayoutRounding="False"
@@ -2634,6 +2702,16 @@
 
                     </Grid>
 
+                    <ctrl:NotesWidget x:Name="NotesContent"
+                                      Opacity="0"
+                                      Visibility="Collapsed"
+                                      Margin="19,40,19,14"
+                                      HorizontalAlignment="Center"
+                                      Width="682"
+                                      MouseLeftButtonDown="SecondaryContent_Click"
+                                      UseLayoutRounding="False"
+                                      SnapsToDevicePixels="False"/>
+
                     <ctrl:AudioMixerView x:Name="AudioContent"
                                          Opacity="0"
                                          Visibility="Collapsed"
@@ -3093,11 +3171,18 @@
             <Path x:Name="RightEar"
                   Grid.Column="2"
                   Data="M 11,0 L 0,0 L 0,10 C 0,4.4 4.8,0 11,0 Z"
-                  Fill="{StaticResource NotchGradient}"
+                  Fill="{DynamicResource NotchGradient}"
                   Width="11" Height="10"
                   Margin="-1,0,0,0"
                   VerticalAlignment="Top"
                   RenderOptions.EdgeMode="Unspecified"/>
+
+            <ctrl:PinnMascot x:Name="PinnMascot"
+                             Grid.Column="1"
+                             Panel.ZIndex="300"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Top"
+                             Margin="0,-16,24,0"/>
         </Grid>
     </Grid>
 </Grid>

@@ -108,6 +108,14 @@ internal sealed partial class QwenTranslationEngine : ILocalTranslationEngine
         _ => ""
     };
 
+    internal static string TrimStopSequence(string output)
+    {
+        if (string.IsNullOrEmpty(output)) return string.Empty;
+        if (vn_qwen_engine_compute_trim_stop_sequence_end(output.AsSpan(), output.Length, out int end) == 0 && end >= 0 && end <= output.Length)
+            return output[..end];
+        return output;
+    }
+
     internal static string ReadOutput(string output)
     {
         if (TryReadOutput(output, out string translation)) return translation;

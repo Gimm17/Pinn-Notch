@@ -154,6 +154,7 @@ internal static partial class InteractionSounds
 
     internal static void Shutdown() { Player.Enabled = false; Player.Dispose(); }
     internal static void Preview() { if (_initialized) Player.Play(InteractionCue.Select); }
+    internal static void Play(InteractionCue cue) { if (_initialized) Player.Play(cue); }
     // The notch intentionally accepts pointer input without activating its window.
     private static bool CanPlay(object sender) => sender is Window { IsVisible: true, IsEnabled: true };
 

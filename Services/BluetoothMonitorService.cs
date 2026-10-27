@@ -55,7 +55,9 @@ public sealed partial class BluetoothMonitorService : IDisposable
                 "System.ItemNameDisplay",
                 "System.Devices.Aep.DeviceAddress",
                 "System.Devices.Aep.IsConnected",
-                "System.Devices.Aep.Category"
+                "System.Devices.Aep.Category",
+                "System.Devices.Battery.RemainingPercentage",
+                "{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2"
             };
 
             _isInitialEnumerationComplete = false;
@@ -207,11 +209,22 @@ public sealed partial class BluetoothMonitorService : IDisposable
 
         var deviceType = DetectDeviceType(device.Name);
 
+        int? battery = null;
+        if (device.Properties.TryGetValue("{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2", out var battObj) && battObj != null)
+        {
+            try { battery = Convert.ToInt32(battObj); } catch { }
+        }
+        else if (device.Properties.TryGetValue("System.Devices.Battery.RemainingPercentage", out var remObj) && remObj != null)
+        {
+            try { battery = Convert.ToInt32(remObj); } catch { }
+        }
+
         return new BluetoothDeviceInfo
         {
             Id = device.Id,
             Name = device.Name,
-            DeviceType = deviceType
+            DeviceType = deviceType,
+            BatteryPercentage = battery
         };
     }
 
@@ -256,6 +269,7 @@ public sealed class BluetoothDeviceInfo
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public BluetoothDeviceType DeviceType { get; set; } = BluetoothDeviceType.Unknown;
+    public int? BatteryPercentage { get; set; }
 }
 public enum BluetoothDeviceType
 {

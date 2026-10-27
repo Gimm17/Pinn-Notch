@@ -21,6 +21,11 @@ public sealed class OverlayWindowController : IDisposable
     private bool _displayUpdatePending;
     public Func<System.Windows.Forms.Screen>? TargetScreen { get; set; }
     public Func<bool>? IsZOrderSuspended { get; set; }
+    public Action<bool>? OnUsbDeviceChanged { get; set; }
+
+    private const int WM_DEVICECHANGE = 0x0219;
+    private const int DBT_DEVICEARRIVAL = 0x8000;
+    private const int DBT_DEVICEREMOVECOMPLETE = 0x8004;
 
 #pragma warning disable S107 // Component wiring constructor delegates lifecycle and placement actions
     public OverlayWindowController(
@@ -328,6 +333,17 @@ public sealed class OverlayWindowController : IDisposable
                 break;
             case WM_CLIPBOARDUPDATE:
                 _onClipboardUpdated();
+                break;
+            case WM_DEVICECHANGE:
+                int devEvent = wParam.ToInt32();
+                if (devEvent == DBT_DEVICEARRIVAL)
+                {
+                    _window.Dispatcher.BeginInvoke(new Action(() => OnUsbDeviceChanged?.Invoke(true)));
+                }
+                else if (devEvent == DBT_DEVICEREMOVECOMPLETE)
+                {
+                    _window.Dispatcher.BeginInvoke(new Action(() => OnUsbDeviceChanged?.Invoke(false)));
+                }
                 break;
         }
         return IntPtr.Zero;

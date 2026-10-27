@@ -27,6 +27,7 @@ public partial class MainWindow
         e.Effects = _clipboardDragCanDrop ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true;
         if (!_clipboardDragCanDrop) return;
         SetClipboardDropHover(true);
+        PinnMascot?.SetDragHover(true);
         KeepClipboardDropTargetOpen();
         _clipboardDragAutoExpanded |= !_isExpanded;
         _transitionCoordinator.RequestView(NotchView.Secondary, "ClipboardDragEnter");
@@ -47,6 +48,7 @@ public partial class MainWindow
         _clipboardDragAutoExpanded = false;
         _clipboardDragCanDrop = false;
         SetClipboardDropHover(false);
+        PinnMascot?.SetDragHover(false);
     }
     private void NotchWrapper_DragOver(object sender, DragEventArgs e)
     {
@@ -73,6 +75,7 @@ public partial class MainWindow
         CancelDragDropTimers();
         if (cursorInside) return;
         SetClipboardDropHover(false);
+        PinnMascot?.SetDragHover(false);
         _clipboardDragCanDrop = false;
         bool collapse = _clipboardDragAutoExpanded;
         _clipboardDragAutoExpanded = false;

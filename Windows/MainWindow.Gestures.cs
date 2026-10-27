@@ -155,6 +155,11 @@ public partial class MainWindow
             return;
         }
 
+        if (PinnMascot != null && PinnMascot.Visibility == Visibility.Visible)
+        {
+            PinnMascot.UpdateMousePosition(e.GetPosition(NotchWrapper), new Rect(0, 0, NotchWrapper.ActualWidth, NotchWrapper.ActualHeight));
+        }
+
         NotchBorder_GestureMouseMove(sender, e);
     }
 

@@ -310,6 +310,7 @@ public partial class MainWindow
         if ((DateTime.UtcNow - _lastMediaActionTime).TotalMilliseconds > 1200 && _isPlaying != info.IsPlaying)
         {
             _isPlaying = info.IsPlaying;
+            OnMediaPlayingStateChanged(_isPlaying);
             UpdatePlayPauseIcon();
         }
 

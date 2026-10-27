@@ -272,6 +272,7 @@ public partial class SettingsWindow : Window
         EnableBlurEffectsCheck.IsChecked = _settings.EnableBlurEffects;
         MediaArtBackgroundCheck.IsChecked = _settings.ShowMediaArtBackground;
 
+        LoadPinnSettings(_settings);
         // Liquid Glass availability depends on this checkbox. Initialize the mode
         DynamicIslandModeCheck.IsChecked = _settings.EnableDynamicIslandMode;
         UpdateDynamicIslandDependentControls(_settings.EnableDynamicIslandMode);

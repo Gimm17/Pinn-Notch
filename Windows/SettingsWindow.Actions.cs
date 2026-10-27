@@ -76,6 +76,7 @@ public partial class SettingsWindow
             _settings.SubtitlePriority = defaults.SubtitlePriority;
             LoadSubtitlePriority();
 
+            LoadPinnSettings(defaults);
             DynamicIslandModeCheck.IsChecked = defaults.EnableDynamicIslandMode;
             UpdateDynamicIslandDependentControls(defaults.EnableDynamicIslandMode);
 
@@ -575,6 +576,7 @@ public partial class SettingsWindow
 
         snapshot.SubtitlePriority = GetSubtitlePriorityString();
 
+        SavePinnSettings(snapshot);
         snapshot.EnableDynamicIslandMode = DynamicIslandModeCheck.IsChecked ?? false;
 
         snapshot.EnableHoverExpand = HoverExpandCheck.IsChecked ?? true;

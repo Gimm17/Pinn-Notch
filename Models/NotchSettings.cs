@@ -56,6 +56,20 @@ public partial class NotchSettings
     public int MonitorIndex { get; set; } = 0;
     public string MonitorDeviceId { get; set; } = "";
 
+    // Pinn Mascot & Cute Companion
+    public bool EnablePinnMascot { get; set; } = true;
+    public string PinnMascotPosition { get; set; } = "Right";
+    public bool PinnMascotReactToMusic { get; set; } = true;
+
+    // Pinn Cute Themes
+    public string PinnTheme { get; set; } = "SakuraPastel";
+
+    // Phase 5 Features: Ghost Mode & Hardware
+    public bool EnableGhostMode { get; set; } = true;
+    public double GhostModeOpacity { get; set; } = 0.45;
+    public bool EnableUsbNotifications { get; set; } = true;
+    public bool EnableBudsBattery { get; set; } = true;
+
     public bool HideCamera { get; set; } = false;
     public bool ClipboardAutoDeleteSensitive { get; set; }
     public bool ClipboardCaptureText { get; set; } = true;
