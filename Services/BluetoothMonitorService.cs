@@ -56,8 +56,7 @@ public sealed partial class BluetoothMonitorService : IDisposable
                 "System.Devices.Aep.DeviceAddress",
                 "System.Devices.Aep.IsConnected",
                 "System.Devices.Aep.Category",
-                "System.Devices.Battery.RemainingPercentage",
-                "{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2"
+                "System.Devices.Battery.RemainingPercentage"
             };
 
             _isInitialEnumerationComplete = false;

@@ -70,10 +70,15 @@ public partial class DockWindow : Window
     public void RepositionAtBottom()
     {
         var workArea = SystemParameters.WorkArea;
-        // Center horizontally
-        Left = workArea.Left + (workArea.Width - ActualWidth) / 2;
-        // Float just above the taskbar / bottom edge
-        Top = workArea.Bottom - Height - 8;
+        double w = ActualWidth > 0 ? ActualWidth : 580;
+        Left = workArea.Left + (workArea.Width - w) / 2;
+        Top = Math.Max(0, workArea.Bottom - Height - 8);
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        RepositionAtBottom();
     }
 
     private void UpdateClockAndCalendar()
