@@ -138,41 +138,30 @@ public partial class SettingsWindow
         {
             if (_isClosing) return;
 
-            void AttachEntranceShadow()
+            // Re-enable crisp hardware subpixel snapping after entrance scale completes
+            this.SnapsToDevicePixels = true;
+            this.UseLayoutRounding = true;
+            MainShell.SnapsToDevicePixels = true;
+            MainShell.UseLayoutRounding = true;
+            ShellContent.SnapsToDevicePixels = true;
+            ShellContent.UseLayoutRounding = true;
+
+            ShellScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            ShellScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            ShellScale.ScaleX = 1.0;
+            ShellScale.ScaleY = 1.0;
+
+            MainShell.Effect = null;
+
+            if (ShellShadow != null)
             {
-                if (_isClosing) return;
-                if (Mouse.LeftButton == MouseButtonState.Pressed)
-                {
-                    PreviewMouseLeftButtonUp += OnMouseReleasedBeforeShadow;
-                    return;
-                }
-
-                var shadow = new System.Windows.Media.Effects.DropShadowEffect
-                {
-                    Color = System.Windows.Media.Colors.Black,
-                    BlurRadius = 30,
-                    ShadowDepth = 0,
-                    Opacity = 0.0
-                };
-                MainShell.Effect = shadow;
-
-                var shadowFade = new DoubleAnimation(0.0, 0.42, TimeSpan.FromMilliseconds(180))
+                var shadowFade = new DoubleAnimation(0.0, 1.0, TimeSpan.FromMilliseconds(180))
                 {
                     EasingFunction = easeOut
                 };
                 Timeline.SetDesiredFrameRate(shadowFade, fps);
-
-                shadow.BeginAnimation(System.Windows.Media.Effects.DropShadowEffect.OpacityProperty, shadowFade);
+                ShellShadow.BeginAnimation(OpacityProperty, shadowFade);
             }
-
-            void OnMouseReleasedBeforeShadow(object sender, MouseButtonEventArgs args)
-            {
-                PreviewMouseLeftButtonUp -= OnMouseReleasedBeforeShadow;
-                if (_isClosing) return;
-                Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(AttachEntranceShadow));
-            }
-
-            Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, new Action(AttachEntranceShadow));
         };
 
         ShellScale.BeginAnimation(ScaleTransform.ScaleXProperty, expandX);

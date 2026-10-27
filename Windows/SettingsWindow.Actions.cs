@@ -375,6 +375,10 @@ public partial class SettingsWindow
         MainShell.RenderTransformOrigin = new Point(0.5, 0.0);
 
         MainShell.Effect = null;
+        if (ShellShadow != null)
+        {
+            ShellShadow.BeginAnimation(OpacityProperty, new DoubleAnimation(0.0, TimeSpan.FromMilliseconds(160)));
+        }
 
         MainShell.SnapsToDevicePixels = false;
         MainShell.UseLayoutRounding = false;

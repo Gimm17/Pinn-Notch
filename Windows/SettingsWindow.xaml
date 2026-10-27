@@ -16,11 +16,12 @@
         Deactivated="Window_Deactivated"
         FocusManager.FocusedElement="{Binding ElementName=MainShell}"
         FontFamily="{fonts:AppFont Fallbacks='Nirmala UI, Segoe UI'}"
-        UseLayoutRounding="False"
-        SnapsToDevicePixels="False"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Grayscale"
-        TextOptions.TextHintingMode="Animated">
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        TextOptions.TextHintingMode="Fixed"
+        RenderOptions.ClearTypeHint="Enabled">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -55,9 +56,10 @@
             <Setter Property="FontSize" Value="{StaticResource SettingsLabelFontSize}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontFamily" Value="{StaticResource SettingsFont}"/>
-            <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
-            <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
-            <Setter Property="TextOptions.TextHintingMode" Value="Animated"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+            <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+            <Setter Property="TextOptions.TextHintingMode" Value="Fixed"/>
+            <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
         </Style>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -374,28 +376,47 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border x:Name="MainShell"
-            Margin="18"
-            CornerRadius="24"
-            Background="{StaticResource WindowGlow}"
-            BorderBrush="#18FFFFFF"
-            BorderThickness="1"
-            SnapsToDevicePixels="False"
-            UseLayoutRounding="False"
-            Opacity="0"
-            Focusable="True"
-            PreviewMouseLeftButtonDown="WindowSurface_PreviewMouseLeftButtonDown"
-            RenderTransformOrigin="0.5,0.0">
-        <Border.RenderTransform>
-            <TransformGroup>
-                <ScaleTransform x:Name="ShellScale" ScaleX="0.985" ScaleY="0.985"/>
-                <TranslateTransform x:Name="ShellTranslate" Y="8"/>
-            </TransformGroup>
-        </Border.RenderTransform>
+    <Grid>
+        <!-- Background Shadow Layer (Receives DropShadowEffect without affecting MainShell vector rendering) -->
+        <Border x:Name="ShellShadow"
+                Margin="18"
+                CornerRadius="{Binding CornerRadius, ElementName=MainShell}"
+                Background="#E0000000"
+                Opacity="0"
+                IsHitTestVisible="False">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000"
+                                  BlurRadius="36"
+                                  ShadowDepth="4"
+                                  Direction="270"
+                                  Opacity="0.45"
+                                  RenderingBias="Performance"/>
+            </Border.Effect>
+        </Border>
 
-        <Grid x:Name="ShellContent"
-              SnapsToDevicePixels="False"
-              UseLayoutRounding="False">
+        <!-- Main Settings Shell (Effect=null preserves razor-sharp ClearType text!) -->
+        <Border x:Name="MainShell"
+                Margin="18"
+                CornerRadius="24"
+                Background="{StaticResource WindowGlow}"
+                BorderBrush="#18FFFFFF"
+                BorderThickness="1"
+                SnapsToDevicePixels="True"
+                UseLayoutRounding="True"
+                Opacity="0"
+                Focusable="True"
+                PreviewMouseLeftButtonDown="WindowSurface_PreviewMouseLeftButtonDown"
+                RenderTransformOrigin="0.5,0.0">
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="ShellScale" ScaleX="0.985" ScaleY="0.985"/>
+                    <TranslateTransform x:Name="ShellTranslate" Y="8"/>
+                </TransformGroup>
+            </Border.RenderTransform>
+
+            <Grid x:Name="ShellContent"
+                  SnapsToDevicePixels="True"
+                  UseLayoutRounding="True">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -3365,4 +3386,5 @@
             </Border>
         </Grid>
     </Border>
+    </Grid>
 </Window>
