@@ -142,7 +142,21 @@ public partial class App : Application
             InteractionSounds.Initialize(loadedSettings.EnableInteractionSounds, loadedSettings.InteractionSoundVolume);
 
             var mainWindow = Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            var dockWindow = Services.GetRequiredService<DockWindow>();
+
+            if (loadedSettings.LayoutMode == "DockOnly")
+            {
+                dockWindow.Show();
+            }
+            else if (loadedSettings.LayoutMode == "NotchOnly")
+            {
+                mainWindow.Show();
+            }
+            else // "NotchAndDock"
+            {
+                mainWindow.Show();
+                dockWindow.Show();
+            }
 
             // Let WPF present the shell before optional disk work and service warmup.
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);

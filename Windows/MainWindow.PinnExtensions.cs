@@ -209,4 +209,55 @@ public partial class MainWindow
             PinnMascot.IsDancing = isPlaying;
         }
     }
+
+    // --- 5. FLOATING DOCK LAYOUT MODES ---
+    public void SetLayoutMode(string mode)
+    {
+        _settings.LayoutMode = mode;
+        _settingsService.Save(_settings);
+
+        var dockWindow = App.Services?.GetService(typeof(Windows.DockWindow)) as Windows.DockWindow;
+
+        if (mode == "DockOnly")
+        {
+            if (_isNotchVisible)
+            {
+                _isNotchVisible = false;
+                CollapseAll();
+                ApplyNotchVisibilityState();
+            }
+            dockWindow?.Show();
+            dockWindow?.RepositionAtBottom();
+            ShowUsbPillCustom("Mode: Dock Saja 💻");
+        }
+        else if (mode == "NotchOnly")
+        {
+            if (!_isNotchVisible)
+            {
+                _isNotchVisible = true;
+                ApplyNotchVisibilityState();
+            }
+            dockWindow?.Hide();
+            ShowUsbPillCustom("Mode: Notch Saja 📱");
+        }
+        else // "NotchAndDock"
+        {
+            if (!_isNotchVisible)
+            {
+                _isNotchVisible = true;
+                ApplyNotchVisibilityState();
+            }
+            dockWindow?.Show();
+            dockWindow?.RepositionAtBottom();
+            ShowUsbPillCustom("Mode: Notch + Dock ✨");
+        }
+    }
+
+    private void LayoutMode_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string mode })
+        {
+            SetLayoutMode(mode);
+        }
+    }
 }

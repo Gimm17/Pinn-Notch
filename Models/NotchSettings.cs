@@ -70,6 +70,11 @@ public partial class NotchSettings
     public bool EnableUsbNotifications { get; set; } = true;
     public bool EnableBudsBattery { get; set; } = true;
 
+    // Pinn macOS-style Floating Dock
+    public string LayoutMode { get; set; } = "NotchAndDock"; // "NotchAndDock", "NotchOnly", "DockOnly"
+    public bool EnableDockMagnification { get; set; } = true;
+    public bool EnableDockRunningIndicators { get; set; } = true;
+
     public bool HideCamera { get; set; } = false;
     public bool ClipboardAutoDeleteSensitive { get; set; }
     public bool ClipboardCaptureText { get; set; } = true;

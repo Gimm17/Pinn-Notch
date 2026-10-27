@@ -69,5 +69,6 @@ public static class ServiceConfigurator
         });
 
         services.AddSingleton<MainWindow>();
+        services.AddSingleton<DockWindow>();
     }
 }

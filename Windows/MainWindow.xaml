@@ -395,6 +395,14 @@
                             <TextBlock x:Name="MenuSettingsText" Text="Notch settings" Style="{StaticResource TrayMenuItemText}"/>
                         </MenuItem.Header>
                     </MenuItem>
+                    <MenuItem Style="{StaticResource TrayMenuItemStyle}">
+                        <MenuItem.Header>
+                            <TextBlock Text="Mode Tampilan" Style="{StaticResource TrayMenuItemText}"/>
+                        </MenuItem.Header>
+                        <MenuItem Header="🌟 Notch + Dock" Tag="NotchAndDock" Click="LayoutMode_Click"/>
+                        <MenuItem Header="📱 Notch Saja" Tag="NotchOnly" Click="LayoutMode_Click"/>
+                        <MenuItem Header="💻 Dock Saja" Tag="DockOnly" Click="LayoutMode_Click"/>
+                    </MenuItem>
                     <Separator Style="{StaticResource TraySeparatorStyle}"/>
                     <MenuItem x:Name="MenuGhost"
                               Style="{StaticResource TrayMenuItemStyle}"

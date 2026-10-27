@@ -147,4 +147,13 @@ public class PinnNochFeaturesTests
             Directory.Delete(root, true);
         }
     });
+
+    [Fact]
+    public void NotchSettings_DockDefaultsAreConfigured()
+    {
+        var settings = new NotchSettings();
+        Assert.Equal("NotchAndDock", settings.LayoutMode);
+        Assert.True(settings.EnableDockMagnification);
+        Assert.True(settings.EnableDockRunningIndicators);
+    }
 }
