@@ -35,6 +35,7 @@ public partial class App : Application
         await Task.Yield();
         try
         {
+            TaskbarIntegrationService.Instance?.RestoreTaskbars();
             if (MainWindow is MainWindow window) await window.CleanupAsync();
             if (Services?.GetService<IMediaDetectionService>() is MediaDetectionService media)
                 await media.DrainShutdownAsync();
@@ -140,6 +141,9 @@ public partial class App : Application
 
             ApplyProcessPriority(loadedSettings.ProcessPriority);
             InteractionSounds.Initialize(loadedSettings.EnableInteractionSounds, loadedSettings.InteractionSoundVolume);
+
+            var taskbarService = Services.GetRequiredService<TaskbarIntegrationService>();
+            taskbarService.ApplySettings(loadedSettings);
 
             var mainWindow = Services.GetRequiredService<MainWindow>();
             var dockWindow = Services.GetRequiredService<DockWindow>();
@@ -419,6 +423,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        TaskbarIntegrationService.Instance?.RestoreTaskbars();
         InteractionSounds.Shutdown();
         try
         {

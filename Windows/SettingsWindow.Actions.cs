@@ -158,6 +158,7 @@ public partial class SettingsWindow
     {
         var baseline = _editSession.Revert();
         InteractionSounds.Configure(baseline.EnableInteractionSounds, baseline.InteractionSoundVolume);
+        TaskbarIntegrationService.Instance?.ApplySettings(baseline);
         SettingsChanged?.Invoke(this, baseline);
     }
 
@@ -689,6 +690,8 @@ public partial class SettingsWindow
         {
             ApplyLiquidGlassSkin();
         }
+
+        TaskbarIntegrationService.Instance?.ApplySettings(snapshot);
 
         bool hasChanges = _editSession.Preview(snapshot);
         _settings = snapshot.Clone();

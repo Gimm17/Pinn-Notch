@@ -31,6 +31,7 @@ public static class ServiceConfigurator
         services.AddSingleton<IUpdateService, UpdateService>();
         services.AddSingleton<AppFileCleanupService>();
         services.AddSingleton<IWeatherService, WeatherService>();
+        services.AddSingleton<TaskbarIntegrationService>();
         services.AddSingleton<ISpotlightProvider, AppSearchProvider>();
         services.AddSingleton<ISpotlightProvider, SystemCommandProvider>();
         services.AddSingleton<ISpotlightProvider, SystemFileSearchProvider>();

@@ -103,6 +103,15 @@ public partial class NotchSettings
     private int _notchNotificationRevealDurationMs = 2500;
     public int NotchNotificationRevealDurationMs { get => _notchNotificationRevealDurationMs; set => _notchNotificationRevealDurationMs = ClampInt(value, 500, 10000); }
 
+    // Transparent & Freeze Taskbar Integration
+    public bool EnableTransparentTaskbar { get; set; } = false;
+    public string TaskbarStyle { get; set; } = "Clear"; // "Clear", "Blur", "Acrylic", "Tinted"
+    public string TaskbarColor { get; set; } = "#000000";
+    public double TaskbarOpacity { get; set; } = 0.0;
+    public bool TaskbarDynamicMaximized { get; set; } = true;
+    public bool EnableFreezeTaskbar { get; set; } = false;
+    public string TaskbarFreezeMode { get; set; } = "HideSuppress"; // "HideSuppress", "ClickThrough", "FreezeAutoHide" 
+
     public bool HideCamera { get; set; } = false;
     public bool ClipboardAutoDeleteSensitive { get; set; }
     public bool ClipboardCaptureText { get; set; } = true;

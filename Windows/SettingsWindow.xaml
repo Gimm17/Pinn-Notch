@@ -1054,6 +1054,75 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <!-- ============================================== -->
+                                        <!-- Windows Taskbar Integration (TranslucentTB & Freeze) -->
+                                        <!-- ============================================== -->
+                                        <TextBlock Text="Integrasi Windows Taskbar 🪟" Style="{StaticResource SectionHeader}" Margin="0,16,0,8"/>
+
+                                        <!-- Transparent Taskbar (TranslucentTB Engine) -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="EnableTransparentTaskbarCheck"
+                                                          Content="Aktifkan Transparansi Taskbar Windows 🪟✨"
+                                                          Checked="EnableTransparentTaskbarCheck_Changed"
+                                                          Unchecked="EnableTransparentTaskbarCheck_Changed"/>
+                                                <TextBlock Text="Menyesuaikan tampilan taskbar Windows menggunakan engine transparansi TranslucentTB (Clear, Blur, Acrylic, Tinted)."
+                                                           Style="{StaticResource SettingHintText}" Margin="0,4,0,8"/>
+
+                                                <StackPanel x:Name="TransparentTaskbarOptionsPanel" Margin="20,0,0,0">
+                                                    <!-- Style selection -->
+                                                    <TextBlock Text="Gaya / Efek Transparansi" Style="{StaticResource SettingTitleText}" Margin="0,4,0,4"/>
+                                                    <ComboBox x:Name="TaskbarStyleCombo" Height="30" SelectionChanged="TaskbarStyleCombo_SelectionChanged"
+                                                              Background="#1E1E2E" Foreground="White" Margin="0,0,0,8">
+                                                        <ComboBoxItem Content="100% Clear (Benar-benar transparan murni)" Tag="Clear"/>
+                                                        <ComboBoxItem Content="Blur (Frosted Glass halus)" Tag="Blur"/>
+                                                        <ComboBoxItem Content="Acrylic (Kaca buram Liquid Glass)" Tag="Acrylic"/>
+                                                        <ComboBoxItem Content="Tinted Color (Warna kustom bergradasi)" Tag="Tinted"/>
+                                                    </ComboBox>
+
+                                                    <!-- Opacity slider -->
+                                                    <controls:ElasticSlider x:Name="TaskbarOpacitySlider"
+                                                                            Label="Opasitas / Alpha Taskbar" Unit=" %"
+                                                                            Description="Tingkat ketebalan warna latar taskbar (0% = tembus pandang)."
+                                                                            Minimum="0" Maximum="100" Value="0" TickFrequency="5" IsSnapToTickEnabled="True"
+                                                                            ValueChanged="TaskbarOpacitySlider_ValueChanged"/>
+
+                                                    <!-- Dynamic Mode -->
+                                                    <CheckBox x:Name="TaskbarDynamicMaximizedCheck"
+                                                              Content="Dynamic Mode (Beralih saat Jendela Maximized) 🔄"
+                                                              Checked="TaskbarDynamicMaximizedCheck_Changed"
+                                                              Unchecked="TaskbarDynamicMaximizedCheck_Changed"
+                                                              Margin="0,8,0,0"/>
+                                                    <TextBlock Text="Otomatis beralih ke efek blur saat ada jendela aktif yang dimaksimalkan agar ikon taskbar tetap kontras."
+                                                               Style="{StaticResource SettingHintText}" Margin="0,2,0,4"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Freeze Taskbar (Harmonisasi Dock) -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
+                                                <CheckBox x:Name="EnableFreezeTaskbarCheck"
+                                                          Content="Aktifkan Freeze Taskbar Windows ❄️"
+                                                          Checked="EnableFreezeTaskbarCheck_Changed"
+                                                          Unchecked="EnableFreezeTaskbarCheck_Changed"/>
+                                                <TextBlock Text="Membekukan atau menyembunyikan taskbar Windows agar tidak saling bertabrakan dengan Dock Pinn-Noch."
+                                                           Style="{StaticResource SettingHintText}" Margin="0,4,0,8"/>
+
+                                                <StackPanel x:Name="FreezeTaskbarOptionsPanel" Margin="20,0,0,0">
+                                                    <TextBlock Text="Mode Freeze / Penanganan Taskbar" Style="{StaticResource SettingTitleText}" Margin="0,4,0,4"/>
+                                                    <ComboBox x:Name="TaskbarFreezeModeCombo" Height="30" SelectionChanged="TaskbarFreezeModeCombo_SelectionChanged"
+                                                              Background="#1E1E2E" Foreground="White" Margin="0,0,0,4">
+                                                        <ComboBoxItem Content="Sembunyikan Penuh (Rekomendasi Dock - Bersih total seperti macOS)" Tag="HideSuppress"/>
+                                                        <ComboBoxItem Content="Bekukan Interaksi / Click-Through (Tembus klik ke Dock/Desktop)" Tag="ClickThrough"/>
+                                                        <ComboBoxItem Content="Kunci Auto-Hide (Cegah muncul saat kursor mendekat)" Tag="FreezeAutoHide"/>
+                                                    </ComboBox>
+                                                    <TextBlock Text="Mode Sembunyikan Penuh memperluas ruang desktop ke batas layar bawah sehingga Dock Pinn-Noch tampil bebas dan eksklusif."
+                                                               Style="{StaticResource SettingHintText}" Margin="0,2,0,0"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Navigation Tabs Order & Visibility -->
                                         <Border Style="{StaticResource SettingRowBorder}">
                                             <StackPanel>

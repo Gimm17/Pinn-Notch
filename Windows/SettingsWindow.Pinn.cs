@@ -33,6 +33,17 @@ public partial class SettingsWindow
         NotchHiddenPeekCheck.IsChecked = settings.NotchHiddenPeekEnabled;
         NotchHiddenPeekHeightSlider.Value = settings.NotchHiddenPeekHeightPx;
         NotchNotificationRevealCheck.IsChecked = settings.NotchNotificationRevealEnabled;
+
+        // Transparent & Freeze Taskbar Integration
+        EnableTransparentTaskbarCheck.IsChecked = settings.EnableTransparentTaskbar;
+        SetComboSelectedTag(TaskbarStyleCombo, settings.TaskbarStyle);
+        TaskbarOpacitySlider.Value = settings.TaskbarOpacity * 100.0;
+        TaskbarDynamicMaximizedCheck.IsChecked = settings.TaskbarDynamicMaximized;
+        UpdateTransparentTaskbarUi(settings.EnableTransparentTaskbar);
+
+        EnableFreezeTaskbarCheck.IsChecked = settings.EnableFreezeTaskbar;
+        SetComboSelectedTag(TaskbarFreezeModeCombo, settings.TaskbarFreezeMode);
+        UpdateFreezeTaskbarUi(settings.EnableFreezeTaskbar);
     }
 
     private void SavePinnSettings(NotchSettings snapshot)
@@ -60,6 +71,15 @@ public partial class SettingsWindow
         snapshot.NotchHiddenPeekEnabled = NotchHiddenPeekCheck.IsChecked ?? true;
         snapshot.NotchHiddenPeekHeightPx = (int)NotchHiddenPeekHeightSlider.Value;
         snapshot.NotchNotificationRevealEnabled = NotchNotificationRevealCheck.IsChecked ?? true;
+
+        // Transparent & Freeze Taskbar Integration
+        snapshot.EnableTransparentTaskbar = EnableTransparentTaskbarCheck.IsChecked ?? false;
+        snapshot.TaskbarStyle = GetComboSelectedTag(TaskbarStyleCombo, "Clear");
+        snapshot.TaskbarOpacity = TaskbarOpacitySlider.Value / 100.0;
+        snapshot.TaskbarDynamicMaximized = TaskbarDynamicMaximizedCheck.IsChecked ?? true;
+
+        snapshot.EnableFreezeTaskbar = EnableFreezeTaskbarCheck.IsChecked ?? false;
+        snapshot.TaskbarFreezeMode = GetComboSelectedTag(TaskbarFreezeModeCombo, "HideSuppress");
     }
 
     private static void SetComboSelectedTag(ComboBox combo, string tag)
@@ -200,5 +220,61 @@ public partial class SettingsWindow
             dockLeft, dockWidth, workArea.Bottom, revealHeight, extraWidth);
 
         TriggerZonePreviewWindow.ShowPreview(zone, $"Area Trigger Dock: {(int)zone.Height}px × {(int)zone.Width}px");
+    }
+
+    private void UpdateTransparentTaskbarUi(bool enabled)
+    {
+        if (TransparentTaskbarOptionsPanel != null)
+        {
+            TransparentTaskbarOptionsPanel.IsEnabled = enabled;
+            TransparentTaskbarOptionsPanel.Opacity = enabled ? 1.0 : 0.45;
+        }
+    }
+
+    private void UpdateFreezeTaskbarUi(bool enabled)
+    {
+        if (FreezeTaskbarOptionsPanel != null)
+        {
+            FreezeTaskbarOptionsPanel.IsEnabled = enabled;
+            FreezeTaskbarOptionsPanel.Opacity = enabled ? 1.0 : 0.45;
+        }
+    }
+
+    private void EnableTransparentTaskbarCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        UpdateTransparentTaskbarUi(EnableTransparentTaskbarCheck.IsChecked == true);
+        if (_isLoadingSettings) return;
+        PushLivePreview();
+    }
+
+    private void TaskbarStyleCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        PushLivePreview();
+    }
+
+    private void TaskbarOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_isLoadingSettings) return;
+        PushLivePreview();
+    }
+
+    private void TaskbarDynamicMaximizedCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        PushLivePreview();
+    }
+
+    private void EnableFreezeTaskbarCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        UpdateFreezeTaskbarUi(EnableFreezeTaskbarCheck.IsChecked == true);
+        if (_isLoadingSettings) return;
+        PushLivePreview();
+    }
+
+    private void TaskbarFreezeModeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        PushLivePreview();
     }
 }
