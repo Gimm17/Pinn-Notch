@@ -33,7 +33,9 @@
         </Style>
     </Window.Resources>
 
-    <Grid x:Name="DockRootGrid" Height="136" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+    <Grid x:Name="DockRootGrid" Height="136" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+          Background="Transparent"
+          MouseMove="DockRootGrid_MouseMove" MouseLeave="DockRootGrid_MouseLeave">
         <Grid.RenderTransform>
             <TranslateTransform x:Name="DockRootTranslate" X="0" Y="0"/>
         </Grid.RenderTransform>
@@ -95,7 +97,7 @@
 
                     <!-- 2. Central Apps Panel (Handles Smooth Magnification Zoom) -->
                     <StackPanel x:Name="IconsPanel" Orientation="Horizontal" VerticalAlignment="Center"
-                                MouseMove="IconsPanel_MouseMove" MouseLeave="IconsPanel_MouseLeave">
+                                Background="Transparent">
 
                         <!-- Item 1: Files / Explorer (Yellow Squircle) -->
                         <Grid x:Name="ItemExplorer" Width="46" Height="54" Margin="7,0" Cursor="Hand" MouseLeftButtonDown="AppExplorer_Click">

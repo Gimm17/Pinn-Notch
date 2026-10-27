@@ -170,59 +170,73 @@ public partial class DockWindow : Window
 
     #region macOS Dock Frame-Synced Spring Magnification & Tooltip
 
-    private void IconsPanel_MouseMove(object sender, MouseEventArgs e)
+    private void DockRootGrid_MouseMove(object sender, MouseEventArgs e)
     {
         var mousePos = e.GetPosition(IconsPanel);
-        const double range = 100.0;
-        const double maxScale = 1.30;
-        const double maxLift = 14.0;
-        const double maxPush = 8.0;
 
-        DockItemState? closestItem = null;
-        double minDistance = double.MaxValue;
+        // Active vertical band for app icons (includes elevated icon height and dock pill)
+        bool inVerticalBand = mousePos.Y >= -40.0 && mousePos.Y <= 65.0;
+        bool inHorizontalBand = mousePos.X >= -10.0 && mousePos.X <= IconsPanel.ActualWidth + 10.0;
 
-        foreach (var item in _items)
+        DockItemState? activeItem = null;
+
+        if (inVerticalBand && inHorizontalBand)
         {
-            var itemPos = item.Grid.TransformToAncestor(IconsPanel).Transform(new Point(item.Grid.ActualWidth / 2, item.Grid.ActualHeight / 2));
-            double distX = itemPos.X - mousePos.X;
-            double absDist = Math.Abs(distX);
-
-            if (absDist < minDistance)
+            double closestDistance = double.MaxValue;
+            foreach (var item in _items)
             {
-                minDistance = absDist;
-                closestItem = item;
+                // Calculate static layout center of this item relative to IconsPanel (without dynamic transforms)
+                Point gridOrigin = item.Grid.TranslatePoint(new Point(0, 0), IconsPanel);
+                double staticCenterX = gridOrigin.X - item.Trans.X + (item.Grid.ActualWidth / 2.0);
+
+                double distX = Math.Abs(staticCenterX - mousePos.X);
+                if (distX < closestDistance)
+                {
+                    closestDistance = distX;
+                    activeItem = item;
+                }
             }
 
-            if (absDist < range)
+            // Slot width is ~60px (46px + 14px margins). Only activate if within item slot
+            if (closestDistance > 38.0)
             {
-                double factor = Math.Cos((absDist / range) * (Math.PI / 2));
-                item.ScaleSpring.Target = 1.0 + factor * (maxScale - 1.0);
-                item.TransYSpring.Target = -factor * maxLift;
+                activeItem = null;
+            }
+        }
 
-                double pushFactor = Math.Sin((absDist / range) * Math.PI);
-                item.TransXSpring.Target = (distX >= 0 ? 1.0 : -1.0) * pushFactor * maxPush;
+        // Apply single-item elevation: only the active item elevates and scales!
+        foreach (var item in _items)
+        {
+            if (item == activeItem)
+            {
+                item.ScaleSpring.Target = 1.25;
+                item.TransYSpring.Target = -12.0;
+                item.TransXSpring.Target = 0.0; // Strictly zero horizontal displacement!
             }
             else
             {
                 item.ScaleSpring.Target = 1.0;
-                item.TransXSpring.Target = 0.0;
                 item.TransYSpring.Target = 0.0;
+                item.TransXSpring.Target = 0.0;
             }
         }
 
         StartRenderLoop();
 
         // Tooltip badge target calculation
-        if (closestItem != null && minDistance < 36.0)
+        if (activeItem != null)
         {
-            var rootPos = closestItem.Grid.TransformToAncestor(DockRootGrid).Transform(new Point(closestItem.Grid.ActualWidth / 2, 0));
-            TooltipText.Text = closestItem.Title;
+            Point rootPos = activeItem.Grid.TranslatePoint(new Point(activeItem.Grid.ActualWidth / 2.0, 0), DockRootGrid);
+            double staticX = rootPos.X - activeItem.Trans.X;
+            double staticY = rootPos.Y - activeItem.Trans.Y;
+
+            TooltipText.Text = activeItem.Title;
 
             double badgeW = TooltipBadge.ActualWidth > 0 ? TooltipBadge.ActualWidth : 60;
             double badgeH = TooltipBadge.ActualHeight > 0 ? TooltipBadge.ActualHeight : 24;
 
-            _tooltipXSpring.Target = Math.Max(12, rootPos.X - (badgeW / 2));
-            _tooltipYSpring.Target = Math.Max(6, rootPos.Y - badgeH - 10);
+            _tooltipXSpring.Target = Math.Max(12, staticX - (badgeW / 2.0));
+            _tooltipYSpring.Target = Math.Max(4, staticY - badgeH - 12.0);
 
             var fadeAnim = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(120)) { EasingFunction = new QuadraticEase() };
             TooltipBadge.BeginAnimation(OpacityProperty, fadeAnim);
@@ -233,7 +247,7 @@ public partial class DockWindow : Window
         }
     }
 
-    private void IconsPanel_MouseLeave(object sender, MouseEventArgs e)
+    private void DockRootGrid_MouseLeave(object sender, MouseEventArgs e)
     {
         foreach (var item in _items)
         {
@@ -307,13 +321,29 @@ public partial class DockWindow : Window
 
     public Rect? GetDockScreenBounds()
     {
-        if (!IsLoaded || Visibility != Visibility.Visible || ActualWidth <= 0 || ActualHeight <= 0)
+        if (!IsLoaded || Visibility != Visibility.Visible)
             return null;
         try
         {
-            Point topLeft = PointToScreen(new Point(12, 50));
-            Point bottomRight = PointToScreen(new Point(ActualWidth - 12, Height));
-            return new Rect(topLeft, bottomRight);
+            var screen = System.Windows.Forms.Screen.PrimaryScreen;
+            if (screen == null) return null;
+            double scale = MonitorSelection.GetScale(screen);
+
+            double dockWidthDip = ActualWidth > 0 ? ActualWidth : 580;
+            double pillHeightDip = 66.0;
+            double dockWidthPx = dockWidthDip * scale;
+            double pillHeightPx = pillHeightDip * scale;
+
+            double screenLeft = screen.Bounds.Left;
+            double screenWidth = screen.Bounds.Width;
+            double screenBottom = screen.Bounds.Bottom;
+
+            double dockLeftPx = screenLeft + (screenWidth - dockWidthPx) / 2.0;
+            double pillBottomPx = screenBottom - (12.0 * scale);
+            double pillTopPx = pillBottomPx - pillHeightPx;
+
+            // Stable resting bounds (immune to slide-down animations)
+            return new Rect(dockLeftPx, pillTopPx, dockWidthPx, pillHeightPx);
         }
         catch
         {
@@ -340,17 +370,41 @@ public partial class DockWindow : Window
 
         if (Win32Interop.GetCursorPos(out var mousePt))
         {
-            var workArea = SystemParameters.WorkArea;
-            double dockWidth = ActualWidth > 0 ? ActualWidth : 580;
-            var triggerZone = TriggerZoneCalculator.CalculateDockTriggerZone(
-                Left, dockWidth, workArea.Bottom,
-                settings.DockRevealHeightPx, settings.DockRevealExtraWidthPx);
+            var screen = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point(mousePt.X, mousePt.Y))
+                         ?? System.Windows.Forms.Screen.PrimaryScreen;
+            if (screen == null) return;
+            double scale = MonitorSelection.GetScale(screen);
 
-            bool inTriggerZone = TriggerZoneCalculator.IsPointInZone(triggerZone, new Point(mousePt.X, mousePt.Y));
-            bool isOverDockWindow = mousePt.X >= Left - 15 && mousePt.X <= Left + dockWidth + 15 &&
-                                   mousePt.Y >= Top && mousePt.Y <= Top + Height + 25;
+            double dockWidthDip = ActualWidth > 0 ? ActualWidth : 580;
+            double dockHeightDip = Height > 0 ? Height : 136;
+            double dockWidthPx = dockWidthDip * scale;
+            double dockHeightPx = dockHeightDip * scale;
 
-            if (inTriggerZone || isOverDockWindow)
+            double screenLeft = screen.Bounds.Left;
+            double screenWidth = screen.Bounds.Width;
+            double screenBottom = screen.Bounds.Bottom;
+
+            double dockLeftPx = screenLeft + (screenWidth - dockWidthPx) / 2.0;
+            double dockRightPx = dockLeftPx + dockWidthPx;
+            double dockTopPx = screenBottom - dockHeightPx;
+
+            // Trigger Zone at the very bottom edge of the screen (in physical pixels)
+            double extraPx = settings.DockRevealExtraWidthPx * scale;
+            double revealHPx = Math.Max(1, settings.DockRevealHeightPx * scale);
+            var triggerZone = new Rect(dockLeftPx - extraPx, screenBottom - revealHPx, dockWidthPx + (extraPx * 2), revealHPx);
+
+            bool inTriggerZone = mousePt.X >= triggerZone.Left && mousePt.X <= triggerZone.Right &&
+                                 mousePt.Y >= triggerZone.Top && mousePt.Y <= triggerZone.Bottom;
+
+            // Body hover check (only valid when dock is revealed/visible)
+            bool isOverRevealedDock = false;
+            if (!_isDockSlidDown || _isRevealedByMouse)
+            {
+                isOverRevealedDock = mousePt.X >= dockLeftPx - 20 && mousePt.X <= dockRightPx + 20 &&
+                                     mousePt.Y >= dockTopPx - 20 && mousePt.Y <= screenBottom + 5;
+            }
+
+            if (inTriggerZone || isOverRevealedDock)
             {
                 if (!_isRevealedByMouse)
                 {

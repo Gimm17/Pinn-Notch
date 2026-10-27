@@ -297,12 +297,28 @@ public partial class MainWindow
 
     public Rect? GetNotchScreenBounds()
     {
-        if (!IsLoaded || !_isNotchVisible || NotchBorder == null) return null;
+        if (!IsLoaded || !_isNotchVisible) return null;
         try
         {
-            Point topLeft = NotchBorder.PointToScreen(new Point(0, 0));
-            Point bottomRight = NotchBorder.PointToScreen(new Point(NotchBorder.ActualWidth, NotchBorder.ActualHeight));
-            return new Rect(topLeft, bottomRight);
+            var screen = MonitorSelection.Resolve(_settings) ?? System.Windows.Forms.Screen.PrimaryScreen;
+            if (screen == null) return null;
+            double scale = MonitorSelection.GetScale(screen);
+
+            double widthDip = _collapsedWidth > 0 ? _collapsedWidth : (_settings.Width > 0 ? _settings.Width : 200);
+            double heightDip = _collapsedHeight > 0 ? _collapsedHeight : (_settings.Height > 0 ? _settings.Height : 36);
+
+            // Compute resting bounds in physical screen pixels (matches Win32 TryGetWindowBounds)
+            double notchWidthPx = widthDip * scale;
+            double notchHeightPx = heightDip * scale;
+            double screenLeft = screen.Bounds.Left;
+            double screenWidth = screen.Bounds.Width;
+            double screenTop = screen.Bounds.Top;
+
+            double leftPx = screenLeft + (screenWidth - notchWidthPx) / 2.0;
+            double topPx = screenTop + (_settings.EnableDynamicIslandMode ? DynamicIslandTopMargin * scale : 0);
+
+            // Return fixed resting bounds (immune to slide/peek animations)
+            return new Rect(leftPx, topPx, notchWidthPx, notchHeightPx);
         }
         catch
         {
@@ -332,15 +348,50 @@ public partial class MainWindow
 
         if (Win32Interop.GetCursorPos(out var mousePt))
         {
-            double notchWidth = NotchBorder?.ActualWidth > 0 ? NotchBorder.ActualWidth : 200;
-            var triggerZone = TriggerZoneCalculator.CalculateNotchTriggerZone(
-                Left, Width, notchWidth, _settings.NotchRevealHeightPx, _settings.NotchRevealExtraWidthPx);
+            var screen = MonitorSelection.Resolve(_settings) ?? System.Windows.Forms.Screen.PrimaryScreen;
+            if (screen == null) return;
+            double scale = MonitorSelection.GetScale(screen);
 
-            bool inTriggerZone = TriggerZoneCalculator.IsPointInZone(triggerZone, new Point(mousePt.X, mousePt.Y));
-            bool isOverNotch = mousePt.X >= Left && mousePt.X <= Left + Width &&
-                               mousePt.Y >= Top && mousePt.Y <= Top + (NotchBorder?.ActualHeight ?? 40) + 10;
+            double widthDip = _collapsedWidth > 0 ? _collapsedWidth : (_settings.Width > 0 ? _settings.Width : 200);
+            double heightDip = _collapsedHeight > 0 ? _collapsedHeight : (_settings.Height > 0 ? _settings.Height : 36);
 
-            if (inTriggerZone || isOverNotch || _isExpanded || _isMusicExpanded)
+            double notchWidthPx = widthDip * scale;
+            double notchHeightPx = heightDip * scale;
+            double screenLeft = screen.Bounds.Left;
+            double screenWidth = screen.Bounds.Width;
+            double screenTop = screen.Bounds.Top;
+
+            double leftPx = screenLeft + (screenWidth - notchWidthPx) / 2.0;
+            double rightPx = leftPx + notchWidthPx;
+            double topPx = screenTop + (_settings.EnableDynamicIslandMode ? DynamicIslandTopMargin * scale : 0);
+
+            // 1. Precise trigger zone at top edge in physical pixels
+            double extraPx = _settings.NotchRevealExtraWidthPx * scale;
+            double revealHPx = Math.Max(1, _settings.NotchRevealHeightPx * scale);
+            var triggerZone = new Rect(leftPx - extraPx, screenTop, notchWidthPx + (extraPx * 2), revealHPx);
+
+            bool inTriggerZone = mousePt.X >= triggerZone.Left && mousePt.X <= triggerZone.Right &&
+                                 mousePt.Y >= triggerZone.Top && mousePt.Y <= triggerZone.Bottom;
+
+            // 2. Peek indicator strip hit test when hidden
+            bool inPeekZone = false;
+            if (_isNotchSmartHidden && _settings.NotchHiddenPeekEnabled)
+            {
+                double peekHPx = Math.Clamp(_settings.NotchHiddenPeekHeightPx, 1, 12) * scale;
+                inPeekZone = mousePt.X >= leftPx && mousePt.X <= rightPx &&
+                             mousePt.Y >= screenTop && mousePt.Y <= screenTop + peekHPx + 2;
+            }
+
+            // 3. Body hover check (only active when notch is revealed or expanded)
+            bool isOverRevealedNotch = false;
+            if (!_isNotchSmartHidden || _isNotchRevealedByMouse)
+            {
+                double currentActualHeight = NotchBorder?.ActualHeight > 0 ? NotchBorder.ActualHeight * scale : notchHeightPx;
+                isOverRevealedNotch = mousePt.X >= leftPx - 15 && mousePt.X <= rightPx + 15 &&
+                                      mousePt.Y >= screenTop && mousePt.Y <= topPx + currentActualHeight + 15;
+            }
+
+            if (inTriggerZone || inPeekZone || isOverRevealedNotch || _isExpanded || _isMusicExpanded)
             {
                 if (!_isNotchRevealedByMouse)
                 {
