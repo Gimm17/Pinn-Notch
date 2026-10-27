@@ -315,7 +315,7 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
         finally { if (!written && exported.Length > 0) await Store.ReleasePersonalExportsAsync(exported); }
     }
 
-    private async Task<(DataObject Data, bool Personal)> CreateSelectionDataAsync(IReadOnlyList<ClipboardEntry> entries, List<string> paths)
+    internal async Task<(DataObject Data, bool Personal)> CreateSelectionDataAsync(IReadOnlyList<ClipboardEntry> entries, List<string> paths)
     {
         var texts = new List<string>();
         ClipboardContent? singleText = null;
@@ -335,10 +335,55 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
             personal |= Store.GetEntry(entry.Id)?.IsPersonal != false;
         }
         var data = new DataObject();
-        if (paths.Count > 0) { var files = new StringCollection(); files.AddRange(paths.ToArray()); data.SetFileDropList(files); }
+        if (paths.Count > 0)
+        {
+            var files = new StringCollection();
+            files.AddRange(paths.ToArray());
+            data.SetFileDropList(files);
+            data.SetData(DataFormats.UnicodeText, string.Join(Environment.NewLine, paths));
+
+            if (entries.Count == 1)
+            {
+                var first = entries[0];
+                if (first.Kind == ClipboardKind.Image || (paths.Count == 1 && IsImagePath(paths[0])))
+                {
+                    try
+                    {
+                        byte[]? imgBytes = await Store.GetImageAsync(first.Id);
+                        if (imgBytes == null && paths.Count > 0 && File.Exists(paths[0]))
+                        {
+                            imgBytes = await File.ReadAllBytesAsync(paths[0]);
+                        }
+                        if (imgBytes != null && imgBytes.Length > 0)
+                        {
+                            using var stream = new MemoryStream(imgBytes);
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.StreamSource = stream;
+                            bitmap.EndInit();
+                            bitmap.Freeze();
+                            data.SetImage(bitmap);
+                        }
+                    }
+                    catch { /* best effort bitmap data for external drop targets */ }
+                }
+            }
+        }
         if (singleText != null) SetTextFormats(data, singleText);
         else if (texts.Count > 0) data.SetData(DataFormats.UnicodeText, string.Join(Environment.NewLine + Environment.NewLine, texts));
         return (data, personal);
+    }
+
+    private static bool IsImagePath(string path)
+    {
+        string ext = Path.GetExtension(path);
+        return ext.Equals(".png", StringComparison.OrdinalIgnoreCase) ||
+               ext.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
+               ext.Equals(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+               ext.Equals(".bmp", StringComparison.OrdinalIgnoreCase) ||
+               ext.Equals(".webp", StringComparison.OrdinalIgnoreCase) ||
+               ext.Equals(".gif", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static void SetTextFormats(DataObject data, ClipboardContent content)
@@ -410,12 +455,24 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
             bool personal = selection.Personal;
             if (_disposed || personal && !Store.IsPersonalUnlocked) return;
             if (personal) data.SetData("ExcludeClipboardContentFromMonitorProcessing", new MemoryStream([1, 0, 0, 0]));
-            DragDrop.DoDragDrop(source, data, DragDropEffects.Copy);
+            var effects = DragDrop.DoDragDrop(source, data, DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
+            if (effects != DragDropEffects.None)
+            {
+                InteractionSounds.Play(InteractionCue.Confirm);
+            }
         }
         finally
         {
-            IsDragging = false; DraggedEntries = [];
-            await Store.ReleasePersonalExportsAsync(paths);
+            IsDragging = false;
+            DraggedEntries = [];
+            if (paths.Count > 0)
+            {
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(2000);
+                    await Store.ReleasePersonalExportsAsync(paths);
+                });
+            }
         }
     }
 

@@ -43,6 +43,7 @@ public partial class MainWindow
 
     private void NotchWrapper_PreviewDrop(object sender, DragEventArgs e)
     {
+        if (_clipboardHistory?.IsDragging == true) return;
         // Category buttons handle Drop themselves, so clean up before bubbling.
         KeepClipboardDropTargetOpen();
         _clipboardDragAutoExpanded = false;
@@ -58,6 +59,7 @@ public partial class MainWindow
     }
     private void NotchWrapper_DragLeave(object sender, DragEventArgs e)
     {
+        if (_clipboardHistory?.IsDragging == true) return;
         CancelDragDropTimers();
         // OLE drag/drop does not reliably update WPF IsMouseOver. Moving between
         // child targets can also raise DragLeave without leaving the notch.

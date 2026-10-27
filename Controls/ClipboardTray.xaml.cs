@@ -824,13 +824,19 @@ public partial class ClipboardTray : UserControl, IDisposable
     {
         if (e.LeftButton != MouseButtonState.Pressed || _dragStart is not Point start || _pressedCard == null || _controller == null || sender is not FrameworkElement element) return;
         var current = e.GetPosition(this);
-        if (Math.Abs(current.X - start.X) < SystemParameters.MinimumHorizontalDragDistance && Math.Abs(current.Y - start.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+        double dx = Math.Abs(current.X - start.X);
+        double dy = Math.Abs(current.Y - start.Y);
+        if (dx < SystemParameters.MinimumHorizontalDragDistance && dy < SystemParameters.MinimumVerticalDragDistance) return;
         var card = _pressedCard;
         _dragStart = null;
         _pressedCard = null;
         _copyOnRelease = false;
         AnimateCardPress(element, false);
-        await SafeAsync(() => _controller.DragManyAsync(element, SelectedCards().Select(item => item.Entry).ToArray()));
+        var selected = SelectedCards();
+        var entriesToDrag = (selected.Length > 0 && selected.Contains(card))
+            ? selected.Select(item => item.Entry).ToArray()
+            : [card.Entry];
+        await SafeAsync(() => _controller.DragManyAsync(element, entriesToDrag));
     }
     private async Task CopyAsync(ClipboardCardViewModel card)
     {
