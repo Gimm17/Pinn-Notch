@@ -33,6 +33,9 @@
     </Window.Resources>
 
     <Grid x:Name="DockRootGrid" Height="136" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="DockRootTranslate" X="0" Y="0"/>
+        </Grid.RenderTransform>
         <!-- Main Dock Glass Pill (Milky Frosted Glass - Reference Image 1 & 2) -->
         <Border x:Name="DockPill"
                 Height="66"

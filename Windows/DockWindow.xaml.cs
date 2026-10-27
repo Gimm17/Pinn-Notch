@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Windows.Interop;
 using VNotch.Models;
 using VNotch.Services;
 
@@ -20,7 +21,11 @@ public partial class DockWindow : Window
     private readonly ISettingsService _settingsService;
     private readonly DispatcherTimer _clockTimer;
     private readonly DispatcherTimer _procCheckTimer;
+    private readonly DispatcherTimer _autoHideTimer;
     private readonly (Grid Grid, ScaleTransform Scale, TranslateTransform Trans, Ellipse Dot, string Title)[] _items;
+    private bool _isDockSlidDown;
+    private bool _isRevealedByMouse;
+    private long _mouseLeaveTime;
 
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
@@ -53,6 +58,11 @@ public partial class DockWindow : Window
         _procCheckTimer.Start();
         CheckRunningApps();
 
+        // Intelligent Auto-Hide & Collision Detection Timer (macOS style window dodging)
+        _autoHideTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(160) };
+        _autoHideTimer.Tick += AutoHideTimer_Tick;
+        _autoHideTimer.Start();
+
         Loaded += DockWindow_Loaded;
         SizeChanged += DockWindow_SizeChanged;
     }
@@ -60,6 +70,7 @@ public partial class DockWindow : Window
     private void DockWindow_Loaded(object sender, RoutedEventArgs e)
     {
         RepositionAtBottom();
+        EvaluateDockAutoHide();
     }
 
     private void DockWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -368,10 +379,162 @@ public partial class DockWindow : Window
 
     #endregion
 
+    #region Intelligent Auto-Hide & Window Collision Dodging
+
+    private void AutoHideTimer_Tick(object? sender, EventArgs e)
+    {
+        EvaluateDockAutoHide();
+    }
+
+    private void EvaluateDockAutoHide()
+    {
+        if (!IsLoaded || Visibility != Visibility.Visible || ActualWidth <= 0 || ActualHeight <= 0)
+            return;
+
+        // 1. Get current mouse position in physical screen coordinates
+        bool hasMouse = Win32Interop.GetCursorPos(out var mousePt);
+
+        Point dockTopLeft;
+        Point dockBottomRight;
+        try
+        {
+            dockTopLeft = PointToScreen(new Point(0, 0));
+            dockBottomRight = PointToScreen(new Point(ActualWidth, ActualHeight));
+        }
+        catch
+        {
+            return;
+        }
+
+        // Is mouse cursor hovering over the dock window?
+        bool isMouseOverDock = hasMouse &&
+            mousePt.X >= dockTopLeft.X - 15 && mousePt.X <= dockBottomRight.X + 15 &&
+            mousePt.Y >= dockTopLeft.Y && mousePt.Y <= dockBottomRight.Y + 25;
+
+        // Is mouse touching the bottom reveal strip of the screen where the dock sits?
+        bool isMouseAtBottomEdge = hasMouse &&
+            mousePt.X >= dockTopLeft.X - 35 && mousePt.X <= dockBottomRight.X + 35 &&
+            mousePt.Y >= dockBottomRight.Y - 8;
+
+        if (isMouseAtBottomEdge || isMouseOverDock)
+        {
+            _isRevealedByMouse = true;
+            _mouseLeaveTime = 0;
+        }
+        else if (_isRevealedByMouse)
+        {
+            long now = Environment.TickCount64;
+            if (_mouseLeaveTime == 0)
+            {
+                _mouseLeaveTime = now;
+            }
+            else if (now - _mouseLeaveTime > 320) // 320ms grace period after cursor leaves
+            {
+                _isRevealedByMouse = false;
+                _mouseLeaveTime = 0;
+            }
+        }
+
+        // 2. Check if any application window is actively overlapping the dock area
+        bool isOverlapping = IsAnyWindowOverlappingDock();
+
+        // 3. Dock hides only if there is an overlapping window AND mouse is not actively revealing it
+        bool shouldHide = isOverlapping && !_isRevealedByMouse;
+
+        if (shouldHide != _isDockSlidDown)
+        {
+            _isDockSlidDown = shouldHide;
+            AnimateDockSlide(shouldHide);
+        }
+    }
+
+    private bool IsAnyWindowOverlappingDock()
+    {
+        if (!IsLoaded || ActualWidth <= 0 || ActualHeight <= 0) return false;
+
+        Point topLeft;
+        Point bottomRight;
+        try
+        {
+            // Visual dock pill bounds in screen coordinates (from Y=50 down to window height)
+            topLeft = PointToScreen(new Point(12, 50));
+            bottomRight = PointToScreen(new Point(ActualWidth - 12, Height));
+        }
+        catch
+        {
+            return false;
+        }
+
+        double dockLeft = topLeft.X;
+        double dockRight = bottomRight.X;
+        double dockTop = topLeft.Y;
+        double dockBottom = bottomRight.Y;
+
+        uint currentPid = (uint)Environment.ProcessId;
+        IntPtr dockHwnd = new WindowInteropHelper(this).Handle;
+        bool hasOverlap = false;
+
+        Win32Interop.EnumWindows((hWnd, lParam) =>
+        {
+            if (hWnd == dockHwnd) return true;
+
+            // Ignore our own process windows (Settings, Notch, Tray Menu, Spotlight)
+            Win32Interop.GetWindowThreadProcessId(hWnd, out uint pid);
+            if (pid == currentPid) return true;
+
+            // Ignore invisible, minimized, or cloaked windows
+            if (!Win32Interop.IsWindowVisible(hWnd) || Win32Interop.IsIconic(hWnd)) return true;
+            if (FullscreenDetector.IsWindowCloaked(hWnd)) return true;
+            if (FullscreenDetector.IsBlockedClass(hWnd)) return true;
+
+            // Get window bounds using DwmGetWindowAttribute (excludes drop shadows)
+            if (FullscreenDetector.TryGetWindowBounds(hWnd, out var wr))
+            {
+                int width = wr.Right - wr.Left;
+                int height = wr.Bottom - wr.Top;
+                if (width < 80 || height < 80) return true; // ignore tiny tooltips/widgets
+
+                // Check intersection with the Dock area
+                bool intersects = wr.Right > dockLeft &&
+                                 wr.Left < dockRight &&
+                                 wr.Bottom > dockTop &&
+                                 wr.Top < dockBottom;
+
+                if (intersects)
+                {
+                    hasOverlap = true;
+                    return false; // Found overlapping window! Stop enum.
+                }
+            }
+
+            return true;
+        }, IntPtr.Zero);
+
+        return hasOverlap;
+    }
+
+    private void AnimateDockSlide(bool hide)
+    {
+        var animDuration = TimeSpan.FromMilliseconds(240);
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+        double targetY = hide ? 95.0 : 0.0;
+        double targetOpacity = hide ? 0.0 : 1.0;
+
+        var transAnim = new DoubleAnimation(targetY, animDuration) { EasingFunction = ease };
+        var opacityAnim = new DoubleAnimation(targetOpacity, animDuration) { EasingFunction = ease };
+
+        DockRootTranslate.BeginAnimation(TranslateTransform.YProperty, transAnim);
+        DockRootGrid.BeginAnimation(OpacityProperty, opacityAnim);
+    }
+
+    #endregion
+
     protected override void OnClosed(EventArgs e)
     {
         _clockTimer.Stop();
         _procCheckTimer.Stop();
+        _autoHideTimer.Stop();
         base.OnClosed(e);
     }
 }
