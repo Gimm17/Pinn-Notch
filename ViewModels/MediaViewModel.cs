@@ -14,7 +14,7 @@ public partial class MediaViewModel : ObservableObject
     private string _lastAnimatedSignature = "";
 
     [ObservableProperty]
-    private bool _isPlaying = true;
+    private bool _isPlaying;
 
     [ObservableProperty]
     private string _title = "No media playing";
@@ -70,6 +70,7 @@ public partial class MediaViewModel : ObservableObject
             Title = "No media playing";
             Artist = "Artist name";
             SourceName = "Now Playing";
+            IsPlaying = false;
         }
 
         string signature = info.GetSignature();
@@ -90,9 +91,16 @@ public partial class MediaViewModel : ObservableObject
             HasThumbnail = false;
         }
 
-        if ((DateTime.UtcNow - _lastAction).TotalMilliseconds > 1200 && IsPlaying != info.IsPlaying)
+        if (!hasTrack)
         {
-            IsPlaying = info.IsPlaying;
+            IsPlaying = false;
+        }
+        else if (info.MediaSource == "YouTube Music" || (DateTime.UtcNow - _lastAction).TotalMilliseconds > 1200)
+        {
+            if (IsPlaying != info.IsPlaying)
+            {
+                IsPlaying = info.IsPlaying;
+            }
         }
     }
 
@@ -100,8 +108,17 @@ public partial class MediaViewModel : ObservableObject
     private async Task PlayPause()
     {
         if (!BeginAction()) return;
-        IsPlaying = !IsPlaying;
-        PlayPauseToggled?.Invoke(this, IsPlaying);
+        bool hasTrack = CurrentInfo != null && CurrentInfo.IsAnyMediaPlaying && !string.IsNullOrEmpty(CurrentInfo.CurrentTrack);
+        if (hasTrack)
+        {
+            IsPlaying = !IsPlaying;
+            PlayPauseToggled?.Invoke(this, IsPlaying);
+        }
+        else
+        {
+            IsPlaying = false;
+            PlayPauseToggled?.Invoke(this, false);
+        }
         try
         {
             await _service.PlayPauseAsync();

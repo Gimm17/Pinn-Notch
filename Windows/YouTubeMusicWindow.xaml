@@ -1,0 +1,211 @@
+<Window x:Class="VNotch.YouTubeMusicWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fonts="clr-namespace:VNotch.Services"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Pinn-Notch Music — YouTube Music"
+        Width="1040"
+        Height="720"
+        MinWidth="440"
+        MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="{fonts:AppFont Fallbacks='Nirmala UI, Segoe UI'}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="6"
+                      GlassFrameThickness="0"
+                      CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <fonts:AppFont x:Key="AppFont" Fallbacks="Nirmala UI, Segoe UI"/>
+        <SolidColorBrush x:Key="WindowBackground" Color="#0E0E0E"/>
+        <SolidColorBrush x:Key="TitlebarBackground" Color="#161616"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#22FFFFFF"/>
+
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#25FFFFFF"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#35FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseWindowButton" TargetType="Button" BasedOn="{StaticResource WindowControlButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#E81123"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#C4101F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource WindowBackground}"
+            BorderBrush="{StaticResource BorderColor}"
+            BorderThickness="1"
+            CornerRadius="12"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Titlebar -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource TitlebarBackground}"
+                    BorderBrush="{StaticResource BorderColor}"
+                    BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid Margin="12,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Icon & App Name -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- YouTube Music Red Icon -->
+                        <Border Width="20" Height="20" CornerRadius="10" Background="#FF0000" Margin="0,0,8,0">
+                            <Path Data="M8,5 L14,10 L8,15 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Pinn-Notch Music"
+                                   Foreground="#F0F0F0"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"/>
+                        <TextBlock Text="— YouTube Music (Ad-Free Tuned)"
+                                   Foreground="#888888"
+                                   FontSize="11"
+                                   Margin="6,0,0,0"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource CloseWindowButton}"
+                                Width="Auto"
+                                Height="24"
+                                Padding="8,0"
+                                Margin="0,0,6,0"
+                                ToolTip="Matikan &amp; Keluar Penuh dari YouTube Music (Hentikan Musik di Background)"
+                                Click="ExitButton_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="M6,1 L6,6 M3.2,2.5 A4.5,4.5 0 1,0 8.8,2.5"
+                                      Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                      StrokeThickness="1.4"
+                                      Width="10" Height="10"
+                                      Stretch="Uniform"
+                                      Margin="0,0,5,0"/>
+                                <TextBlock Text="Exit"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource WindowControlButton}"
+                                ToolTip="Refresh Page"
+                                Click="RefreshButton_Click"
+                                Margin="0,0,4,0">
+                            <Path Data="M12,4 A8,8 0 1,1 6,6 L6,3 M6,6 L9,6"
+                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                  StrokeThickness="1.5"
+                                  Width="12" Height="12"
+                                  Stretch="Uniform"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowControlButton}"
+                                ToolTip="Minimize"
+                                Click="MinimizeButton_Click">
+                            <Path Data="M0,0 L10,0"
+                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                  StrokeThickness="1.5"
+                                  Width="10" Height="1"
+                                  Stretch="Fill"
+                                  VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowControlButton}"
+                                ToolTip="Maximize / Restore"
+                                Click="MaximizeButton_Click">
+                            <Path x:Name="MaximizeIconPath"
+                                  Data="M0,0 L10,0 L10,10 L0,10 Z"
+                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                  StrokeThickness="1.2"
+                                  Width="10" Height="10"
+                                  Stretch="Uniform"/>
+                        </Button>
+                        <Button Style="{StaticResource CloseWindowButton}"
+                                ToolTip="Sembunyikan ke Background (Musik tetap jalan di Notch, atau Shift+Klik untuk Exit Penuh)"
+                                Click="CloseButton_Click">
+                            <Path Data="M0,0 L9,9 M9,0 L0,9"
+                                  Stroke="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}"
+                                  StrokeThickness="1.5"
+                                  Width="9" Height="9"
+                                  Stretch="Uniform"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- WebView2 Container -->
+            <Grid Grid.Row="1">
+                <wv2:WebView2 x:Name="MusicWebView"/>
+
+                <!-- Loading Overlay -->
+                <Border x:Name="LoadingOverlay" Background="{StaticResource WindowBackground}" Visibility="Visible">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="20" Background="#FF0000" Margin="0,0,0,16" HorizontalAlignment="Center">
+                            <Path Data="M16,10 L28,20 L16,30 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Memuat YouTube Music..."
+                                   Foreground="#E0E0E0"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,6"/>
+                        <TextBlock Text="Menyiapkan pemutar musik ringan dengan fitur Ad-Block..."
+                                   Foreground="#888888"
+                                   FontSize="11"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

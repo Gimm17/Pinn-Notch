@@ -60,6 +60,13 @@ public sealed partial class MediaTransportControlService
     {
         try
         {
+            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null))
+            {
+                await YouTubeMusicPlayerService.Instance.TogglePlayPauseAsync();
+                return;
+            }
+
             var session = _getActiveSession();
             bool success = false;
             if (session != null)
@@ -68,6 +75,11 @@ public sealed partial class MediaTransportControlService
             }
             if (!success)
             {
+                if (YouTubeMusicPlayerService.Instance.IsConfiguredAsDefault)
+                {
+                    await YouTubeMusicPlayerService.Instance.PlayOrOpenAsync();
+                    return;
+                }
                 _sendMediaKey(Win32Interop.VK_MEDIA_PLAY_PAUSE);
             }
         }
@@ -82,6 +94,13 @@ public sealed partial class MediaTransportControlService
     {
         try
         {
+            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null))
+            {
+                await YouTubeMusicPlayerService.Instance.NextTrackAsync();
+                return;
+            }
+
             var session = _getActiveSession();
             if (session != null)
             {
@@ -118,6 +137,13 @@ public sealed partial class MediaTransportControlService
     {
         try
         {
+            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null))
+            {
+                await YouTubeMusicPlayerService.Instance.PreviousTrackAsync();
+                return;
+            }
+
             var session = _getActiveSession();
             if (session != null)
             {
@@ -245,6 +271,13 @@ public sealed partial class MediaTransportControlService
     {
         try
         {
+            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null))
+            {
+                await YouTubeMusicPlayerService.Instance.SeekAsync(position);
+                return;
+            }
+
             var session = _getActiveSession();
             if (session != null)
             {

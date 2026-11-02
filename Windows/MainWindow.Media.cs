@@ -156,8 +156,9 @@ public partial class MainWindow
         CompactTitleMarquee.SetCurrentValue(TextBlock.TextProperty, result.DisplayText.Title);
         UpdatePictureInPictureBadge(info.IsPictureInPicture && (result.HasRealTrack || info.IsAnyMediaPlaying));
 
-        bool isSpotify = result.HasRealTrack && MediaPlatformExtensions.ParsePlatform(renderedSource) == MediaPlatform.Spotify;
-        bool isYouTube = result.HasRealTrack && (
+        bool isYouTubeMusic = result.HasRealTrack && IsYouTubeMusicTrack(info);
+        bool isSpotify = result.HasRealTrack && (MediaPlatformExtensions.ParsePlatform(renderedSource) == MediaPlatform.Spotify || isYouTubeMusic);
+        bool isYouTube = result.HasRealTrack && !isYouTubeMusic && (
             MediaPlatformExtensions.ParsePlatform(renderedSource) is MediaPlatform.YouTube or MediaPlatform.Browser ||
             !string.IsNullOrEmpty(info.YouTubeVideoId) ||
             info.Platform == MediaPlatform.YouTube ||
@@ -179,7 +180,11 @@ public partial class MainWindow
         }
         else
         {
-            if (isYouTube && !string.IsNullOrEmpty(info.YouTubeVideoId))
+            if (isSpotify && _isExpanded && string.IsNullOrEmpty(_lyricsTrackKey) && (_currentLyrics == null || _currentLyrics.Count == 0))
+            {
+                FetchLyricsForTrack(info).SafeFireAndForget("LYRICS");
+            }
+            else if (isYouTube && !string.IsNullOrEmpty(info.YouTubeVideoId))
             {
                 // Re-fetch if the resolved video ID has changed, or if subtitles were not loaded and lyrics are inactive.
                 string targetKey = $"yt:{info.YouTubeVideoId}";
@@ -307,11 +312,15 @@ public partial class MainWindow
             }
         }
 
-        if ((DateTime.UtcNow - _lastMediaActionTime).TotalMilliseconds > 1200 && _isPlaying != info.IsPlaying)
+        bool effectiveIsPlaying = info.IsAnyMediaPlaying && !string.IsNullOrEmpty(info.CurrentTrack) && info.IsPlaying;
+        if (!info.IsAnyMediaPlaying || string.IsNullOrEmpty(info.CurrentTrack) || result.IsNewTrack || info.MediaSource == "YouTube Music" || (DateTime.UtcNow - _lastMediaActionTime).TotalMilliseconds > 1200)
         {
-            _isPlaying = info.IsPlaying;
-            OnMediaPlayingStateChanged(_isPlaying);
-            UpdatePlayPauseIcon();
+            if (_isPlaying != effectiveIsPlaying)
+            {
+                _isPlaying = effectiveIsPlaying;
+                OnMediaPlayingStateChanged(_isPlaying);
+                UpdatePlayPauseIcon();
+            }
         }
 
         UpdateProgressTracking(info);

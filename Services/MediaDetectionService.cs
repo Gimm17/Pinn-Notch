@@ -256,6 +256,7 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
 
         _sourceCache = sourceCache ?? new MediaSourceCache();
         _sourceCache.Load();
+        YouTubeMusicPlayerService.Instance.MediaStateChanged += OnYouTubeMusicStateChanged;
     }
     public IMediaArtworkService ArtworkService => _artworkService;
 
@@ -413,6 +414,8 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
                 _processingTask = Task.Run(() => ProcessingLoopAsync(ct), ct);
                 _heartbeatTask = Task.Run(() => HeartbeatLoopAsync(ct), ct);
                 _stagedRefreshTask = Task.Run(() => RunStagedRefreshAsync(ct), ct);
+                YouTubeMusicPlayerService.Instance.MediaStateChanged -= OnYouTubeMusicStateChanged;
+                YouTubeMusicPlayerService.Instance.MediaStateChanged += OnYouTubeMusicStateChanged;
             }
 
             _changes.Enqueue(ChangeTypes.ForceRefresh);
@@ -441,7 +444,21 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
             return await _sessionManagerFactory(ct).ConfigureAwait(false);
         }
 
-        return await GlobalSystemMediaTransportControlsSessionManager.RequestAsync().AsTask(ct).ConfigureAwait(false);
+        try
+        {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(3.5));
+            return await GlobalSystemMediaTransportControlsSessionManager.RequestAsync().AsTask(timeoutCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            RuntimeLog.Log("MEDIA-INIT", $"Failed to init SMTC (continuing with fallback/internal players): {ex.Message}");
+            return null;
+        }
     }
 
     private async Task RunStagedRefreshAsync(CancellationToken ct)
@@ -577,6 +594,20 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
     {
         Interlocked.Exchange(ref _lastEventTimeTicks, DateTime.UtcNow.Ticks);
         _changes.Enqueue(ChangeTypes.Playback);
+    }
+
+    private void OnYouTubeMusicStateChanged()
+    {
+        Interlocked.Exchange(ref _lastEventTimeTicks, DateTime.UtcNow.Ticks);
+        _changes.Enqueue(ChangeTypes.ForceRefresh);
+
+        if (_state != ServiceLifecycleState.Running && !_disposed && YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            var ytInfo = new MediaInfo();
+            YouTubeMusicPlayerService.Instance.PopulateMediaInfo(ytInfo);
+            CommitPublishedState(ytInfo, ytInfo.GetSignature());
+            FireMediaChangedAsync(ytInfo).SafeFireAndForget("YTMUSIC-DIRECT");
+        }
     }
 
     private void OnMediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
@@ -739,6 +770,31 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
                 return windowTitles;
             });
             ct.ThrowIfCancellationRequested();
+
+            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                (YouTubeMusicPlayerService.Instance.IsPlaying || !info.IsPlaying))
+            {
+                YouTubeMusicPlayerService.Instance.PopulateMediaInfo(info);
+                _timelineSimulator.Reset();
+                _transientSessionGapStartedUtc = DateTime.MinValue;
+                _emptyMetadataStartTime = DateTime.MinValue;
+                UpdateDetectionMode(info);
+                var ytSignature = info.GetSignature();
+                CommitPublishedState(info, ytSignature);
+                await FireMediaChangedAsync(info);
+                return;
+            }
+            else if (!info.IsAnyMediaPlaying && _lastPublishedSourceAppId == "YouTubeMusic")
+            {
+                _timelineSimulator.Reset();
+                _transientSessionGapStartedUtc = DateTime.MinValue;
+                _emptyMetadataStartTime = DateTime.MinValue;
+                _lastStableTrackSignature = "";
+                UpdateDetectionMode(info);
+                CommitPublishedState(info, info.GetSignature());
+                await FireMediaChangedAsync(info);
+                return;
+            }
 
             if (_pinClosedThisUpdate)
             {
@@ -3709,18 +3765,34 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
 
     public bool TryGetCurrentSessionVolume(out float volume, out bool isMuted)
     {
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            volume = (float)YouTubeMusicPlayerService.Instance.Volume;
+            isMuted = YouTubeMusicPlayerService.Instance.IsMuted;
+            return true;
+        }
         string sourceAppId = GetActiveSourceAppId();
         return _volumeService.TryGetVolume(sourceAppId, out volume, out isMuted);
     }
 
     public bool TrySetCurrentSessionVolume(float volume)
     {
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            _ = YouTubeMusicPlayerService.Instance.SetVolumeAsync(volume);
+            return true;
+        }
         string sourceAppId = GetActiveSourceAppId();
         return _volumeService.TrySetVolume(sourceAppId, volume);
     }
 
     public bool TryToggleCurrentSessionMute()
     {
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            _ = YouTubeMusicPlayerService.Instance.ToggleMuteAsync();
+            return true;
+        }
         string sourceAppId = GetActiveSourceAppId();
         return _volumeService.TryToggleMute(sourceAppId);
     }
@@ -3851,6 +3923,7 @@ public sealed partial class MediaDetectionService : IMediaDetectionService, IAsy
         _pinReconnect.Reset();
         _volumeService.InvalidateVolumeSessionCache();
         UnsubscribeFromSession();
+        YouTubeMusicPlayerService.Instance.MediaStateChanged -= OnYouTubeMusicStateChanged;
         if (sessionManagerToUnsub != null)
         {
             try

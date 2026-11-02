@@ -47,13 +47,80 @@ L177,3612 C177,3612.552 176.552,3613 176,3613 C175.448,3613 175,3612.552 175,361
 c1.513-0.625,3.253-0.275,4.407,0.885l17.862,17.951c2.088,2.098,2.088,5.488,0,7.585L9.629,44.68z</Geometry>
  <LinearGradientBrush x:Key="TrackTitleGradient"><GradientStop Color="White" Offset="0"/><GradientStop Color="White" Offset="1"/></LinearGradientBrush>
  <LinearGradientBrush x:Key="TrackTitleNextGradient"><GradientStop Color="White" Offset="0"/><GradientStop Color="White" Offset="1"/></LinearGradientBrush>
+
+        <Style x:Key="SleepTimerContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HasDropShadow" Value="False"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="#F018181C"
+                                BorderBrush="#2FFFFFFF"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="4">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Color="Black" Opacity="0.6" RenderingBias="Performance"/>
+                            </Border.Effect>
+                            <StackPanel IsItemsHost="True"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SleepTimerMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Root"
+                                CornerRadius="6"
+                                Padding="10,6"
+                                Margin="0,1"
+                                Background="Transparent"
+                                Cursor="Hand">
+                            <ContentPresenter ContentSource="Header"
+                                              RecognizesAccessKey="True"
+                                              TextElement.FontFamily="{StaticResource MainSystemFont}"
+                                              TextElement.FontSize="12"
+                                              TextElement.FontWeight="SemiBold"
+                                              TextElement.Foreground="{x:Static svc:UiPalette.PrimaryBrush}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#25FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SleepTimerSeparatorStyle" TargetType="Separator">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Background="#1FFFFFFF" Margin="4,3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
  </UserControl.Resources>
  <Grid x:Name="MediaInfoSection"
-                                          Grid.Column="0"
-                                          VerticalAlignment="Center"
-                                          HorizontalAlignment="Stretch"
-                                          Margin="0,-1,0,0"
-                                          SizeChanged="MediaInfoSection_SizeChanged">
+       Grid.Column="0"
+       VerticalAlignment="Center"
+       HorizontalAlignment="Stretch"
+       Margin="0,-1,0,0"
+       MouseLeftButtonDown="MediaInfoSection_MouseLeftButtonDown"
+       SizeChanged="MediaInfoSection_SizeChanged">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
@@ -169,7 +236,7 @@ c1.513-0.625,3.253-0.275,4.407,0.885l17.862,17.951c2.088,2.098,2.088,5.488,0,7.5
                                             </Canvas>
                                         </StackPanel>
 
-                                        <Grid x:Name="MediaControls"
+                                                                                                                        <Grid x:Name="MediaControls"
                                               Grid.Row="2"
                                               Width="{Binding ActualWidth, ElementName=ProgressSection}"
                                               VerticalAlignment="Top"
@@ -179,63 +246,63 @@ c1.513-0.625,3.253-0.275,4.407,0.885l17.862,17.951c2.088,2.098,2.088,5.488,0,7.5
                                                 <DropShadowEffect BlurRadius="6" ShadowDepth="1.2" Direction="270" Opacity="0.55" Color="Black" RenderingBias="Performance"/>
                                             </Grid.Effect>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
+                                            <!-- Transport Controls (Prev, Play/Pause, Next) -->
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <ctrl:ActionBorder x:Name="PrevButton"
-                                                        Grid.Column="0"
                                                         Background="Transparent"
                                                         Cursor="Hand"
                                                         Click="PrevButton_Click"
                                                         MouseEnter="MediaButton_MouseEnter"
                                                         MouseLeave="MediaButton_MouseLeave"
-                                                        Width="32" Height="26"
+                                                        Width="26" Height="24"
                                                         Margin="0"
                                                         HorizontalAlignment="Left"
                                                         RenderTransformOrigin="0.5,0.5">
                                                     <Border.RenderTransform>
                                                         <ScaleTransform ScaleX="1" ScaleY="1"/>
                                                     </Border.RenderTransform>
-                                                <Viewbox Width="16" Height="16" Margin="0,0,0,0" Stretch="Uniform">
-                                                    <Canvas Width="512" Height="512" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
-                                                        <Path x:Name="PrevArrow0" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z" Opacity="0">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                        <Path x:Name="PrevArrow2" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                        <Path x:Name="PrevArrow1" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z" Opacity="0">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                    </Canvas>
+                                                    <Viewbox Width="15" Height="15" Margin="0,0,0,0" Stretch="Uniform">
+                                                        <Canvas Width="512" Height="512" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
+                                                            <Path x:Name="PrevArrow0" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z" Opacity="0">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                            <Path x:Name="PrevArrow2" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                            <Path x:Name="PrevArrow1" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M30.71,229.47l188.87-113a30.54,30.54,0,0,1,31.09-.39,33.74,33.74,0,0,1,16.76,29.47V224.6L448.15,116.44a30.54,30.54,0,0,1,31.09-.39A33.74,33.74,0,0,1,496,145.52v221A33.73,33.73,0,0,1,479.24,396a30.54,30.54,0,0,1-31.09-.39L267.43,287.4v79.08A33.73,33.73,0,0,1,250.67,396a30.54,30.54,0,0,1-31.09-.39l-188.87-113a31.27,31.27,0,0,1,0-53Z" Opacity="0">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                        </Canvas>
                                                     </Viewbox>
                                                 </ctrl:ActionBorder>
 
                                                 <ctrl:ActionBorder x:Name="PlayPauseButton"
-                                                        Grid.Column="1"
                                                         Background="Transparent"
                                                         Cursor="Hand"
                                                         Click="PlayPauseButton_Click"
                                                         MouseEnter="MediaButton_MouseEnter"
                                                         MouseLeave="MediaButton_MouseLeave"
-                                                        Width="32" Height="26"
-                                                        Margin="0"
+                                                        Width="28" Height="24"
+                                                        Margin="2,0,2,0"
                                                         HorizontalAlignment="Center"
                                                         RenderTransformOrigin="0.5,0.5">
                                                     <Border.RenderTransform>
                                                         <ScaleTransform ScaleX="1" ScaleY="1"/>
                                                     </Border.RenderTransform>
-                                                    <Viewbox Width="12.8" Height="13">
-                                                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                            <Canvas x:Name="PauseIcon" Width="46" Height="46" Visibility="Visible" RenderTransformOrigin="0.5,0.5">
+                                                    <Viewbox Width="13" Height="13" Margin="0,0,0,0" Stretch="Uniform">
+                                                        <Grid Width="48" Height="48">
+                                                            <Canvas x:Name="PauseIcon" Width="46" Height="46" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
                                                                 <Canvas.RenderTransform>
                                                                     <ScaleTransform ScaleX="1" ScaleY="1"/>
                                                                 </Canvas.RenderTransform>
@@ -248,7 +315,7 @@ c1.513-0.625,3.253-0.275,4.407,0.885l17.862,17.951c2.088,2.098,2.088,5.488,0,7.5
                                                                       Canvas.Left="0"
                                                                       Canvas.Top="1"/>
                                                             </Canvas>
-                                                            <Canvas x:Name="PlayIcon" Width="46" Height="46" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                                                            <Canvas x:Name="PlayIcon" Width="46" Height="46" Visibility="Visible" RenderTransformOrigin="0.5,0.5">
                                                                 <Canvas.RenderTransform>
                                                                     <ScaleTransform ScaleX="1" ScaleY="1"/>
                                                                 </Canvas.RenderTransform>
@@ -266,40 +333,140 @@ c1.513-0.625,3.253-0.275,4.407,0.885l17.862,17.951c2.088,2.098,2.088,5.488,0,7.5
                                                 </ctrl:ActionBorder>
 
                                                 <ctrl:ActionBorder x:Name="NextButton"
-                                                        Grid.Column="2"
                                                         Background="Transparent"
                                                         CornerRadius="8"
                                                         Cursor="Hand"
                                                         Click="NextButton_Click"
                                                         MouseEnter="MediaButton_MouseEnter"
                                                         MouseLeave="MediaButton_MouseLeave"
-                                                        Width="32" Height="26"
+                                                        Width="26" Height="24"
                                                         Margin="0"
-                                                        HorizontalAlignment="Right"
+                                                        HorizontalAlignment="Left"
                                                         RenderTransformOrigin="0.5,0.5">
                                                     <Border.RenderTransform>
                                                         <ScaleTransform ScaleX="1" ScaleY="1"/>
                                                     </Border.RenderTransform>
-                                                <Viewbox Width="16" Height="16" Margin="0,0,0,0" Stretch="Uniform">
-                                                    <Canvas Width="512" Height="512" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
-                                                        <Path x:Name="NextArrow0" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z" Opacity="0">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                        <Path x:Name="NextArrow1" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                        <Path x:Name="NextArrow2" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z" Opacity="0">
-                                                            <Path.RenderTransform>
-                                                                <TranslateTransform X="0" Y="0"/>
-                                                            </Path.RenderTransform>
-                                                        </Path>
-                                                    </Canvas>
+                                                    <Viewbox Width="15" Height="15" Margin="0,0,0,0" Stretch="Uniform">
+                                                        <Canvas Width="512" Height="512" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
+                                                            <Path x:Name="NextArrow0" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z" Opacity="0">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                            <Path x:Name="NextArrow1" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                            <Path x:Name="NextArrow2" Fill="{x:Static svc:UiPalette.PrimaryBrush}" StrokeThickness="0" Data="M481.29,229.47l-188.87-113a30.54,30.54,0,0,0-31.09-.39,33.74,33.74,0,0,0-16.76,29.47V224.6L63.85,116.44a30.54,30.54,0,0,0-31.09-.39A33.74,33.74,0,0,0,16,145.52v221A33.74,33.74,0,0,0,32.76,396a30.54,30.54,0,0,0,31.09-.39L244.57,287.4v79.08A33.74,33.74,0,0,0,261.33,396a30.54,30.54,0,0,0,31.09-.39l188.87-113a31.27,31.27,0,0,0,0-53Z" Opacity="0">
+                                                                <Path.RenderTransform>
+                                                                    <TranslateTransform X="0" Y="0"/>
+                                                                </Path.RenderTransform>
+                                                            </Path>
+                                                        </Canvas>
                                                     </Viewbox>
                                                 </ctrl:ActionBorder>
+                                            </StackPanel>
+
+                                            <!-- Utility & Volume Controls -->
+                                            <StackPanel Grid.Column="2"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Center">
+                                                <!-- Sleep Timer Button -->
+                                                <ctrl:ActionBorder x:Name="SleepTimerButton"
+                                                                   Background="Transparent"
+                                                                   Cursor="Hand"
+                                                                   Click="SleepTimerButton_Click"
+                                                                   MouseEnter="SleepTimerButton_MouseEnter"
+                                                                   MouseLeave="SleepTimerButton_MouseLeave"
+                                                                   Width="20" Height="24"
+                                                                   Margin="0,0,3,0"
+                                                                   VerticalAlignment="Center"
+                                                                   RenderTransformOrigin="0.5,0.5"
+                                                                   ToolTip="Sleep Timer (Matikan otomatis YTM)">
+                                                    <Border.RenderTransform>
+                                                        <ScaleTransform x:Name="SleepTimerButtonScale" ScaleX="1" ScaleY="1"/>
+                                                    </Border.RenderTransform>
+                                                    <TextBlock x:Name="SleepTimerIcon"
+                                                               Text="&#xE708;"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               Foreground="{x:Static svc:UiPalette.PrimaryBrush}"
+                                                               FontSize="11"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </ctrl:ActionBorder>
+
+                                                <!-- Volume Button -->
+                                                <ctrl:ActionBorder x:Name="VolumeButton"
+                                                                   Background="Transparent"
+                                                                   Cursor="Hand"
+                                                                   Click="VolumeButton_Click"
+                                                                   MouseEnter="VolumeButton_MouseEnter"
+                                                                   MouseLeave="VolumeButton_MouseLeave"
+                                                                   MouseWheel="Volume_MouseWheel"
+                                                                   Width="18" Height="24"
+                                                                   Margin="0,0,2,0"
+                                                                   VerticalAlignment="Center"
+                                                                   RenderTransformOrigin="0.5,0.5"
+                                                                   ToolTip="Volume / Mute (Scroll to adjust)">
+                                                    <Border.RenderTransform>
+                                                        <ScaleTransform x:Name="VolumeButtonScale" ScaleX="1" ScaleY="1"/>
+                                                    </Border.RenderTransform>
+                                                    <TextBlock x:Name="VolumeIcon"
+                                                               Text="&#xE995;"
+                                                               FontFamily="{StaticResource IconFont}"
+                                                               Foreground="{x:Static svc:UiPalette.PrimaryBrush}"
+                                                               FontSize="11.5"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </ctrl:ActionBorder>
+
+                                                <Grid x:Name="VolumeSliderArea"
+                                                      Width="38" Height="20"
+                                                      Background="Transparent"
+                                                      Cursor="Hand"
+                                                      Margin="1,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      MouseLeftButtonDown="VolumeSlider_MouseDown"
+                                                      MouseMove="VolumeSlider_MouseMove"
+                                                      MouseLeftButtonUp="VolumeSlider_MouseUp"
+                                                      MouseLeave="VolumeSlider_MouseLeave"
+                                                      MouseWheel="Volume_MouseWheel"
+                                                      SizeChanged="VolumeSliderArea_SizeChanged"
+                                                      ToolTip="Volume">
+                                                    <Border Background="#33FFFFFF" Height="3.5" CornerRadius="1.75" VerticalAlignment="Center"/>
+                                                    <Border x:Name="VolumeFillBar"
+                                                            Height="3.5" CornerRadius="1.75"
+                                                            HorizontalAlignment="Left"
+                                                            VerticalAlignment="Center"
+                                                            Width="38"
+                                                            RenderTransformOrigin="0,0.5">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="White" Offset="0"/>
+                                                                <GradientStop Color="{x:Static svc:UiPalette.SecondaryColor}" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.RenderTransform>
+                                                            <ScaleTransform x:Name="VolumeScale" ScaleX="1"/>
+                                                        </Border.RenderTransform>
+                                                    </Border>
+                                                    <Ellipse x:Name="VolumeThumb"
+                                                             Width="8" Height="8"
+                                                             Fill="#FFFFFF"
+                                                             HorizontalAlignment="Left"
+                                                             VerticalAlignment="Center"
+                                                             IsHitTestVisible="False">
+                                                        <Ellipse.Effect>
+                                                            <DropShadowEffect BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.5" Color="Black"/>
+                                                        </Ellipse.Effect>
+                                                        <Ellipse.RenderTransform>
+                                                            <TranslateTransform x:Name="VolumeThumbTranslate" X="34" Y="0"/>
+                                                        </Ellipse.RenderTransform>
+                                                    </Ellipse>
+                                                </Grid>
+                                            </StackPanel>
                                         </Grid>
 
                                         <Grid x:Name="ProgressSection" Grid.Row="1" Margin="0,8,0,0" Visibility="Visible">

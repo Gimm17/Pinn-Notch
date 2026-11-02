@@ -80,13 +80,21 @@ public partial class MainWindow
         !_isSecondaryView &&
         !_isTimerView &&
         !_isAudioView &&
+        !_isControlCenterView &&
         ExpandedContent?.Visibility == Visibility.Visible;
 
     private enum SyncedTextSource { None, SpotifyLyrics, YouTubeSubtitles }
     private SyncedTextSource _syncedTextSource = SyncedTextSource.None;
     private string? _subtitleRequestKey;
     private bool CanFetchSyncedText => _isExpanded && !_cleanedUp &&
-        !_isTimerView && !_isAudioView && !_isSecondaryView && !_isCameraView;
+        !_isTimerView && !_isAudioView && !_isSecondaryView && !_isCameraView && !_isControlCenterView;
+
+    private static bool IsYouTubeMusicTrack(MediaInfo? info)
+    {
+        if (info == null) return false;
+        return string.Equals(info.SourceAppId, "YouTubeMusic", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(info.MediaSource, "YouTube Music", StringComparison.OrdinalIgnoreCase);
+    }
 
     private async Task FetchLyricsForTrack(MediaInfo info)
     {
@@ -106,14 +114,22 @@ public partial class MainWindow
         _lyricsTrackKey = trackKey;
         _syncedTextSource = SyncedTextSource.SpotifyLyrics;
 
-        if (info.Platform != MediaPlatform.Spotify)
+        bool isYtMusic = IsYouTubeMusicTrack(info);
+        if (info.Platform != MediaPlatform.Spotify && !isYtMusic)
         {
             ResetSpotifyCanvas();
             HideLyricsWidget();
             return;
         }
 
-        StartSpotifyCanvasFetch(info, trackKey);
+        if (info.Platform == MediaPlatform.Spotify)
+        {
+            StartSpotifyCanvasFetch(info, trackKey);
+        }
+        else
+        {
+            ResetSpotifyCanvas();
+        }
 
         if (_isLyricsActive || _isExpanded)
         {
@@ -130,6 +146,12 @@ public partial class MainWindow
             info.CurrentTrack, info.CurrentArtist, durationSec);
 
         if (generation != _lyricsFetchGeneration || trackKey != _lyricsTrackKey) return;
+
+        if ((lyrics?.Lines == null || lyrics.Lines.Count == 0) && isYtMusic && _settings.EnableYouTubeSubtitles)
+        {
+            await FetchSubtitlesForTrack(info, force: true);
+            return;
+        }
 
         ApplySyncedLines(lyrics?.Lines, info, provider: lyrics?.Provider);
     }
@@ -172,7 +194,8 @@ public partial class MainWindow
                          !_isAnimating &&
                          !_isTimerView &&
                          !_isAudioView &&
-                         !_isSecondaryView && !_isCameraView;
+        !_isControlCenterView &&
+                         !_isSecondaryView && !_isCameraView && !_isControlCenterView;
 
         bool blurFallbackEnabled = _settings.EnableBlurEffects && !IsLiquidGlassEnabled;
 
@@ -1254,7 +1277,7 @@ public partial class MainWindow
     internal void CheckAndRetryYouTubeSubtitlesOnExpand()
     {
         if (!CanFetchSyncedText) return;
-        if (_currentMediaInfo?.Platform == MediaPlatform.Spotify)
+        if (_currentMediaInfo != null && (_currentMediaInfo.Platform == MediaPlatform.Spotify || IsYouTubeMusicTrack(_currentMediaInfo)))
         {
             FetchLyricsForTrack(_currentMediaInfo).SafeFireAndForget("LYRICS-EXPAND");
             return;

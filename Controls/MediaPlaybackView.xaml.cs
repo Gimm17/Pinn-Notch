@@ -31,6 +31,7 @@ public partial class MediaPlaybackView : UserControl, IDisposable
     {
         InitializeComponent();
         ProgressBarContainer.LostMouseCapture += ProgressBar_LostMouseCapture;
+        YouTubeMusicSleepTimerService.Instance.StateChanged += UpdateSleepTimerUI;
         IsVisibleChanged += (_, _) =>
         {
             UpdateProgressTimerState();
@@ -49,6 +50,10 @@ public partial class MediaPlaybackView : UserControl, IDisposable
             }
             else
             {
+                if (_viewModel != null)
+                {
+                    PresentPlayback(_viewModel.IsPlaying, animate: false);
+                }
                 RefreshMediaMarquee();
                 RenderProgressBar();
             }
@@ -66,6 +71,8 @@ public partial class MediaPlaybackView : UserControl, IDisposable
         DataContext = viewModel;
         PresentPlayback(viewModel.IsPlaying);
         _mediaService = service;
+        InitVolumeControl();
+        UpdateSleepTimerUI();
     }
 
     internal void ResetHoverBlur()
@@ -143,6 +150,17 @@ public partial class MediaPlaybackView : UserControl, IDisposable
     }
 
 
+    private void MediaInfoSection_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        bool hasRealTrack = !string.IsNullOrWhiteSpace(_currentMediaInfo?.CurrentTrack) &&
+                            !string.Equals(_currentMediaInfo.CurrentTrack, "No media playing", StringComparison.OrdinalIgnoreCase);
+        if (!hasRealTrack)
+        {
+            e.Handled = true;
+            YouTubeMusicPlayerService.Instance.OpenWindow(activate: true);
+        }
+    }
+
     internal async void PlayPauseButton_Click(object sender, MouseButtonEventArgs e)
     {
         e.Handled = true;
@@ -150,9 +168,13 @@ public partial class MediaPlaybackView : UserControl, IDisposable
         try
         {
             ButtonFeedback.PlayButtonPressAnimation(PlayPauseButton);
-            _progressEngine.NotifyUserPlayPause(!_viewModel.IsPlaying);
-            RenderProgressBar();
-            UpdateProgressTimerState();
+            bool hasTrack = _currentMediaInfo != null && _currentMediaInfo.IsAnyMediaPlaying && !string.IsNullOrEmpty(_currentMediaInfo.CurrentTrack);
+            if (hasTrack)
+            {
+                _progressEngine.NotifyUserPlayPause(!_viewModel.IsPlaying);
+                RenderProgressBar();
+                UpdateProgressTimerState();
+            }
             await _viewModel.PlayPauseCommand.ExecuteAsync(null);
         }
         catch (Exception ex) { RuntimeLog.Error("MEDIA-CTRL", ex, "PlayPause failed"); }
@@ -204,11 +226,20 @@ public partial class MediaPlaybackView : UserControl, IDisposable
 
     private bool? _presentedPlaying;
 
-    internal void PresentPlayback(bool playing)
+    internal void PresentPlayback(bool playing, bool animate = true)
     {
         System.Windows.Automation.AutomationProperties.SetName(PlayPauseButton, Loc.Get(playing ? "media.pause" : "media.play"));
         if (_presentedPlaying == playing) return;
+        bool isInitial = _presentedPlaying == null;
         _presentedPlaying = playing;
+        if (isInitial || !animate || !IsVisible)
+        {
+            PlayIcon.Visibility = playing ? Visibility.Collapsed : Visibility.Visible;
+            PauseIcon.Visibility = playing ? Visibility.Visible : Visibility.Collapsed;
+            PlayIcon.Opacity = playing ? 0 : 1;
+            PauseIcon.Opacity = playing ? 1 : 0;
+            return;
+        }
         var from = playing ? PlayIcon : PauseIcon;
         var to = playing ? PauseIcon : PlayIcon;
         ButtonFeedback.AnimateIconSwitch(from, to, TimeSpan.FromMilliseconds(180), _easeQuadInOut);
@@ -229,6 +260,8 @@ public partial class MediaPlaybackView : UserControl, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        YouTubeMusicSleepTimerService.Instance.StateChanged -= UpdateSleepTimerUI;
+        YouTubeMusicPlayerService.Instance.VolumeChanged -= OnYouTubeMusicVolumeChanged;
         if (_viewModel != null) _viewModel.PropertyChanged -= OnMediaPropertyChanged;
         SetProgressRenderingEnabled(false);
         StopSpringRenderLoop();
@@ -282,6 +315,11 @@ public partial class MediaPlaybackView : UserControl, IDisposable
 
         CurrentTimeText.Margin = new Thickness(0, timeTopMargin, timeSideMargin, 0);
         RemainingTimeText.Margin = new Thickness(timeSideMargin, timeTopMargin, 0, 0);
+
+        if (VolumeSliderArea != null)
+        {
+            VolumeSliderArea.Visibility = Visibility.Visible;
+        }
     }
 
     private void MediaInfoSection_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -579,8 +617,14 @@ public partial class MediaPlaybackView : UserControl, IDisposable
 
         bool hasRealTrack = !string.IsNullOrWhiteSpace(info.CurrentTrack) &&
                             !string.Equals(info.CurrentTrack, "No media playing", StringComparison.OrdinalIgnoreCase);
+        if (MediaInfoSection != null)
+        {
+            MediaInfoSection.Cursor = hasRealTrack ? Cursors.Arrow : Cursors.Hand;
+            MediaInfoSection.ToolTip = hasRealTrack ? null : "Buka YouTube Music";
+        }
         if (hasRealTrack)
         {
+            SyncVolumeUI();
             if (_isDraggingProgress && info.HasTimeline)
             {
                 if (!info.IsPlaying)
@@ -1781,6 +1825,346 @@ public partial class MediaPlaybackView : UserControl, IDisposable
         };
         _rewindTextTimer.Start();
     }
+
+    #endregion
+
+    #region Music Player Volume Control
+
+    private double _currentVolume = 1.0;
+    private bool _isVolumeMuted = false;
+    private bool _isDraggingVolume = false;
+
+    private void InitVolumeControl()
+    {
+        YouTubeMusicPlayerService.Instance.VolumeChanged -= OnYouTubeMusicVolumeChanged;
+        YouTubeMusicPlayerService.Instance.VolumeChanged += OnYouTubeMusicVolumeChanged;
+
+        SyncVolumeUI();
+    }
+
+    private void OnYouTubeMusicVolumeChanged(double volume, bool isMuted)
+    {
+        if (_disposed) return;
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(new Action(() => OnYouTubeMusicVolumeChanged(volume, isMuted)));
+            return;
+        }
+        if (_isDraggingVolume) return;
+        _currentVolume = volume;
+        _isVolumeMuted = isMuted;
+        UpdateVolumeUI();
+    }
+
+    public void SyncVolumeUI()
+    {
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            _currentVolume = YouTubeMusicPlayerService.Instance.Volume;
+            _isVolumeMuted = YouTubeMusicPlayerService.Instance.IsMuted;
+        }
+        else if (_mediaService != null && _mediaService.TryGetCurrentSessionVolume(out float vol, out bool muted))
+        {
+            _currentVolume = vol;
+            _isVolumeMuted = muted;
+        }
+        UpdateVolumeUI();
+    }
+
+    private void UpdateVolumeUI()
+    {
+        double vol = _isVolumeMuted ? 0 : Math.Clamp(_currentVolume, 0.0, 1.0);
+        if (VolumeScale != null)
+        {
+            VolumeScale.ScaleX = vol;
+        }
+        if (VolumeThumbTranslate != null)
+        {
+            double sliderWidth = VolumeSliderArea?.ActualWidth > 0 ? VolumeSliderArea.ActualWidth : 38.0;
+            double thumbWidth = VolumeThumb?.ActualWidth > 0 ? VolumeThumb.ActualWidth : 8.0;
+            double maxTravel = Math.Max(0, sliderWidth - thumbWidth);
+            VolumeThumbTranslate.X = Math.Clamp(vol * maxTravel, 0, maxTravel);
+        }
+        if (VolumeIcon != null)
+        {
+            VolumeIcon.Text = GetVolumeGlyph(_currentVolume, _isVolumeMuted);
+        }
+        string tip = _isVolumeMuted ? "Muted" : $"Volume: {(int)Math.Round(_currentVolume * 100)}% (Drag or scroll to adjust)";
+        if (VolumeButton != null) VolumeButton.ToolTip = tip;
+        if (VolumeSliderArea != null) VolumeSliderArea.ToolTip = tip;
+    }
+
+    private void VolumeSliderArea_SizeChanged(object sender, SizeChangedEventArgs e) => UpdateVolumeUI();
+
+    private static string GetVolumeGlyph(double volume, bool muted)
+    {
+        if (muted || volume < 0.005) return "\uE74F";
+        if (volume < 0.33) return "\uE992";
+        if (volume < 0.66) return "\uE993";
+        return "\uE995";
+    }
+
+    private async void VolumeButton_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (_disposed) return;
+        ButtonFeedback.PlayButtonPressAnimation(VolumeButton);
+
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            await YouTubeMusicPlayerService.Instance.ToggleMuteAsync();
+        }
+        else if (_mediaService != null)
+        {
+            _mediaService.TryToggleCurrentSessionMute();
+            SyncVolumeUI();
+        }
+    }
+
+    private void VolumeButton_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (VolumeButtonScale != null)
+        {
+            var anim = new DoubleAnimation(1.15, _dur150) { EasingFunction = _easeQuadOut };
+            VolumeButtonScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            VolumeButtonScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+    }
+
+    private void VolumeButton_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (VolumeButtonScale != null)
+        {
+            var anim = new DoubleAnimation(1.0, _dur150) { EasingFunction = _easeQuadOut };
+            VolumeButtonScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            VolumeButtonScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+    }
+
+    internal async void AdjustVolume(double delta)
+    {
+        double step = (delta > 0) ? 0.05 : -0.05;
+        double newVol = Math.Clamp(_currentVolume + step, 0.0, 1.0);
+        _currentVolume = newVol;
+        _isVolumeMuted = false;
+        UpdateVolumeUI();
+
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            await YouTubeMusicPlayerService.Instance.SetVolumeAsync(newVol);
+        }
+        else if (_mediaService != null)
+        {
+            _mediaService.TrySetCurrentSessionVolume((float)newVol);
+        }
+    }
+
+    private void Volume_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Delta == 0 || _isDraggingVolume) return;
+        e.Handled = true;
+        AdjustVolume(e.Delta);
+    }
+
+    private void VolumeSlider_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        _isDraggingVolume = true;
+        VolumeSliderArea.CaptureMouse();
+        SetVolumeFromMousePosition(e);
+    }
+
+    private void VolumeSlider_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_isDraggingVolume && e.LeftButton == MouseButtonState.Pressed)
+        {
+            SetVolumeFromMousePosition(e);
+        }
+    }
+
+    private void VolumeSlider_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isDraggingVolume)
+        {
+            _isDraggingVolume = false;
+            VolumeSliderArea.ReleaseMouseCapture();
+            e.Handled = true;
+        }
+    }
+
+    private void VolumeSlider_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_isDraggingVolume && e.LeftButton != MouseButtonState.Pressed)
+        {
+            _isDraggingVolume = false;
+            VolumeSliderArea.ReleaseMouseCapture();
+        }
+    }
+
+    private async void SetVolumeFromMousePosition(MouseEventArgs e)
+    {
+        if (VolumeSliderArea.ActualWidth <= 0) return;
+        var pos = e.GetPosition(VolumeSliderArea);
+        double newVol = Math.Clamp(pos.X / VolumeSliderArea.ActualWidth, 0.0, 1.0);
+        _currentVolume = newVol;
+        _isVolumeMuted = false;
+        UpdateVolumeUI();
+
+        if (YouTubeMusicPlayerService.Instance.HasActiveMedia)
+        {
+            await YouTubeMusicPlayerService.Instance.SetVolumeAsync(newVol);
+        }
+        else if (_mediaService != null)
+        {
+            _mediaService.TrySetCurrentSessionVolume((float)newVol);
+        }
+    }
+
+    #region Sleep Timer Control
+
+    private void SleepTimerButton_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (_disposed) return;
+        ButtonFeedback.PlayButtonPressAnimation(SleepTimerButton);
+        ShowSleepTimerMenu();
+    }
+
+    private void SleepTimerButton_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (SleepTimerButtonScale != null)
+        {
+            var anim = new DoubleAnimation(1.15, _dur150) { EasingFunction = _easeQuadOut };
+            SleepTimerButtonScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            SleepTimerButtonScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+    }
+
+    private void SleepTimerButton_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (SleepTimerButtonScale != null)
+        {
+            var anim = new DoubleAnimation(1.0, _dur150) { EasingFunction = _easeQuadOut };
+            SleepTimerButtonScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+            SleepTimerButtonScale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+        }
+    }
+
+    private void UpdateSleepTimerUI()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(UpdateSleepTimerUI);
+            return;
+        }
+
+        if (_disposed || SleepTimerButton == null || SleepTimerIcon == null) return;
+        var timer = YouTubeMusicSleepTimerService.Instance;
+
+        if (timer.IsActive)
+        {
+            SleepTimerIcon.Foreground = new SolidColorBrush(Color.FromRgb(0, 162, 237));
+            SleepTimerButton.ToolTip = $"Sleep Timer: {timer.FormattedRemainingTime} ({timer.SelectedPresetLabel})";
+        }
+        else
+        {
+            SleepTimerIcon.Foreground = UiPalette.PrimaryBrush;
+            SleepTimerButton.ToolTip = "Sleep Timer (Matikan otomatis YTM)";
+        }
+    }
+
+    private void ShowSleepTimerMenu()
+    {
+        var timer = YouTubeMusicSleepTimerService.Instance;
+        var menu = new ContextMenu
+        {
+            Style = Resources["SleepTimerContextMenuStyle"] as Style,
+            PlacementTarget = SleepTimerButton,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom,
+            VerticalOffset = 6,
+            HorizontalOffset = -50
+        };
+
+        var itemStyle = Resources["SleepTimerMenuItemStyle"] as Style;
+        var sepStyle = Resources["SleepTimerSeparatorStyle"] as Style;
+
+        if (timer.IsActive)
+        {
+            var headerItem = new MenuItem
+            {
+                Header = $"⏱ Aktif: {timer.FormattedRemainingTime}",
+                Style = itemStyle,
+                IsEnabled = false,
+                Foreground = new SolidColorBrush(Color.FromRgb(0, 162, 237))
+            };
+            menu.Items.Add(headerItem);
+            menu.Items.Add(new Separator { Style = sepStyle });
+        }
+
+        void AddPreset(string label, TimeSpan duration, string presetName)
+        {
+            bool isCurrent = timer.IsActive && !timer.IsEndOfTrackMode && timer.SelectedPresetLabel == presetName;
+            string displayLabel = isCurrent ? $"✓  {label}" : $"    {label}";
+            var item = new MenuItem
+            {
+                Header = displayLabel,
+                Style = itemStyle
+            };
+            if (isCurrent)
+            {
+                item.Foreground = new SolidColorBrush(Color.FromRgb(0, 162, 237));
+            }
+            item.Click += (_, _) =>
+            {
+                timer.StartTimer(duration, presetName);
+                UpdateSleepTimerUI();
+            };
+            menu.Items.Add(item);
+        }
+
+        AddPreset("15 Menit", TimeSpan.FromMinutes(15), "15 Menit");
+        AddPreset("30 Menit", TimeSpan.FromMinutes(30), "30 Menit");
+        AddPreset("45 Menit", TimeSpan.FromMinutes(45), "45 Menit");
+        AddPreset("60 Menit", TimeSpan.FromMinutes(60), "60 Menit");
+
+        bool isCurrentEnd = timer.IsActive && timer.IsEndOfTrackMode;
+        string endLabel = isCurrentEnd ? "✓  Akhir Lagu Ini" : "    Akhir Lagu Ini";
+        var endTrackItem = new MenuItem
+        {
+            Header = endLabel,
+            Style = itemStyle
+        };
+        if (isCurrentEnd)
+        {
+            endTrackItem.Foreground = new SolidColorBrush(Color.FromRgb(0, 162, 237));
+        }
+        endTrackItem.Click += (_, _) =>
+        {
+            timer.StartEndOfTrack();
+            UpdateSleepTimerUI();
+        };
+        menu.Items.Add(endTrackItem);
+
+        if (timer.IsActive)
+        {
+            menu.Items.Add(new Separator { Style = sepStyle });
+            var cancelItem = new MenuItem
+            {
+                Header = "❌  Matikan Sleep Timer",
+                Style = itemStyle
+            };
+            cancelItem.Click += (_, _) =>
+            {
+                timer.CancelTimer();
+                UpdateSleepTimerUI();
+            };
+            menu.Items.Add(cancelItem);
+        }
+
+        menu.IsOpen = true;
+    }
+
+    #endregion
 
     #endregion
 }
