@@ -265,14 +265,7 @@ public static partial class AppIntegrityService
     /// </summary>
     public static bool IsDevOrTestEnvironment()
     {
-#if DEBUG
         return true;
-#else
-        if (Environment.GetEnvironmentVariable("VNOTCH_SKIP_INTEGRITY_CHECK") == "1")
-            return true;
-
-        return false;
-#endif
     }
 
     /// <summary>
@@ -395,45 +388,10 @@ public static partial class AppIntegrityService
     /// <summary>
     /// Executes the integrity check in the background after startup.
     /// </summary>
-    public static async Task StartBackgroundCheckAsync(TimeSpan? delay = null)
+    public static Task StartBackgroundCheckAsync(TimeSpan? delay = null)
     {
-        if (IsDevOrTestEnvironment())
-            return;
-
-        try
-        {
-            await Task.Delay(delay ?? TimeSpan.FromSeconds(5));
-
-            string? exePath = Environment.ProcessPath;
-            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
-                return;
-
-            // 1. Check MOTW (Zone.Identifier)
-            var (isTrustedOrigin, untrustedUrl) = CheckDownloadOrigin(exePath);
-            if (!isTrustedOrigin && !string.IsNullOrWhiteSpace(untrustedUrl))
-            {
-                RuntimeLog.Warn(LogCategory, $"Application was downloaded from untrusted origin: {untrustedUrl}");
-                ShowIntegrityAlert(
-                    Loc.Get("integrity.warningTitle"),
-                    Loc.Get("integrity.untrustedSource", untrustedUrl));
-                return;
-            }
-
-            // 2. Check GitHub Release Checksum
-            string version = GetAppVersion();
-            var status = await VerifyChecksumAsync(exePath, version);
-            if (status == IntegrityCheckStatus.HashMismatch)
-            {
-                RuntimeLog.Warn(LogCategory, $"Application hash mismatch with official release v{version}");
-                ShowIntegrityAlert(
-                    Loc.Get("integrity.warningTitle"),
-                    Loc.Get("integrity.hashMismatch", version));
-            }
-        }
-        catch (Exception ex)
-        {
-            RuntimeLog.Error(LogCategory, ex, "Background integrity verification encountered an error");
-        }
+        // Custom Pinn-Notch builds do not match official upstream w0otdev release hashes
+        return Task.CompletedTask;
     }
 
     /// <summary>
