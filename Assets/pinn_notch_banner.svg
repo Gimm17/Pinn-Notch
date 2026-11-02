@@ -1,0 +1,303 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080911"/>
+      <stop offset="40%" stop-color="#0f1121"/>
+      <stop offset="80%" stop-color="#14172e"/>
+      <stop offset="100%" stop-color="#080911"/>
+    </linearGradient>
+
+    <!-- Neon Glow Filters -->
+    <radialGradient id="purpleGlow" cx="20%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyanGlow" cx="80%" cy="60%" r="55%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pinkGlow" cx="50%" cy="50%" r="40%">
+      <stop offset="0%" stop-color="#ec4899" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- UI Gradients -->
+    <linearGradient id="glassBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#8b5cf6" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e2238" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#0e101d" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+
+    <linearGradient id="brandTagGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+
+    <linearGradient id="pinnHeadphone" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="shadowLg" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+    <filter id="glowSubtle">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="420" rx="20" fill="url(#bgGrad)"/>
+  <rect width="1200" height="420" rx="20" fill="url(#purpleGlow)"/>
+  <rect width="1200" height="420" rx="20" fill="url(#cyanGlow)"/>
+  <rect width="1200" height="420" rx="20" fill="url(#pinkGlow)"/>
+  
+  <!-- Outer Border -->
+  <rect x="1" y="1" width="1198" height="418" rx="20" fill="none" stroke="url(#glassBorder)" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- Subtle grid lines -->
+  <path d="M 0 100 L 1200 100 M 0 200 L 1200 200 M 0 300 L 1200 300" stroke="#ffffff" stroke-width="1" opacity="0.03"/>
+  <path d="M 300 0 L 300 420 M 600 0 L 600 420 M 900 0 L 900 420" stroke="#ffffff" stroke-width="1" opacity="0.03"/>
+
+  <!-- ================= LEFT COLUMN: BRANDING & HEADLINE ================= -->
+  <g transform="translate(68, 62)">
+    <!-- Version Tag Pill -->
+    <g>
+      <rect x="0" y="0" width="280" height="28" rx="14" fill="#1e1b4b" stroke="url(#brandTagGrad)" stroke-width="1.2"/>
+      <circle cx="16" cy="14" r="4.5" fill="#38bdf8" filter="url(#glowSubtle)"/>
+      <text x="30" y="18" fill="#e0e7ff" font-family="Segoe UI, -apple-system, sans-serif" font-size="11.5" font-weight="700" letter-spacing="1.2">PINN-NOTCH v2.2.0 · WIN 10 &amp; 11</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="92" fill="url(#textGrad)" font-family="Segoe UI, -apple-system, sans-serif" font-size="52" font-weight="900" letter-spacing="1">Pinn-Notch</text>
+    
+    <!-- Subtitle / Tagline -->
+    <text x="0" y="128" fill="#94a3b8" font-family="Segoe UI, -apple-system, sans-serif" font-size="17" font-weight="500">
+      The Next-Gen Desktop Transformation Shell for Windows
+    </text>
+    <text x="0" y="152" fill="#cbd5e1" font-family="Segoe UI, -apple-system, sans-serif" font-size="15" font-weight="400">
+      Dynamic Island Notch · Fluid macOS Bottom Dock · Native TranslucentTB Sync
+    </text>
+
+    <!-- Highlights Badges / Feature Pills -->
+    <g transform="translate(0, 186)">
+      <!-- Pill 1: Mascot -->
+      <g transform="translate(0, 0)">
+        <rect width="138" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#f472b6" font-size="14">🐱</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">Pinn Mascot</text>
+      </g>
+
+      <!-- Pill 2: Dock -->
+      <g transform="translate(148, 0)">
+        <rect width="158" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#38bdf8" font-size="14">🌊</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">macOS Dock</text>
+      </g>
+
+      <!-- Pill 3: TranslucentTB -->
+      <g transform="translate(316, 0)">
+        <rect width="168" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#818cf8" font-size="14">🧊</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">TranslucentTB</text>
+      </g>
+    </g>
+
+    <!-- Highlights Row 2 -->
+    <g transform="translate(0, 230)">
+      <!-- Pill 4: Telemetry -->
+      <g transform="translate(0, 0)">
+        <rect width="176" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#4ade80" font-size="14">⚡</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">Rigid Telemetry</text>
+      </g>
+
+      <!-- Pill 5: Studio Mirror -->
+      <g transform="translate(186, 0)">
+        <rect width="160" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#fb923c" font-size="14">📷</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">Webcam HUD</text>
+      </g>
+
+      <!-- Pill 6: Zero Cloud -->
+      <g transform="translate(356, 0)">
+        <rect width="154" height="34" rx="17" fill="#1b1d30" stroke="#333854" stroke-width="1"/>
+        <text x="18" y="22" fill="#a78bfa" font-size="14">🛡️</text>
+        <text x="42" y="22" fill="#f1f5f9" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="600">100% Offline</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= RIGHT COLUMN: LIVE UI SHOWCASE ================= -->
+  <g transform="translate(630, 40)">
+    
+    <!-- Top Dynamic Island Window -->
+    <g filter="url(#shadowLg)">
+      <!-- Main Expanded Notch Island -->
+      <rect x="0" y="30" width="510" height="150" rx="36" fill="#090a12" stroke="#252940" stroke-width="2"/>
+      
+      <!-- Top edge specular gloss -->
+      <path d="M 40 32 L 470 32" stroke="#ffffff" stroke-width="1.2" opacity="0.18" stroke-linecap="round"/>
+
+      <!-- Pinn Peeking on Top of the Notch -->
+      <g transform="translate(255, 30)">
+        <!-- Headphone Band -->
+        <path d="M -32 -6 Q 0 -42 32 -6" fill="none" stroke="url(#brandTagGrad)" stroke-width="5" stroke-linecap="round"/>
+        <!-- Ears -->
+        <path d="M -26 -4 L -36 -32 L -14 -16 Z" fill="#fffcf8" stroke="#1e1b4b" stroke-width="2"/>
+        <path d="M -25 -6 L -32 -26 L -16 -15 Z" fill="#ffb6c1"/>
+        <path d="M 14 -16 L 36 -32 L 26 -4 Z" fill="#fffcf8" stroke="#1e1b4b" stroke-width="2"/>
+        <path d="M 16 -15 L 32 -26 L 25 -6 Z" fill="#ffb6c1"/>
+        <!-- Head -->
+        <ellipse cx="0" cy="0" rx="34" ry="25" fill="#fffcf8" stroke="#1e1b4b" stroke-width="2"/>
+        <!-- Blush -->
+        <ellipse cx="-20" cy="5" rx="5" ry="3.5" fill="#fb7185" opacity="0.75"/>
+        <ellipse cx="20" cy="5" rx="5" ry="3.5" fill="#fb7185" opacity="0.75"/>
+        <!-- Eyes -->
+        <ellipse cx="-12" cy="-2" rx="6" ry="8" fill="#1e1b4b"/>
+        <circle cx="-14" cy="-5" r="2.2" fill="#ffffff"/>
+        <ellipse cx="12" cy="-2" rx="6" ry="8" fill="#1e1b4b"/>
+        <circle cx="10" cy="-5" r="2.2" fill="#ffffff"/>
+        <!-- Nose & Mouth -->
+        <ellipse cx="0" cy="3" rx="2" ry="1.5" fill="#fb7185"/>
+        <path d="M -5 6 Q -2 9 0 7 Q 2 9 5 6" fill="none" stroke="#1e1b4b" stroke-width="1.6" stroke-linecap="round"/>
+        <!-- Headphone Cups -->
+        <rect x="-38" y="-10" width="10" height="20" rx="5" fill="url(#pinnHeadphone)"/>
+        <rect x="28" y="-10" width="10" height="20" rx="5" fill="url(#pinnHeadphone)"/>
+      </g>
+
+      <!-- Album Cover art (Square with music note) -->
+      <g transform="translate(24, 52)">
+        <rect width="106" height="106" rx="16" fill="#181824" stroke="#2c2d42" stroke-width="1.5"/>
+        <circle cx="53" cy="53" r="32" fill="#e11d48" opacity="0.2"/>
+        <path d="M 44 65 L 44 45 L 62 40 L 62 60 M 44 65 A 6 5 0 1 1 38 60 A 6 5 0 1 1 44 65 M 62 60 A 6 5 0 1 1 56 55 A 6 5 0 1 1 62 60" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <!-- Media Details -->
+      <g transform="translate(148, 62)">
+        <text x="0" y="24" fill="#ffffff" font-family="Segoe UI, -apple-system, sans-serif" font-size="18" font-weight="700">Alexandra</text>
+        <text x="0" y="44" fill="#94a3b8" font-family="Segoe UI, -apple-system, sans-serif" font-size="13" font-weight="500">Reality Club · What Do You Really Know?</text>
+
+        <!-- Playback Progress Bar -->
+        <g transform="translate(0, 60)">
+          <rect width="210" height="5" rx="2.5" fill="#2d3148"/>
+          <rect width="84" height="5" rx="2.5" fill="#f43f5e"/>
+          <circle cx="84" cy="2.5" r="5" fill="#ffffff" filter="url(#glowSubtle)"/>
+          <text x="0" y="20" fill="#64748b" font-family="Segoe UI, -apple-system, sans-serif" font-size="10">0:47</text>
+          <text x="210" y="20" fill="#64748b" font-family="Segoe UI, -apple-system, sans-serif" font-size="10" text-anchor="end">3:59</text>
+        </g>
+
+        <!-- Media Controls (Play, Prev, Next) -->
+        <g transform="translate(40, 88)">
+          <!-- Prev -->
+          <path d="M 2 12 L 10 6 L 10 18 Z M 10 12 L 18 6 L 18 18 Z" fill="#94a3b8"/>
+          <!-- Play/Pause -->
+          <circle cx="48" cy="12" r="14" fill="#ffffff" filter="url(#glowSubtle)"/>
+          <rect x="43" y="7" width="3.5" height="10" rx="1.5" fill="#0f172a"/>
+          <rect x="49" y="7" width="3.5" height="10" rx="1.5" fill="#0f172a"/>
+          <!-- Next -->
+          <path d="M 86 12 L 78 6 L 78 18 Z M 78 12 L 70 6 L 70 18 Z" fill="#94a3b8"/>
+        </g>
+      </g>
+
+      <!-- Dynamic Top Icons (Battery, Speed, Volume) -->
+      <g transform="translate(380, 56)">
+        <!-- Battery 100% -->
+        <rect x="0" y="0" width="36" height="18" rx="4" fill="none" stroke="#22c55e" stroke-width="2"/>
+        <rect x="3" y="3" width="30" height="12" rx="2" fill="#22c55e"/>
+        <path d="M 37 5 Q 39 5 39 7 L 39 11 Q 39 13 37 13" stroke="#22c55e" stroke-width="2" fill="none"/>
+        <path d="M 19 4 L 14 10 L 18 10 L 16 14 L 22 8 L 18 8 Z" fill="#ffffff"/>
+        <text x="46" y="14" fill="#22c55e" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" font-weight="700">100%</text>
+
+        <!-- Volume Icon -->
+        <g transform="translate(0, 30)">
+          <path d="M 4 8 L 8 8 L 13 4 L 13 16 L 8 12 L 4 12 Z" fill="#94a3b8"/>
+          <path d="M 16 6 Q 19 10 16 14 M 19 3 Q 24 10 19 17" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/>
+          <text x="30" y="14" fill="#94a3b8" font-family="Segoe UI, -apple-system, sans-serif" font-size="11" font-weight="600">36%</text>
+        </g>
+
+        <!-- Network Speed -->
+        <g transform="translate(0, 58)">
+          <path d="M 8 2 L 8 14 M 4 10 L 8 14 L 12 10" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="18" y="12" fill="#38bdf8" font-family="Segoe UI, -apple-system, sans-serif" font-size="11" font-weight="700">48 MB/s</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Bottom Floating Dock Window -->
+    <g transform="translate(15, 230)" filter="url(#shadowLg)">
+      <!-- Dock Pill Container -->
+      <rect x="0" y="0" width="480" height="74" rx="37" fill="#141829" fill-opacity="0.9" stroke="#333b5c" stroke-width="2"/>
+      <path d="M 30 2 L 450 2" stroke="#ffffff" stroke-width="1.2" opacity="0.25" stroke-linecap="round"/>
+
+      <!-- Dock Icons -->
+      <!-- App 1: Launcher -->
+      <g transform="translate(20, 14)">
+        <rect width="46" height="46" rx="14" fill="#475569"/>
+        <circle cx="17" cy="17" r="3.5" fill="#ffffff"/>
+        <circle cx="29" cy="17" r="3.5" fill="#ffffff"/>
+        <circle cx="17" cy="29" r="3.5" fill="#ffffff"/>
+        <circle cx="29" cy="29" r="3.5" fill="#ffffff"/>
+      </g>
+
+      <!-- App 2: Notes -->
+      <g transform="translate(76, 14)">
+        <rect width="46" height="46" rx="14" fill="#eab308"/>
+        <line x1="12" y1="16" x2="34" y2="16" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="12" y1="24" x2="34" y2="24" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        <line x1="12" y1="32" x2="26" y2="32" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      </g>
+
+      <!-- App 3: Safari / Browser -->
+      <g transform="translate(132, 14)">
+        <rect width="46" height="46" rx="14" fill="#3b82f6"/>
+        <circle cx="23" cy="23" r="14" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+        <polygon points="23,12 26,20 34,23 26,26 23,34 20,26 12,23 20,20" fill="#ffffff"/>
+      </g>
+
+      <!-- App 4: Chat (Magnified / Center) -->
+      <g transform="translate(186, 8)">
+        <rect width="56" height="56" rx="17" fill="#22c55e" filter="url(#glowSubtle)"/>
+        <path d="M 18 20 Q 28 14 38 20 Q 42 28 36 34 L 38 40 L 32 37 Q 24 40 18 34 Q 14 26 18 20 Z" fill="#ffffff"/>
+        <circle cx="28" cy="62" r="2.5" fill="#ffffff"/>
+      </g>
+
+      <!-- App 5: Music -->
+      <g transform="translate(252, 14)">
+        <rect width="46" height="46" rx="14" fill="#ec4899"/>
+        <path d="M 18 32 L 18 18 L 30 15 L 30 28 M 18 32 A 4 3 0 1 1 14 29 A 4 3 0 1 1 18 32 M 30 28 A 4 3 0 1 1 26 25 A 4 3 0 1 1 30 28" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <!-- App 6: Terminal -->
+      <g transform="translate(308, 14)">
+        <rect width="46" height="46" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+        <path d="M 14 18 L 22 23 L 14 28 M 24 28 L 32 28" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <!-- Dock Telemetry Module (Rigid) -->
+      <g transform="translate(366, 15)">
+        <rect width="98" height="44" rx="12" fill="#0c0e18" stroke="#252a3f" stroke-width="1.5"/>
+        <text x="49" y="19" fill="#38bdf8" font-family="Segoe UI, -apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">↓ 31 KB/s</text>
+        <text x="49" y="34" fill="#22c55e" font-family="Segoe UI, -apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle">⚡ 96%</text>
+      </g>
+    </g>
+  </g>
+</svg>
