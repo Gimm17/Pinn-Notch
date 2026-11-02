@@ -337,7 +337,7 @@ internal static class SetupOperations
         try
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var appFolder = Path.Combine(appDataPath, "V-Notch");
+            var appFolder = Path.Combine(appDataPath, AppPaths.DirectoryName);
             Directory.CreateDirectory(appFolder);
 
             var settingsPath = Path.Combine(appFolder, "settings.json");

@@ -822,7 +822,7 @@ public sealed partial class MediaMetadataLookupService : IMediaMetadataLookupSer
     private static string? GetYouTubeApiKey()
     {
         var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return GetCachedYouTubeApiKey(Path.Combine(appDataPath, "V-Notch", "settings.json"));
+        return GetCachedYouTubeApiKey(Path.Combine(appDataPath, AppPaths.DirectoryName, "settings.json"));
     }
 
     // Settings are saved with an atomic replace, so the write time changes whenever the

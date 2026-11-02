@@ -116,7 +116,7 @@ public partial class UpdateService : IUpdateService, IDisposable
 
     public UpdateService() : this(CreateHttpClient(), UpdateSecurityPolicy.FromEnvironment(),
 
-        cachePath: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "V-Notch", "update-cache.json"))
+        cachePath: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppPaths.DirectoryName, "update-cache.json"))
 
     { _ownsHttpClient = true; }
 

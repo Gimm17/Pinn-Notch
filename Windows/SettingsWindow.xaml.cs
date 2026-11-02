@@ -1081,7 +1081,7 @@ public partial class SettingsWindow : Window
         try
         {
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string usagePath = System.IO.Path.Combine(appDataPath, "V-Notch", "spotlight-usage.json");
+            string usagePath = System.IO.Path.Combine(appDataPath, AppPaths.DirectoryName, "spotlight-usage.json");
             if (File.Exists(usagePath))
             {
                 File.Delete(usagePath);

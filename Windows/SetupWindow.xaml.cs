@@ -1417,7 +1417,7 @@ public class DirectoryPage : UserControl, ISetupAnimatedPage
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             Title = Loc.Get("setup.directory.headline"),
-            FileName = "V-Notch",
+            FileName = "Pinn-Notch",
             Filter = "Folder|*.none",
             CheckFileExists = false,
             CheckPathExists = false
@@ -1434,9 +1434,9 @@ public class DirectoryPage : UserControl, ISetupAnimatedPage
             if (!string.IsNullOrEmpty(selectedPath))
             {
                 var folderName = System.IO.Path.GetFileName(selectedPath.TrimEnd('\\', '/'));
-                if (!string.Equals(folderName, "V-Notch", StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(folderName, "Pinn-Notch", StringComparison.OrdinalIgnoreCase))
                 {
-                    selectedPath = System.IO.Path.Combine(selectedPath, "V-Notch");
+                    selectedPath = System.IO.Path.Combine(selectedPath, "Pinn-Notch");
                 }
                 _pathBox.Text = selectedPath;
             }

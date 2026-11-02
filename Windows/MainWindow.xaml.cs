@@ -963,6 +963,16 @@ public partial class MainWindow : Window
     // The ViewModel is the single production subscriber to media state.  This window
     private void ViewModel_MediaInfoUpdated(object? sender, MediaInfo info) => OnMediaChanged(info);
 
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key == Key.System && (e.SystemKey == Key.F4 || e.Key == Key.F4))
+        {
+            e.Handled = true;
+            ShellHelper.ShowWindowsShutdownDialog();
+        }
+    }
+
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
         base.OnClosing(e);

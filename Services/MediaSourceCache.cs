@@ -47,7 +47,7 @@ public partial class MediaSourceCache
     {
         _capacity = vn_media_source_cache_resolve_capacity(capacity, DefaultCapacity, out int resolved) == 0 ? resolved : (capacity > 0 ? capacity : DefaultCapacity);
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "V-Notch");
+        var dir = Path.Combine(appData, AppPaths.DirectoryName);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         _cachePath = Path.Combine(dir, "source_cache.json");
     }

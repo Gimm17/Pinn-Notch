@@ -382,7 +382,8 @@ public static partial class CrashReporter
             var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             if (!string.IsNullOrEmpty(appData))
             {
-                var folder = Path.Combine(appData, "V-Notch");
+                var folder = Path.Combine(appData, AppPaths.DirectoryName);
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                 return Path.Combine(folder, CrashLogFileName);
             }
         }

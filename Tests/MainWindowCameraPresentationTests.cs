@@ -56,15 +56,15 @@ public sealed class MainWindowCameraPresentationTests
 
         settings.MirrorCameraPreview = true;
         Invoke(window, "ApplyCameraMirrorState", false);
-        Assert.Equal(-1.0, window.CameraMirrorTransform.ScaleX);
+        Assert.Equal(-1.0, window.CameraMirrorTransform!.ScaleX);
 
         settings.MirrorCameraPreview = false;
         Invoke(window, "ApplyCameraMirrorState", false);
-        Assert.Equal(1.0, window.CameraMirrorTransform.ScaleX);
+        Assert.Equal(1.0, window.CameraMirrorTransform!.ScaleX);
 
         Invoke(window, "ToggleCameraMirror", false);
         Assert.True(settings.MirrorCameraPreview);
-        Assert.Equal(-1.0, window.CameraMirrorTransform.ScaleX);
+        Assert.Equal(-1.0, window.CameraMirrorTransform!.ScaleX);
     });
 
     [Theory]

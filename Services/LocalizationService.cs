@@ -202,7 +202,7 @@ public static partial class Loc
         var candidateDirectories = new[]
         {
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Locales"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "V-Notch", "Locales")
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppPaths.DirectoryName, "Locales")
         };
 
         foreach (var dir in candidateDirectories)

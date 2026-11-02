@@ -240,7 +240,7 @@ public partial class SettingsWindow
             // In-memory cache resets
             FileIconProvider.ClearCache();
 
-            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "V-Notch");
+            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppPaths.DirectoryName);
             var baseDir = AppContext.BaseDirectory;
 
             int deletedCount = DeleteCacheDirectories(appData)

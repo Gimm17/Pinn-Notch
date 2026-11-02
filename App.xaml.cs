@@ -36,10 +36,37 @@ public partial class App : Application
         try
         {
             if (!IsRestarting)
-        {
-            TaskbarIntegrationService.Instance?.RestoreTaskbars();
-        }
+            {
+                TaskbarIntegrationService.Instance?.RestoreTaskbars();
+            }
+
+            // 1. Cleanup and close DockWindow timers and window before services dispose
+            try
+            {
+                if (Services?.GetService<DockWindow>() is DockWindow dock)
+                {
+                    dock.Cleanup();
+                    dock.Close();
+                }
+            }
+            catch { }
+
+            // 2. Cleanup MainWindow
             if (MainWindow is MainWindow window) await window.CleanupAsync();
+
+            // 3. Close other open windows
+            try
+            {
+                foreach (Window w in Windows.OfType<Window>().ToArray())
+                {
+                    if (w != MainWindow)
+                    {
+                        try { w.Close(); } catch { }
+                    }
+                }
+            }
+            catch { }
+
             if (Services?.GetService<IMediaDetectionService>() is MediaDetectionService media)
                 await media.DrainShutdownAsync();
             if (Services is IAsyncDisposable asyncDisposable)
@@ -183,6 +210,18 @@ public partial class App : Application
         {
             HandleStartupFailure(ex);
         }
+    }
+
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        base.OnSessionEnding(e);
+        e.Cancel = false;
+        try
+        {
+            TaskbarIntegrationService.Instance?.RestoreTaskbars();
+        }
+        catch { }
+        _ = RequestShutdownAsync(0);
     }
 
     internal static bool IsSetupOrUninstall(string[] args, string? processPath = null)
