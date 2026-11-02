@@ -29,6 +29,44 @@ public sealed class MainWindowCameraPresentationTests
         Assert.NotNull(window.ClipboardTrayView);
     });
 
+    [Fact]
+    public void NavigatingToCameraViewContextTriggersAutoStartCameraPreview() => SharedStaTestRunner.Run(() =>
+    {
+        using var fixture = CreateFixture(false);
+        var window = fixture.Window;
+        var camera = Field<WebcamCaptureController>(window, "_camera");
+        Assert.False(camera.IsLifecycleActive);
+
+        // Outside camera context, auto-start is a no-op
+        Invoke(window, "AutoStartCameraPreviewIfNeeded");
+        Assert.False(camera.IsLifecycleActive);
+
+        // Within camera context, auto-start initiates camera lifecycle
+        Set(window, "_isCameraView", true);
+        Invoke(window, "AutoStartCameraPreviewIfNeeded");
+        Assert.True(camera.IsLifecycleActive || camera.IsStarting || camera.IsActive);
+    });
+
+    [Fact]
+    public void CameraMirrorTransformRespectsSettingAndToggles() => SharedStaTestRunner.Run(() =>
+    {
+        using var fixture = CreateFixture(false);
+        var window = fixture.Window;
+        var settings = Field<NotchSettings>(window, "_settings");
+
+        settings.MirrorCameraPreview = true;
+        Invoke(window, "ApplyCameraMirrorState", false);
+        Assert.Equal(-1.0, window.CameraMirrorTransform.ScaleX);
+
+        settings.MirrorCameraPreview = false;
+        Invoke(window, "ApplyCameraMirrorState", false);
+        Assert.Equal(1.0, window.CameraMirrorTransform.ScaleX);
+
+        Invoke(window, "ToggleCameraMirror", false);
+        Assert.True(settings.MirrorCameraPreview);
+        Assert.Equal(-1.0, window.CameraMirrorTransform.ScaleX);
+    });
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

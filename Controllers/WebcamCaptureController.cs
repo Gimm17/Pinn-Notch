@@ -144,20 +144,29 @@ public sealed class WebcamCaptureController : IDisposable
                 MediaCapture? capture = null;
                 try
                 {
+                    RuntimeLog.Info("CAMERA", $"Discovering camera frame source groups (requested deviceId: '{deviceId ?? ""}')");
                     var groups = await MediaFrameSourceGroup.FindAllAsync();
+                    RuntimeLog.Info("CAMERA", $"Found {groups.Count} camera group(s)");
                     MediaFrameSourceGroup? group = null;
 
                     if (!string.IsNullOrEmpty(deviceId))
                     {
                         group = groups.FirstOrDefault(g => g.Id == deviceId &&
                             g.SourceInfos.Any(s => s.SourceKind == MediaFrameSourceKind.Color));
+                        group ??= groups.FirstOrDefault(g => g.Id == deviceId);
                     }
 
                     group ??= groups.FirstOrDefault(g =>
                         g.SourceInfos.Any(s => s.SourceKind == MediaFrameSourceKind.Color));
+                    group ??= groups.FirstOrDefault();
 
                     if (group == null)
+                    {
+                        RuntimeLog.Warn("CAMERA", "No camera device detected on system.");
                         return ((MediaCapture?)null, (MediaFrameReader?)null, "Cannot detect camera device");
+                    }
+
+                    RuntimeLog.Info("CAMERA", $"Selected camera device: '{group.DisplayName}' (Id: {group.Id})");
 
                     capture = new MediaCapture();
                     bool ownsStart;
@@ -196,7 +205,9 @@ public sealed class WebcamCaptureController : IDisposable
                         return ((MediaCapture?)null, (MediaFrameReader?)null, (string?)null);
                     }
 
-                    var colorSource = capture.FrameSources.Values.FirstOrDefault(s => s.Info.SourceKind == MediaFrameSourceKind.Color);
+                    var colorSource = capture.FrameSources.Values.FirstOrDefault(s => s.Info.SourceKind == MediaFrameSourceKind.Color)
+                        ?? capture.FrameSources.Values.FirstOrDefault(s => s.Info.MediaStreamType == MediaStreamType.VideoPreview || s.Info.MediaStreamType == MediaStreamType.VideoRecord)
+                        ?? capture.FrameSources.Values.FirstOrDefault();
                     if (colorSource == null)
                     {
                         lock (_lifecycleLock)
@@ -207,6 +218,7 @@ public sealed class WebcamCaptureController : IDisposable
                             }
                         }
                         capture.Dispose();
+                        RuntimeLog.Warn("CAMERA", "No color/video source found on camera device.");
                         return ((MediaCapture?)null, (MediaFrameReader?)null, "Cannot detect color source");
                     }
 
@@ -309,7 +321,31 @@ public sealed class WebcamCaptureController : IDisposable
                 return null;
             }
 
-            await frameReader.StartAsync();
+            var startStatus = await frameReader.StartAsync();
+            if (startStatus != MediaFrameReaderStartStatus.Success)
+            {
+                RuntimeLog.Error("CAMERA", $"MediaFrameReader.StartAsync failed with status: {startStatus}");
+                frameReader.FrameArrived -= OnFrameArrived;
+                lock (_lifecycleLock)
+                {
+                    if (ReferenceEquals(_frameReader, frameReader))
+                    {
+                        _frameReader = null;
+                    }
+                    if (ReferenceEquals(_mediaCapture, mediaCapture))
+                    {
+                        _mediaCapture = null;
+                    }
+                    if (startToken == _fadeToken)
+                    {
+                        _isActive = false;
+                    }
+                }
+                await DisposeResourcesAsync(frameReader, mediaCapture);
+                return $"Camera frame reader failed to start: {startStatus}";
+            }
+
+            RuntimeLog.Info("CAMERA", "MediaFrameReader successfully started streaming.");
 
             if (!StillValid())
             {

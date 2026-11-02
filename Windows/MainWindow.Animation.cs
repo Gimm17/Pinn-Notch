@@ -15,7 +15,7 @@ public partial class MainWindow
 {
 
     #region Notch Expand/Collapse
-    private enum LastExpandedView { Primary, Secondary, Timer, Audio, Camera }
+    private enum LastExpandedView { Primary, Secondary, Timer, Audio, Camera, ControlCenter }
     private LastExpandedView _lastExpandedViewBeforeCollapse = LastExpandedView.Primary;
 
     private const double ExpandedContentHorizontalInset = 16;
@@ -801,6 +801,7 @@ public partial class MainWindow
         NotchBorder.IsHitTestVisible = true;
 
         _isCameraView = effectiveTarget == VNotch.Models.NotchView.Camera;
+        _isControlCenterView = effectiveTarget == VNotch.Models.NotchView.ControlCenter;
 
         if (effectiveTarget == VNotch.Models.NotchView.Timer)
         {
@@ -840,6 +841,17 @@ public partial class MainWindow
         else if (effectiveTarget == VNotch.Models.NotchView.Camera)
         {
             ResizeHostWindowHeight(CameraViewHeight);
+        }
+        else if (effectiveTarget == VNotch.Models.NotchView.ControlCenter)
+        {
+            _isControlCenterView = true;
+            _isTimerView = false;
+            _isSecondaryView = false;
+            _isAudioView = false;
+            _isCameraView = false;
+            VNotch.Presenters.NotchContentTransitionPresenter.ClearTransformAndEffects(ControlCenterContent);
+            ResizeHostWindowHeight(ControlCenterHeight);
+            ControlCenterContent.RefreshState();
         }
         else
         {
@@ -882,6 +894,10 @@ public partial class MainWindow
 
             StartProgressCatchUpAnimation();
             RenderProgressBar();
+        }
+        else if (effectiveTarget == VNotch.Models.NotchView.Camera)
+        {
+            AutoStartCameraPreviewIfNeeded();
         }
 
         if (!_showingEmptyThumbnail && _pendingFlipThumbnail != null)
@@ -1066,6 +1082,17 @@ public partial class MainWindow
             if (targetHeight > currentHeight)
                 ResizeHostWindowHeight(targetHeight);
             UpdateNavIconsActiveState();
+        }
+        else if (effectiveTarget == VNotch.Models.NotchView.ControlCenter)
+        {
+            VNotch.Presenters.NotchContentTransitionPresenter.ClearTransformAndEffects(ControlCenterContent);
+            targetWidth = ControlCenterWidth;
+            targetHeight = ControlCenterHeight;
+            ControlCenterContent.Width = targetWidth - ControlCenterContent.Margin.Left - ControlCenterContent.Margin.Right;
+            if (targetHeight > currentHeight)
+                ResizeHostWindowHeight(targetHeight);
+            UpdateNavIconsActiveState();
+            ControlCenterContent.RefreshState();
         }
         else
         {
@@ -1387,6 +1414,7 @@ public partial class MainWindow
 
     private void PlayCameraContentReveal(TimeSpan baseDelay)
     {
+        AutoStartCameraPreviewIfNeeded();
         if (AnimationConfig.ReduceMotion || CameraSection == null || CameraSectionScale == null)
         {
             ResetCameraContentReveal();
@@ -1430,6 +1458,7 @@ public partial class MainWindow
 
     private LastExpandedView DetermineCurrentExpandedView()
     {
+        if (_isControlCenterView) return LastExpandedView.ControlCenter;
         if (_isCameraView) return LastExpandedView.Camera;
         if (_isAudioView) return LastExpandedView.Audio;
         if (_isTimerView) return LastExpandedView.Timer;
@@ -1448,6 +1477,7 @@ public partial class MainWindow
                 LastExpandedView.Secondary => VNotch.Models.NotchView.Secondary,
                 LastExpandedView.Audio => VNotch.Models.NotchView.AudioMixer,
                 LastExpandedView.Camera when !_settings.HideCamera => VNotch.Models.NotchView.Camera,
+                LastExpandedView.ControlCenter => VNotch.Models.NotchView.ControlCenter,
                 _ => VNotch.Models.NotchView.Media
             };
         }
@@ -1878,6 +1908,7 @@ public partial class MainWindow
                 VNotch.Models.NotchView.Secondary => LastExpandedView.Secondary,
                 VNotch.Models.NotchView.AudioMixer => LastExpandedView.Audio,
                 VNotch.Models.NotchView.Camera => LastExpandedView.Camera,
+                VNotch.Models.NotchView.ControlCenter => LastExpandedView.ControlCenter,
                 _ => LastExpandedView.Primary
             };
         }
@@ -1885,7 +1916,9 @@ public partial class MainWindow
         bool wasSecondary = _isSecondaryView;
         bool wasTimer = _isTimerView;
         bool wasAudio = _isAudioView;
+        bool wasControlCenter = _isControlCenterView;
         _isAudioView = false;
+        _isControlCenterView = false;
         if (wasAudio)
         {
             StopAudioPoll();

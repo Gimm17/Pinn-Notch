@@ -456,7 +456,8 @@ public partial class MainWindow
             (_isTimerView && item == TimerIconButton) ||
             (_isSecondaryView && item == ClipboardIconButton) ||
             (_isCameraView && item == CameraIconButton) ||
-            (!_isAudioView && !_isTimerView && !_isSecondaryView && item == HomeIconButton))
+            (_isControlCenterView && item == ControlCenterIconButton) ||
+            (!_isAudioView && !_isTimerView && !_isSecondaryView && !_isCameraView && !_isControlCenterView && item == HomeIconButton))
         {
             targetOpacity = 1.0;
         }
@@ -652,6 +653,7 @@ public partial class MainWindow
 
         // Home/Media is always kept visible
         visibleTokens.Add("Media");
+        visibleTokens.Add("ControlCenter");
         if (_settings.HideCamera) visibleTokens.Remove("Camera");
         else visibleTokens.Add("Camera");
 
@@ -666,7 +668,9 @@ public partial class MainWindow
         // If the active view's tab was just disabled, return gracefully to Home
         if ((_isAudioView && !visibleTokens.Contains("AudioMixer")) ||
             (_isTimerView && !visibleTokens.Contains("Timer")) ||
-            (_isSecondaryView && !visibleTokens.Contains("Secondary")) || (_isCameraView && !visibleTokens.Contains("Camera")))
+            (_isSecondaryView && !visibleTokens.Contains("Secondary")) ||
+            (_isCameraView && !visibleTokens.Contains("Camera")) ||
+            (_isControlCenterView && !visibleTokens.Contains("ControlCenter")))
         {
             NavigateToNotchView(NotchView.Media);
         }
@@ -708,6 +712,10 @@ public partial class MainWindow
     {
         if (_isAnimating) return;
         _transitionCoordinator.RequestView(targetView, "NavTabClick");
+        if (targetView == NotchView.Camera)
+        {
+            AutoStartCameraPreviewIfNeeded();
+        }
     }
 
     #endregion
