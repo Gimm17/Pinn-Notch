@@ -1,0 +1,468 @@
+<UserControl x:Class="VNotch.Controls.ControlCenterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="clr-namespace:VNotch.Services"
+             xmlns:ctrl="clr-namespace:VNotch.Controls"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Width="440"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Top"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="ClearType">
+
+    <UserControl.Resources>
+        <FontFamily x:Key="FluentIcons">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
+        <svc:AppFont x:Key="SystemFont" Fallbacks="Nirmala UI, Segoe UI" />
+
+        <!-- Accent brushes -->
+        <SolidColorBrush x:Key="AccentBlue" Color="#0078D4"/>
+        <SolidColorBrush x:Key="AccentCyan" Color="#00A2ED"/>
+        <SolidColorBrush x:Key="CardBgInactive" Color="#16FFFFFF"/>
+        <SolidColorBrush x:Key="CardBorderInactive" Color="#1FFFFFFF"/>
+        <SolidColorBrush x:Key="CardBgHover" Color="#24FFFFFF"/>
+
+        <!-- Slider Style -->
+        <Style x:Key="ControlCenterSlider" TargetType="Slider">
+            <Setter Property="Stylus.IsPressAndHoldEnabled" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#0078D4"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="IsMoveToPointEnabled" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Background Track -->
+                            <Border x:Name="TrackBackground"
+                                    Height="6"
+                                    CornerRadius="3"
+                                    Background="#30FFFFFF"/>
+                            <!-- Progress Track Track -->
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="6"
+                                                        CornerRadius="3"
+                                                        Background="#0078D4"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb x:Name="Thumb">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Grid Width="16" Height="16">
+                                                    <Ellipse Fill="#FFFFFF">
+                                                        <Ellipse.Effect>
+                                                            <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="1" Opacity="0.4"/>
+                                                        </Ellipse.Effect>
+                                                    </Ellipse>
+                                                    <Ellipse Width="6" Height="6" Fill="#0078D4"/>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SliderIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="12" Padding="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Background="Transparent" Padding="4,2,4,4">
+        <StackPanel Orientation="Vertical">
+
+            <!-- 1. Quick Toggles Grid (2x2) -->
+            <Grid Margin="0,0,0,12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 1.1 Wi-Fi Tile -->
+                <Border x:Name="WifiTile"
+                        Grid.Row="0" Grid.Column="0"
+                        Margin="0,0,4,6"
+                        Height="48"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        MouseDown="WifiTile_MouseDown">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="{StaticResource CardBgInactive}"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderInactive}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsWifiActive}" Value="True">
+                                    <Setter Property="Background" Value="#1A70B8"/>
+                                    <Setter Property="BorderBrush" Value="#4090E0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Icon -->
+                        <TextBlock Grid.Column="0"
+                                   Text="&#xE701;"
+                                   FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="17"
+                                   Foreground="#FFFFFF"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <!-- Label & SSID -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding WifiSsid}"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFFFFF"
+                                       TextTrimming="CharacterEllipsis"
+                                       FontFamily="{StaticResource SystemFont}"/>
+                            <TextBlock Text="Wi-Fi"
+                                       FontSize="10"
+                                       Foreground="#A5FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}"/>
+                        </StackPanel>
+                        <!-- Details Chevron -->
+                        <Border Grid.Column="2"
+                                Width="22" Height="22"
+                                CornerRadius="11"
+                                Background="#1AFFFFFF"
+                                Cursor="Hand"
+                                ToolTip="Buka Pengaturan Wi-Fi"
+                                MouseDown="WifiDetails_MouseDown">
+                            <TextBlock Text="&#xE76C;"
+                                       FontFamily="{StaticResource FluentIcons}"
+                                       FontSize="9"
+                                       Foreground="#FFFFFF"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 1.2 Bluetooth Tile -->
+                <Border x:Name="BluetoothTile"
+                        Grid.Row="0" Grid.Column="1"
+                        Margin="4,0,0,6"
+                        Height="48"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        MouseDown="BluetoothTile_MouseDown">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="{StaticResource CardBgInactive}"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderInactive}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBluetoothActive}" Value="True">
+                                    <Setter Property="Background" Value="#1A70B8"/>
+                                    <Setter Property="BorderBrush" Value="#4090E0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Icon -->
+                        <TextBlock Grid.Column="0"
+                                   Text="&#xE702;"
+                                   FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="17"
+                                   Foreground="#FFFFFF"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <!-- Label & State -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Bluetooth"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}"/>
+                            <TextBlock FontSize="10"
+                                       Foreground="#A5FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Nonaktif"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBluetoothActive}" Value="True">
+                                                <Setter Property="Text" Value="Aktif"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                        <!-- Details Chevron -->
+                        <Border Grid.Column="2"
+                                Width="22" Height="22"
+                                CornerRadius="11"
+                                Background="#1AFFFFFF"
+                                Cursor="Hand"
+                                ToolTip="Buka Pengaturan Bluetooth"
+                                MouseDown="BluetoothDetails_MouseDown">
+                            <TextBlock Text="&#xE76C;"
+                                       FontFamily="{StaticResource FluentIcons}"
+                                       FontSize="9"
+                                       Foreground="#FFFFFF"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- 1.3 Night Light Tile -->
+                <Border x:Name="NightLightTile"
+                        Grid.Row="1" Grid.Column="0"
+                        Margin="0,0,4,0"
+                        Height="48"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        MouseDown="NightLightTile_MouseDown">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="{StaticResource CardBgInactive}"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderInactive}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsNightLightActive}" Value="True">
+                                    <Setter Property="Background" Value="#C26B10"/>
+                                    <Setter Property="BorderBrush" Value="#F59E0B"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Icon -->
+                        <TextBlock Grid.Column="0"
+                                   Text="&#xE708;"
+                                   FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="16"
+                                   Foreground="#FFFFFF"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <!-- Label & State -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Night light"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}"/>
+                            <TextBlock FontSize="10"
+                                       Foreground="#A5FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Nonaktif"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNightLightActive}" Value="True">
+                                                <Setter Property="Text" Value="Aktif"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 1.4 Energy Saver Tile -->
+                <Border x:Name="EnergySaverTile"
+                        Grid.Row="1" Grid.Column="1"
+                        Margin="4,0,0,0"
+                        Height="48"
+                        CornerRadius="10"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        MouseDown="EnergySaverTile_MouseDown">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="{StaticResource CardBgInactive}"/>
+                            <Setter Property="BorderBrush" Value="{StaticResource CardBorderInactive}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsEnergySaverActive}" Value="True">
+                                    <Setter Property="Background" Value="#1A70B8"/>
+                                    <Setter Property="BorderBrush" Value="#4090E0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Icon -->
+                        <TextBlock Grid.Column="0"
+                                   Text="&#xEC0A;"
+                                   FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="16"
+                                   Foreground="#FFFFFF"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0"/>
+                        <!-- Label & State -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Energy saver"
+                                       FontSize="11.5"
+                                       FontWeight="SemiBold"
+                                       Foreground="#FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}"/>
+                            <TextBlock FontSize="10"
+                                       Foreground="#A5FFFFFF"
+                                       FontFamily="{StaticResource SystemFont}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Nonaktif"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnergySaverActive}" Value="True">
+                                                <Setter Property="Text" Value="Aktif"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- 2. Display Brightness Slider Row -->
+            <Border Background="#12FFFFFF"
+                    BorderBrush="#1AFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Height="38"
+                    Margin="0,0,0,6"
+                    Padding="10,0,12,0">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="38"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0"
+                               Text="&#xE706;"
+                               FontFamily="{StaticResource FluentIcons}"
+                               FontSize="16"
+                               Foreground="#D8FFFFFF"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"/>
+
+                    <Slider x:Name="BrightnessSlider"
+                            Grid.Column="1"
+                            Style="{StaticResource ControlCenterSlider}"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="{Binding Brightness, Mode=TwoWay}"
+                            ValueChanged="BrightnessSlider_ValueChanged"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Brightness, StringFormat='{}{0}%'}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="#A5FFFFFF"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource SystemFont}"/>
+                </Grid>
+            </Border>
+
+            <!-- 3. Master Volume Slider Row -->
+            <Border Background="#12FFFFFF"
+                    BorderBrush="#1AFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="10"
+                    Height="38"
+                    Margin="0,0,0,2"
+                    Padding="10,0,12,0">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="38"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Speaker Mute Toggle Button -->
+                    <Button Grid.Column="0"
+                            Style="{StaticResource SliderIconBtn}"
+                            ToolTip="Bisu / Nyalakan Suara"
+                            Click="VolumeIcon_Click"
+                            Margin="0,0,8,0">
+                        <TextBlock Text="{Binding VolumeIconText}"
+                                   FontFamily="{StaticResource FluentIcons}"
+                                   FontSize="15"
+                                   Foreground="#D8FFFFFF"
+                                   VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Slider x:Name="VolumeSlider"
+                            Grid.Column="1"
+                            Style="{StaticResource ControlCenterSlider}"
+                            Minimum="0"
+                            Maximum="100"
+                            Value="{Binding Volume, Mode=TwoWay}"
+                            ValueChanged="VolumeSlider_ValueChanged"/>
+
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding Volume, StringFormat='{}{0}%'}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="#A5FFFFFF"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource SystemFont}"/>
+                </Grid>
+            </Border>
+
+        </StackPanel>
+    </Border>
+</UserControl>
