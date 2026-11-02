@@ -91,6 +91,7 @@ public partial class SettingsWindow : Window
     private readonly ISettingsApplicationService _settingsAppService;
     private readonly SettingsUpdatePresenter _updatePresenter;
     private bool _isLoadingSettings = true;
+    private bool _isShowingConfirmDialog;
     private UiScheduledTimer? _livePreviewDebounce;
     private bool _isSpotlightHotkeyRegistered;
     private int _lastAppliedFps;
@@ -184,12 +185,12 @@ public partial class SettingsWindow : Window
 
     private void Window_Deactivated(object? sender, EventArgs e)
     {
-        TryCloseFromOutside();
+        // Focus deactivation should not auto-close settings; handled by OnGlobalMouseClickOutside.
     }
 
     private void OnGlobalMouseClickOutside(object? sender, InputMonitorService.POINT pt)
     {
-        if (!IsLoaded || !IsVisible || _isClosing) return;
+        if (!IsLoaded || !IsVisible || _isClosing || _isShowingConfirmDialog) return;
         if (IsAnyComboBoxDropDownOpen()) return;
         if (OwnedWindows.Cast<Window>().Any(w => w.IsVisible)) return;
 
@@ -208,10 +209,10 @@ public partial class SettingsWindow : Window
 
     private void TryCloseFromOutside()
     {
-        if (_isClosing || IsAnyComboBoxDropDownOpen()) return;
+        if (_isClosing || _isShowingConfirmDialog || IsAnyComboBoxDropDownOpen()) return;
         if (OwnedWindows.Cast<Window>().Any(w => w.IsVisible)) return;
 
-        CloseWithAnimation();
+        PromptSaveOrCancelAndClose();
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -361,6 +362,7 @@ public partial class SettingsWindow : Window
         ClipboardHotkeyLabel.Text = Loc.Get("settings.clipboardHotkey");
         ClipboardHotkeyHint.Text = _clipboardHotkeyError?.Invoke() ?? Loc.Get("settings.clipboardHotkey.hint");
         HideCameraCheck.IsChecked = _settings.HideCamera;
+        MirrorCameraCheck.IsChecked = _settings.MirrorCameraPreview;
         ClipboardHotkeyBox.Text = _settings.ClipboardHotkey;
         SettingsHotkeyBox.Text = string.IsNullOrWhiteSpace(_settings.SettingsHotkey) ? "Win+Alt+Space" : _settings.SettingsHotkey;
         LoadTrayAdvanced(_settings);

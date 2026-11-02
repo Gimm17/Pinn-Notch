@@ -15,6 +15,7 @@ public partial class SettingsWindow
 
     private void LoadTrayAdvanced(NotchSettings settings)
     {
+        TrayAutoCaptureCheck.IsChecked = settings.ClipboardAutoCapture;
         TraySensitiveCheck.IsChecked = settings.ClipboardAutoDeleteSensitive;
         TrayTextCheck.IsChecked = settings.ClipboardCaptureText;
         TrayImagesCheck.IsChecked = settings.ClipboardCaptureImages;
@@ -27,6 +28,8 @@ public partial class SettingsWindow
         TrayAdvancedTitle.Text = Loc.Get("settings.trayAdvanced");
         NavFileTrayText.Text = Loc.Get("settings.trayAdvanced");
         TrayAdvancedHint.Text = Loc.Get("settings.trayAdvanced.hint");
+        TrayAutoCaptureLabel.Text = Loc.Get("settings.trayAutoCapture");
+        TrayAutoCaptureCheck.ToolTip = Loc.Get("settings.trayAutoCapture.hint");
         TraySensitiveCheck.Content = Loc.Get("settings.trayDeleteSensitive");
         TraySensitiveCheck.ToolTip = Loc.Get("settings.trayDeleteSensitive.hint");
         TrayTextLabel.Text = Loc.Get("settings.trayCaptureText");

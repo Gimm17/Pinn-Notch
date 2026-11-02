@@ -632,6 +632,8 @@ public sealed class SettingsWindowControlTests
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         typeof(SettingsWindow).GetMethod("Apply_Click", flags)!.Invoke(window, [window, new RoutedEventArgs()]);
         Assert.Equal(0, closing);
+        Assert.Null(fixture.Service.Applied);
+        typeof(SettingsWindow).GetMethod("Save_Click", flags)!.Invoke(window, [window, new RoutedEventArgs()]);
         typeof(SettingsWindow).GetMethod("CloseWithAnimation", flags)!.Invoke(window, null);
         await WpfFrameWaiter.UntilAsync(() => closed && fixture.Service.Applied != null, "settings apply and close", ct);
         Assert.Equal(380, fixture.Service.Applied!.Width);

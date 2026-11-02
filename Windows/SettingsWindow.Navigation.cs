@@ -160,6 +160,10 @@ public partial class SettingsWindow
             StopSmoothScroll();
             SettingsScrollViewer.ScrollToTop();
             AnimateActivePanel(section, direction);
+            if (string.Equals(section, NavSectionPerformance, StringComparison.Ordinal))
+            {
+                UpdatePerformanceCardLiveMetrics();
+            }
         }
 
         if (oldCard == null || oldTranslate == null || VNotch.Services.AnimationConfig.ReduceMotion)

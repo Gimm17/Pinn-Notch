@@ -15,6 +15,14 @@ public partial class SettingsWindow
         EnablePinnMascotCheck.IsChecked = settings.EnablePinnMascot;
         PinnMusicReactionCheck.IsChecked = settings.PinnMascotReactToMusic;
         EnableGhostModeCheck.IsChecked = settings.EnableGhostMode;
+        SetComboSelectedTag(PinnMascotPositionCombo, settings.PinnMascotPosition);
+        if (PinnMascotPositionRow != null)
+            PinnMascotPositionRow.Visibility = settings.EnablePinnMascot ? Visibility.Visible : Visibility.Collapsed;
+        if (PinnMascotPositionLabel != null) PinnMascotPositionLabel.Text = Loc.Get("settings.pinnMascotPosition");
+        if (PinnMascotPositionHint != null) PinnMascotPositionHint.Text = Loc.Get("settings.pinnMascotPosition.hint");
+        if (PinnMascotPosRightItem != null) PinnMascotPosRightItem.Content = Loc.Get("settings.pinnMascotPosition.right");
+        if (PinnMascotPosCenterItem != null) PinnMascotPosCenterItem.Content = Loc.Get("settings.pinnMascotPosition.center");
+        if (PinnMascotPosLeftItem != null) PinnMascotPosLeftItem.Content = Loc.Get("settings.pinnMascotPosition.left");
         EnableUsbNotifCheck.IsChecked = settings.EnableUsbNotifications;
 
         PinnThemeCombo.ItemsSource = UiPalette.AllThemes;
@@ -49,6 +57,7 @@ public partial class SettingsWindow
     private void SavePinnSettings(NotchSettings snapshot)
     {
         snapshot.EnablePinnMascot = EnablePinnMascotCheck.IsChecked ?? true;
+        snapshot.PinnMascotPosition = GetComboSelectedTag(PinnMascotPositionCombo, "Right");
         snapshot.PinnMascotReactToMusic = PinnMusicReactionCheck.IsChecked ?? true;
         snapshot.EnableGhostMode = EnableGhostModeCheck.IsChecked ?? true;
         snapshot.EnableUsbNotifications = EnableUsbNotifCheck.IsChecked ?? true;
@@ -103,6 +112,14 @@ public partial class SettingsWindow
     }
 
     private void EnablePinnMascotCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        if (PinnMascotPositionRow != null)
+            PinnMascotPositionRow.Visibility = EnablePinnMascotCheck.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        PushLivePreview();
+    }
+
+    private void PinnMascotPositionCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_isLoadingSettings) return;
         PushLivePreview();

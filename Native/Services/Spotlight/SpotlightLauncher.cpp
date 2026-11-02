@@ -23,6 +23,7 @@ public:
             return 6;
         }
         if (target == u"vnotch-action:advancedRestart") return 7;
+        if (target == u"vnotch-action:appMonitor") return 8;
         return 0;
     }
 

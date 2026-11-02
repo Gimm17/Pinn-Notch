@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using VNotch.Controllers;
 using VNotch.Models;
@@ -52,6 +53,21 @@ internal sealed partial class SpotlightLauncher
 
     private static async Task<bool> TryRunSystemActionAsync(string target)
     {
+        if (string.Equals(target, "vnotch-action:appMonitor", StringComparison.OrdinalIgnoreCase))
+        {
+            if (System.Windows.Application.Current != null)
+            {
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    var mainWindow = System.Windows.Application.Current.MainWindow as MainWindow
+                        ?? System.Windows.Application.Current.Windows.OfType<MainWindow>().FirstOrDefault();
+                    mainWindow?.ToggleAppMonitor(true);
+                });
+                return true;
+            }
+            return false;
+        }
+
         _ = vn_spotlight_launcher_classify_system_action(target.AsSpan(), target.Length, out int actionCode, out int waitMs);
         if (actionCode == 1) return LockWorkStation();
         if (actionCode == 2)

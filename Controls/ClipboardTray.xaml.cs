@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Text;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Security;
@@ -40,6 +42,8 @@ public partial class ClipboardTray : UserControl, IDisposable
     private readonly ClipboardCardCollection _cards = [];
     private readonly UiScheduledTimer _searchTimer;
     private readonly UiScheduledTimer _ageTimer;
+    private readonly UiScheduledTimer _singleClickCopyTimer;
+    private ClipboardCardViewModel? _singleClickPendingCard;
     private readonly CancellationTokenSource _contentLifetime = new();
     private readonly Queue<(ClipboardCapture Capture, long Size)> _approvals = new();
     private ClipboardHistoryController? _controller;
@@ -133,6 +137,16 @@ public partial class ClipboardTray : UserControl, IDisposable
         };
         _ageTimer = new UiScheduledTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMinutes(1) };
         _ageTimer.Tick += AgeTimer_Tick;
+        _singleClickCopyTimer = new UiScheduledTimer(DispatcherPriority.Normal) { Interval = TimeSpan.FromMilliseconds(220) };
+        _singleClickCopyTimer.Tick += async (_, _) =>
+        {
+            _singleClickCopyTimer.Stop();
+            if (_singleClickPendingCard is { } targetCard)
+            {
+                _singleClickPendingCard = null;
+                await SafeAsync(() => CopyAsync(targetCard));
+            }
+        };
         Loaded += (_, _) => UpdateAgeTimer();
         Unloaded += (_, _) =>
         {
@@ -796,13 +810,24 @@ public partial class ClipboardTray : UserControl, IDisposable
         if (IsCardAction(e.OriginalSource as DependencyObject)) return;
         if (sender is not FrameworkElement { DataContext: ClipboardCardViewModel card }) return;
         AnimateCardPress((FrameworkElement)sender, true);
+        if (e.ClickCount >= 2 && e.ChangedButton == MouseButton.Left)
+        {
+            _copyOnRelease = false;
+            _singleClickCopyTimer.Stop();
+            _singleClickPendingCard = null;
+            _dragStart = null;
+            _pressedCard = null;
+            e.Handled = true;
+            _ = SafeAsync(() => OpenEntryAsync(card));
+            return;
+        }
         _copyOnRelease = e.ClickCount == 1 && Keyboard.Modifiers == ModifierKeys.None && Cards.SelectedItems.Count <= 1;
         _pressedCard = card;
         _dragStart = e.GetPosition(this);
         SelectCard(card);
         e.Handled = true;
     }
-    private async void Card_Up(object sender, MouseButtonEventArgs e)
+    private void Card_Up(object sender, MouseButtonEventArgs e)
     {
         if (IsCardAction(e.OriginalSource as DependencyObject)) return;
         if (sender is FrameworkElement element) AnimateCardPress(element, false);
@@ -812,7 +837,12 @@ public partial class ClipboardTray : UserControl, IDisposable
         e.Handled = true;
         bool copy = _copyOnRelease;
         _copyOnRelease = false;
-        if (copy && Keyboard.Modifiers == ModifierKeys.None && !_selection.Modified) await SafeAsync(() => CopyAsync(card));
+        if (copy && Keyboard.Modifiers == ModifierKeys.None && !_selection.Modified)
+        {
+            _singleClickPendingCard = card;
+            _singleClickCopyTimer.Stop();
+            _singleClickCopyTimer.Start();
+        }
     }
     private async void DustOverlay_DissolveRequested(object sender, RoutedEventArgs e)
     {
@@ -853,6 +883,110 @@ public partial class ClipboardTray : UserControl, IDisposable
         catch (Exception ex) when (IsContentError(ex) || ex is System.Runtime.InteropServices.ExternalException)
         { StatusChanged(Loc.Get("clipboard.error")); }
     }
+    private async Task OpenEntryAsync(ClipboardCardViewModel card)
+    {
+        if (_controller == null) return;
+        try
+        {
+            var entry = card.Entry;
+            if (entry.Kind == ClipboardKind.Link)
+            {
+                string url = !string.IsNullOrWhiteSpace(entry.Preview) ? entry.Preview : "";
+                if (!string.IsNullOrEmpty(url))
+                {
+                    SafeLauncher.TryOpenUrl(url);
+                    return;
+                }
+            }
+
+            if (entry.Kind is ClipboardKind.File or ClipboardKind.Image)
+            {
+                var paths = await _controller.Store.ExportFilesAsync(entry.Id);
+                if (paths.Length > 0 && (File.Exists(paths[0]) || Directory.Exists(paths[0])))
+                {
+                    Process.Start(new ProcessStartInfo(paths[0]) { UseShellExecute = true });
+                    return;
+                }
+            }
+
+            var content = await _controller.Store.GetContentAsync(entry.Id);
+            string text = content.Text ?? entry.Preview ?? "";
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                string ext = entry.Kind == ClipboardKind.Code ? (string.IsNullOrEmpty(entry.PrimaryExtension) ? ".txt" : entry.PrimaryExtension) : ".txt";
+                string tempDir = Path.Combine(Path.GetTempPath(), "PinnNotch");
+                Directory.CreateDirectory(tempDir);
+                string tempFile = Path.Combine(tempDir, $"Clip_{entry.Id:N}{ext}");
+                await File.WriteAllTextAsync(tempFile, text, Encoding.UTF8);
+                Process.Start(new ProcessStartInfo(tempFile) { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            RuntimeLog.Error("CLIPBOARD", $"OpenEntry failed: {ex.Message}");
+            StatusChanged(Loc.Get("clipboard.error"));
+        }
+    }
+
+    private async Task OpenInExplorerAsync(ClipboardCardViewModel card)
+    {
+        if (_controller == null) return;
+        try
+        {
+            var entry = card.Entry;
+            if (entry.Kind is ClipboardKind.File or ClipboardKind.Image)
+            {
+                var paths = await _controller.Store.ExportFilesAsync(entry.Id);
+                if (paths.Length > 0 && (File.Exists(paths[0]) || Directory.Exists(paths[0])))
+                {
+                    string target = paths[0];
+                    if (Directory.Exists(target))
+                    {
+                        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{target}\"") { UseShellExecute = true });
+                    }
+                    else
+                    {
+                        Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{target}\"") { UseShellExecute = true });
+                    }
+                    return;
+                }
+            }
+
+            var content = await _controller.Store.GetContentAsync(entry.Id);
+            string text = content.Text ?? entry.Preview ?? "";
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                string ext = entry.Kind == ClipboardKind.Code ? (string.IsNullOrEmpty(entry.PrimaryExtension) ? ".txt" : entry.PrimaryExtension) : ".txt";
+                string tempDir = Path.Combine(Path.GetTempPath(), "PinnNotch");
+                Directory.CreateDirectory(tempDir);
+                string tempFile = Path.Combine(tempDir, $"Clip_{entry.Id:N}{ext}");
+                if (!File.Exists(tempFile)) await File.WriteAllTextAsync(tempFile, text, Encoding.UTF8);
+                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{tempFile}\"") { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            RuntimeLog.Error("CLIPBOARD", $"OpenInExplorer failed: {ex.Message}");
+            StatusChanged(Loc.Get("clipboard.error"));
+        }
+    }
+
+    public async Task PasteFromClipboardAsync()
+    {
+        if (_controller == null) return;
+        try
+        {
+            var data = System.Windows.Clipboard.GetDataObject();
+            if (data == null) return;
+            await ImportCurrentCategoryDropAsync(data);
+        }
+        catch (Exception ex)
+        {
+            RuntimeLog.Error("CLIPBOARD", $"Paste failed: {ex.Message}");
+            StatusChanged(Loc.Get("clipboard.error"));
+        }
+    }
+
     private long _lastClosedMenuTime;
     private object? _lastClosedMenuTarget;
     private ContextMenu? _lastClosedMenu;
@@ -1004,6 +1138,11 @@ public partial class ClipboardTray : UserControl, IDisposable
         }
 
         // Section 1: Quick Actions
+        AddMenu(menu, "clipboard.open", () => OpenEntryAsync(card));
+        if (card.Entry.Kind is ClipboardKind.File or ClipboardKind.Image)
+        {
+            AddMenu(menu, "clipboard.openInExplorer", () => OpenInExplorerAsync(card));
+        }
         AddMenu(menu, "clipboard.copy", () => CopyAsync(card));
         AddMenu(menu, card.Entry.IsPinned ? "clipboard.unpin" : "clipboard.pin", () => _controller.Store.UpdateAsync(card.Entry.Id, pinned: !card.Entry.IsPinned));
         AddMenu(menu, "clipboard.details", () => ShowDetailsAsync(card));
@@ -1181,6 +1320,9 @@ public partial class ClipboardTray : UserControl, IDisposable
         TrayIconKind icon = key.Split('.').Last() switch
         {
             "copy" => TrayIconKind.Copy,
+            "open" => TrayIconKind.Arrow,
+            "openInExplorer" => TrayIconKind.Files,
+            "paste" => TrayIconKind.Shopping,
             "pin" or "unpin" => TrayIconKind.Pin,
             "archive" or "unarchive" => TrayIconKind.Archive,
             "movePersonal" or "moveOut" => TrayIconKind.Lock,
@@ -1191,7 +1333,7 @@ public partial class ClipboardTray : UserControl, IDisposable
         var item = new MenuItem
         {
             Header = Loc.Get(key),
-            InputGestureText = key switch { "clipboard.copy" => "Ctrl+C", "clipboard.delete" => "Del", _ => "" },
+            InputGestureText = key switch { "clipboard.open" => "Enter", "clipboard.copy" => "Ctrl+C", "clipboard.paste" => "Ctrl+V", "clipboard.delete" => "Del", _ => "" },
             Icon = new TrayIcon { Kind = icon, Width = 14, Height = 14 }
         };
         if (key == "clipboard.delete")
@@ -1413,7 +1555,25 @@ public partial class ClipboardTray : UserControl, IDisposable
     {
         if (_controller == null) return;
         if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control) { e.Handled = SelectAllTrayItems(e.OriginalSource as DependencyObject); }
-        else if (e.Key == Key.Enter || e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+        else if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+        {
+            e.Handled = true;
+            await SafeAsync(PasteFromClipboardAsync);
+        }
+        else if (e.Key == Key.Enter)
+        {
+            e.Handled = true;
+            var selected = SelectedCards();
+            if (selected.Length == 1)
+            {
+                await SafeAsync(() => OpenEntryAsync(selected[0]));
+            }
+            else if (selected.Length > 1)
+            {
+                await SafeAsync(CopySelectionAsync);
+            }
+        }
+        else if (e.Key == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
         {
             e.Handled = true;
             await SafeAsync(CopySelectionAsync);
@@ -1441,6 +1601,8 @@ public partial class ClipboardTray : UserControl, IDisposable
         _ageTimer.Stop();
         _ageTimer.Tick -= AgeTimer_Tick;
         _ageTimer.Dispose();
+        _singleClickCopyTimer.Stop();
+        _singleClickCopyTimer.Dispose();
         ClearSelectionContainers();
         StopCategoryScrolling();
         CancelPendingPersonalDrop();

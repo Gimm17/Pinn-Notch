@@ -76,7 +76,7 @@ public sealed class MainWindowSettingsIntegrationTests
         timer.Start();
         try
         {
-            typeof(MainWindow).GetMethod("OpenAppSettings", flags)!.Invoke(window, [false]);
+            typeof(MainWindow).GetMethod("OpenAppSettings", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.Invoke(window, [false]);
             if (timer.IsEnabled)
             {
                 Dispatcher.PushFrame(frame);

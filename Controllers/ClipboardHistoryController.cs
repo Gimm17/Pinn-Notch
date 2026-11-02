@@ -33,11 +33,13 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
     private uint _personalClipboardSequence;
     private static readonly TimeSpan ClipboardSettleDelay = TimeSpan.FromMilliseconds(250);
     public ClipboardHistoryStore Store { get; }
-    private bool _captureText = true, _captureImages = true, _captureFiles = true;
+    private bool _autoCapture = false;
+    private bool _captureText = false, _captureImages = false, _captureFiles = false;
     public void ApplySettings(NotchSettings settings)
     {
         Store.AutoDeleteSensitive = settings.ClipboardAutoDeleteSensitive;
         _retentionTimer.Interval = settings.ClipboardAutoDeleteSensitive ? TimeSpan.FromSeconds(1) : TimeSpan.FromHours(1);
+        _autoCapture = settings.ClipboardAutoCapture;
         _captureText = settings.ClipboardCaptureText;
         _captureImages = settings.ClipboardCaptureImages;
         _captureFiles = settings.ClipboardCaptureFiles;
@@ -101,6 +103,7 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
             ReleaseClipboardExports();
         }
         if (IsPaused) return;
+        if (!_autoCapture || (!_captureText && !_captureImages && !_captureFiles)) return;
         if (sequence == 0 || sequence == _lastSequence || sequence == _ownSequence) return;
         _pendingSequence = sequence;
         _debounceTimer.Stop();
@@ -151,7 +154,7 @@ public sealed class ClipboardHistoryController : IDisposable, IAsyncDisposable
     {
         for (int retry = 0; ; retry++)
         {
-            if (_disposed || IsPaused || _isWritingClipboard || sequence == _ownSequence || GetClipboardSequenceNumber() != sequence) return;
+            if (_disposed || IsPaused || _isWritingClipboard || !_autoCapture || (!_captureText && !_captureImages && !_captureFiles) || sequence == _ownSequence || GetClipboardSequenceNumber() != sequence) return;
             try
             {
                 var data = System.Windows.Clipboard.GetDataObject();

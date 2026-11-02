@@ -30,7 +30,9 @@ internal static partial class SpotlightSystemCatalog
             vn_spotlight_system_catalog_extract_fallback_len(kwSpan, kwSpan.Length, out int len);
             string fallback = len < Keywords.Length ? Keywords[..len] : Keywords;
             return new($"system:{Key}", Kind,
-                GetLabel($"spotlight.system.{Key}", fallback), Kind switch
+                GetLabel($"spotlight.system.{Key}", fallback), Key == "appMonitor"
+                    ? GetLabel("spotlight.system.appMonitorSubtitle", "Pinn-Notch • CPU, GPU & RAM usage")
+                    : Kind switch
                 {
                     SpotlightResultKind.Settings => GetLabel("spotlight.system.settings", "Windows Settings"),
                     SpotlightResultKind.SystemAction => GetLabel("spotlight.system.actions", "System actions"),
@@ -81,7 +83,8 @@ internal static partial class SpotlightSystemCatalog
         Action("shutdown", "\uE7E8", "Shut down;shutdown;power off;tat may"),
         Action("signOut", "\uE8AC", "Sign out;log out;logoff;dang xuat"),
         Action("hibernate", "\uE708", "Hibernate;ngu dong"),
-        Action("advancedRestart", "\uE777", "Restart with advanced boot options;advanced startup;khoi dong nang cao")
+        Action("advancedRestart", "\uE777", "Restart with advanced boot options;advanced startup;khoi dong nang cao"),
+        Action("appMonitor", "\uE9D9", "Resource Monitor (CPU / GPU / RAM);resource monitor;monitor;cpu;gpu;ram;resource;performa;performance;task manager;penggunaan memori;monitor resource;app monitor;memory;memori;pemantau sumber daya;monitor cpu;monitor ram;monitor gpu;monitor performa;penggunaan cpu;penggunaan ram;penggunaan gpu;spek;pemantau sistem;system monitor", confirm: false)
     });
 
     private static readonly IReadOnlyDictionary<string, Entry> ByTarget =

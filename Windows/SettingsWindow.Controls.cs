@@ -65,6 +65,13 @@ public partial class SettingsWindow
         PushLivePreview();
     }
 
+    private void MirrorCameraCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_isLoadingSettings) return;
+        _settings.MirrorCameraPreview = MirrorCameraCheck.IsChecked == true;
+        PushLivePreview();
+    }
+
     private void ClipboardHotkey_LostFocus(object sender, RoutedEventArgs e)
     {
         if (_isLoadingSettings) return;
@@ -74,7 +81,6 @@ public partial class SettingsWindow
             ClipboardHotkeyHint.Text = Loc.Get("clipboard.invalidHotkey");
             return;
         }
-        ApplyPreview(ReadSettingsFromUi());
         ClipboardHotkeyHint.Text = _clipboardHotkeyError?.Invoke() ?? Loc.Get("settings.clipboardHotkey.hint");
     }
 
@@ -87,8 +93,7 @@ public partial class SettingsWindow
             SettingsHotkeyHint.Text = "Kombinasi shortcut tidak valid. Format: Win+Alt+Space, Ctrl+Alt+S, dll.";
             return;
         }
-        ApplyPreview(ReadSettingsFromUi());
-        SettingsHotkeyHint.Text = "Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Noch.";
+        SettingsHotkeyHint.Text = "Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Notch.";
     }
 
     #region Slider Value Changed Handlers
@@ -698,6 +703,36 @@ public partial class SettingsWindow
         HideRestartBanner();
     }
 
+    private void OpenYouTubeMusicPlayer_Click(object sender, RoutedEventArgs e)
+    {
+        YouTubeMusicPlayerService.Instance.OpenWindow(activate: true);
+    }
+
+    private void OpenAppMonitorBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (Application.Current.MainWindow is MainWindow main)
+        {
+            main.ToggleAppMonitor(true);
+        }
+        else
+        {
+            var win = new VNotch.Windows.AppMonitorWindow();
+            win.Show();
+        }
+    }
+
+    public void UpdatePerformanceCardLiveMetrics()
+    {
+        try
+        {
+            var snap = AppResourceMonitorService.Instance.SampleCurrentSnapshot();
+            if (SettingsMonitorCpuText != null) SettingsMonitorCpuText.Text = $"{snap.AppCpuPercent:0.0}%";
+            if (SettingsMonitorGpuText != null) SettingsMonitorGpuText.Text = $"{snap.AppGpuPercent:0.0}%";
+            if (SettingsMonitorRamText != null) SettingsMonitorRamText.Text = AppResourceMonitorService.FormatBytes(snap.AppRamBytes);
+        }
+        catch { }
+    }
+
     private const string Cpp26DiscussionUrl = "https://github.com/w0otdev/V-Notch/discussions/32";
     private bool _isCpp26BannerVisible;
 
@@ -920,25 +955,9 @@ public partial class SettingsWindow
 
     private void PushLivePreview()
     {
-        if (_isLoadingSettings) return;
-        if (!IsLoaded) return;
-
-        if (_livePreviewDebounce == null)
-        {
-            _livePreviewDebounce = new UiScheduledTimer(DispatcherPriority.Normal)
-            {
-                Interval = TimeSpan.FromMilliseconds(32)
-            };
-            _livePreviewDebounce.Tick += (s, e) =>
-            {
-                _livePreviewDebounce.Stop();
-                var snapshot = ReadSettingsFromUi();
-                ApplyPreview(snapshot);
-            };
-        }
-
-        _livePreviewDebounce.Stop();
-        _livePreviewDebounce.Start();
+        // Settings changes in UI controls are applied when user clicks Apply or Save,
+        // avoiding unintended focus loss or system side-effects while tuning.
+        _livePreviewDebounce ??= new UiScheduledTimer(DispatcherPriority.Normal);
     }
 
     #endregion

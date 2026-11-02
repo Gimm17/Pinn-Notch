@@ -17,6 +17,7 @@ using VNotch.Models;
 using VNotch.Modules;
 using VNotch.Presenters;
 using VNotch.Services;
+using VNotch.Windows;
 
 namespace VNotch;
 
@@ -155,6 +156,48 @@ public partial class SettingsWindow
         RevertLivePreviewIfNeeded();
         CloseWithAnimation();
     }
+
+    internal void PromptSaveOrCancelAndClose()
+    {
+        if (_isClosing || _isShowingConfirmDialog) return;
+        if (IsAnyComboBoxDropDownOpen()) return;
+        if (OwnedWindows.Cast<Window>().Any(w => w.IsVisible)) return;
+
+        var currentUi = ReadSettingsFromUi();
+        bool hasChanges = !currentUi.ValueEquals(_editSession.Baseline) || !_editSession.Applied.ValueEquals(_editSession.Baseline);
+        if (hasChanges)
+        {
+            _isShowingConfirmDialog = true;
+            try
+            {
+                string msg = Loc.Get("settings.unsavedChanges.message");
+                string title = Loc.Get("settings.unsavedChanges.title");
+                string saveText = Loc.Get("settings.btn.save");
+                string cancelText = Loc.Get("dialog.cancel");
+
+                bool save = ConfirmationDialog.Show(
+                    this,
+                    msg,
+                    title,
+                    saveText,
+                    cancelText,
+                    ConfirmationDialog.DialogIcon.Question);
+
+                if (save)
+                {
+                    ApplySettingsFromUi(persist: true);
+                    CloseWithAnimation();
+                    return;
+                }
+            }
+            finally
+            {
+                _isShowingConfirmDialog = false;
+            }
+        }
+        RevertLivePreviewIfNeeded();
+        CloseWithAnimation();
+    }
     private void RevertLivePreviewIfNeeded()
     {
         var baseline = _editSession.Revert();
@@ -165,16 +208,16 @@ public partial class SettingsWindow
 
 #pragma warning disable S1075 // External community, project and donation URLs
     private void SocialLink_Website_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://v-notch.vercel.app/");
-    private void SocialLink_GitHub_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/V-Notch");
+    private void SocialLink_GitHub_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
     private void SocialLink_Facebook_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://www.facebook.com/rain.107/");
     private void SocialLink_Discord_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://discord.com/users/298304189535092737");
     private void DonatePaypal_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://www.paypal.com/paypalme/PhuocLe678");
-    private void StarRepoButton_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/V-Notch");
+    private void StarRepoButton_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
     private void ProjectVertex_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/Vertex");
     private void ProjectScrollV_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/Scroll-V");
-    private void ReportBug_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/V-Notch/issues/new");
-    private void RequestFeature_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/V-Notch/issues/new?labels=enhancement&template=feature_request.md");
-    private void Discussion_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/V-Notch/discussions");
+    private void ReportBug_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/issues/new");
+    private void RequestFeature_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/issues/new?labels=enhancement&template=feature_request.md");
+    private void Discussion_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/discussions");
 #pragma warning restore S1075
     private void ClearCache_Click(object sender, RoutedEventArgs e)
 
@@ -314,7 +357,7 @@ public partial class SettingsWindow
 
     private async void Apply_Click(object sender, RoutedEventArgs e)
     {
-        ApplySettingsFromUi(persist: true);
+        ApplySettingsFromUi(persist: false);
 
         // Keep window open for continuous tuning; provide visual feedback on the button
         if (ApplyButton != null && Dispatcher.CheckAccess())
@@ -636,6 +679,7 @@ public partial class SettingsWindow
         snapshot.HideCamera = HideCameraCheck.IsChecked ?? false;
         snapshot.ClipboardHotkey = ClipboardHotkeyBox.Text.Trim();
         snapshot.SettingsHotkey = SettingsHotkeyBox.Text.Trim();
+        snapshot.ClipboardAutoCapture = TrayAutoCaptureCheck.IsChecked == true;
         snapshot.ClipboardAutoDeleteSensitive = TraySensitiveCheck.IsChecked == true;
         snapshot.ClipboardCaptureText = TrayTextCheck.IsChecked == true;
         snapshot.ClipboardCaptureImages = TrayImagesCheck.IsChecked == true;

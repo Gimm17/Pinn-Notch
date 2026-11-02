@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         xmlns:controls="clr-namespace:VNotch.Controls"
-        Title="Pinn-Noch Settings"
+        Title="Pinn-Notch Settings"
         Width="880"
         Height="710"
         WindowStartupLocation="CenterScreen"
@@ -26,7 +26,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Pinn-Noch;component/Controls/SettingsComboBoxStyles.xaml"/>
+                <ResourceDictionary Source="/Pinn-Notch;component/Controls/SettingsComboBoxStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         <fonts:AppFont x:Key="SettingsFont" Fallbacks="Nirmala UI, Segoe UI" />
         <sys:Double x:Key="SettingsLabelFontSize">14</sys:Double>
@@ -893,6 +893,31 @@
                                                 <TextBlock Text="A cute chibi cat companion sitting on your notch with reactive eyes and animations."
                                                            Style="{StaticResource SettingHintText}"
                                                            Margin="0,4,0,0"/>
+
+                                                <Grid x:Name="PinnMascotPositionRow" Margin="0,10,0,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock x:Name="PinnMascotPositionLabel"
+                                                                   Text="Mascot Position"
+                                                                   Style="{StaticResource SettingTitleText}"/>
+                                                        <TextBlock x:Name="PinnMascotPositionHint"
+                                                                   Text="Choose where Pinn peeks on the notch."
+                                                                   Style="{StaticResource SettingHintText}"
+                                                                   Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                    <ComboBox x:Name="PinnMascotPositionCombo"
+                                                              Grid.Column="1"
+                                                              Width="170"
+                                                              Height="32"
+                                                              SelectionChanged="PinnMascotPositionCombo_SelectionChanged">
+                                                        <ComboBoxItem x:Name="PinnMascotPosRightItem" Content="Kanan (Samping Baterai)" Tag="Right"/>
+                                                        <ComboBoxItem x:Name="PinnMascotPosCenterItem" Content="Tengah (Pusat Notch)" Tag="Center"/>
+                                                        <ComboBoxItem x:Name="PinnMascotPosLeftItem" Content="Kiri (Samping Tab)" Tag="Left"/>
+                                                    </ComboBox>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
 
@@ -911,7 +936,7 @@
                                         <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
                                             <StackPanel>
                                                 <TextBlock Text="Cute Notch Theme 🎨" Style="{StaticResource SettingTitleText}"/>
-                                                <TextBlock Text="Choose a beautiful pastel or dark aesthetic for Pinn-Noch."
+                                                <TextBlock Text="Choose a beautiful pastel or dark aesthetic for Pinn-Notch."
                                                            Style="{StaticResource SettingHintText}"
                                                            Margin="0,2,0,8"/>
                                                 <ComboBox x:Name="PinnThemeCombo"
@@ -1106,7 +1131,7 @@
                                                           Content="Aktifkan Freeze Taskbar Windows ❄️"
                                                           Checked="EnableFreezeTaskbarCheck_Changed"
                                                           Unchecked="EnableFreezeTaskbarCheck_Changed"/>
-                                                <TextBlock Text="Membekukan atau menyembunyikan taskbar Windows agar tidak saling bertabrakan dengan Dock Pinn-Noch."
+                                                <TextBlock Text="Membekukan atau menyembunyikan taskbar Windows agar tidak saling bertabrakan dengan Dock Pinn-Notch."
                                                            Style="{StaticResource SettingHintText}" Margin="0,4,0,8"/>
 
                                                 <StackPanel x:Name="FreezeTaskbarOptionsPanel" Margin="20,0,0,0">
@@ -1117,7 +1142,7 @@
                                                         <ComboBoxItem Content="Bekukan Interaksi / Click-Through (Tembus klik ke Dock/Desktop)" Tag="ClickThrough"/>
                                                         <ComboBoxItem Content="Kunci Auto-Hide (Cegah muncul saat kursor mendekat)" Tag="FreezeAutoHide"/>
                                                     </ComboBox>
-                                                    <TextBlock Text="Mode Sembunyikan Penuh memperluas ruang desktop ke batas layar bawah sehingga Dock Pinn-Noch tampil bebas dan eksklusif."
+                                                    <TextBlock Text="Mode Sembunyikan Penuh memperluas ruang desktop ke batas layar bawah sehingga Dock Pinn-Notch tampil bebas dan eksklusif."
                                                                Style="{StaticResource SettingHintText}" Margin="0,2,0,0"/>
                                                 </StackPanel>
                                             </StackPanel>
@@ -1534,9 +1559,9 @@
                                                 <TextBlock x:Name="HideCameraHint" Text="Hide the camera tab and stop its preview." Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
                                             </StackPanel></Border>
                                         <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4"><StackPanel>
-                                                <TextBlock x:Name="SettingsHotkeyLabel" Text="Shortcut Buka Settings Pinn-Noch ⚙️" Style="{StaticResource SettingTitleText}"/>
+                                                <TextBlock x:Name="SettingsHotkeyLabel" Text="Shortcut Buka Settings Pinn-Notch ⚙️" Style="{StaticResource SettingTitleText}"/>
                                                 <TextBox x:Name="SettingsHotkeyBox" Text="Win+Alt+Space" LostFocus="SettingsHotkey_LostFocus" MinHeight="32" Margin="0,8,0,0"/>
-                                                <TextBlock x:Name="SettingsHotkeyHint" Text="Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Noch." Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
+                                                <TextBlock x:Name="SettingsHotkeyHint" Text="Default: Win+Alt+Space. Kombinasi tombol global untuk membuka/menutup Settings Pinn-Notch." Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
                                             </StackPanel></Border>
                                         <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4"><StackPanel>
                                                 <TextBlock x:Name="ClipboardHotkeyLabel" Text="Clipboard tray shortcut" Style="{StaticResource SettingTitleText}"/>
@@ -1744,12 +1769,41 @@
                                         </Border>
                                         <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
                                             <StackPanel>
+                                                <CheckBox x:Name="MirrorCameraCheck" Content="Mirror camera preview"
+                                                          Checked="MirrorCameraCheck_Changed" Unchecked="MirrorCameraCheck_Changed"/>
+                                                <TextBlock x:Name="MirrorCameraHint" Text="Flip camera preview horizontally like a selfie mirror."
+                                                           Style="{StaticResource SettingHintText}" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <StackPanel>
                                                 <TextBlock x:Name="VisualizerAudioLabel" Text="Music Visualizer Speaker" Style="{StaticResource SettingTitleText}"/>
                                                 <TextBlock x:Name="VisualizerAudioHint" Text="Choose which speaker drives the music visualizer."
                                                            Style="{StaticResource SettingHintText}"
                                                            Margin="0,4,0,0"/>
                                                 <ComboBox x:Name="VisualizerAudioCombo" SelectionChanged="VisualizerAudioCombo_SelectionChanged"/>
                                             </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="YouTube Music Player" Style="{StaticResource SettingTitleText}"/>
+                                                    <TextBlock Text="Pemutar YouTube Music bawaan yang ringan, bebas iklan, dan terintegrasi Notch."
+                                                               Style="{StaticResource SettingHintText}"
+                                                               Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Content="Buka Player"
+                                                        Height="36"
+                                                        Padding="14,0"
+                                                        Margin="12,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Click="OpenYouTubeMusicPlayer_Click"/>
+                                            </Grid>
                                         </Border>
                                     </StackPanel>
                                 </Border>
@@ -2305,6 +2359,13 @@
                                     <StackPanel>
                                         <TextBlock x:Name="TrayAdvancedTitle" Style="{StaticResource SettingTitleText}"/>
                                         <TextBlock x:Name="TrayAdvancedHint" Style="{StaticResource SettingHintText}" Margin="0,4,0,12"/>
+                                        <Grid x:Name="TrayAutoCaptureRow" Margin="0,4,0,8" Background="Transparent">
+                                            <CheckBox x:Name="TrayAutoCaptureCheck" Checked="TrayAdvanced_Changed" Unchecked="TrayAdvanced_Changed">
+                                                <WrapPanel VerticalAlignment="Center">
+                                                    <TextBlock x:Name="TrayAutoCaptureLabel" Style="{StaticResource SettingTitleText}" TextWrapping="Wrap"/>
+                                                </WrapPanel>
+                                            </CheckBox>
+                                        </Grid>
                                         <Grid x:Name="TrayTextRow" Margin="0,4,0,8" Background="Transparent">
                                             <CheckBox x:Name="TrayTextCheck" Checked="TrayAdvanced_Changed" Unchecked="TrayAdvanced_Changed"
                                                       AutomationProperties.Name="{Binding Text, ElementName=TrayTextLabel}">
@@ -2646,6 +2707,47 @@
                                     </Border.RenderTransform>
                                     <StackPanel>
                                         <TextBlock x:Name="PerformanceHeader" Text="PERFORMANCE" Style="{StaticResource SectionHeader}" Visibility="Collapsed"/>
+
+                                        <!-- APP RESOURCE MONITOR CARD -->
+                                        <Border Style="{StaticResource SettingRowBorder}" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="App Resource Monitor (CPU / GPU / RAM)" Style="{StaticResource SettingTitleText}"/>
+                                                    <TextBlock Text="Pantau penggunaan CPU, GPU, dan RAM oleh Pinn-Notch dan YouTube Music secara real-time."
+                                                               Style="{StaticResource SettingHintText}" Margin="0,3,0,10"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="#1A64D2FF" BorderBrush="#3064D2FF" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="CPU: " Foreground="#64D2FF" FontSize="11" FontWeight="Bold"/>
+                                                                <TextBlock x:Name="SettingsMonitorCpuText" Text="0.0%" Foreground="#FFFFFF" FontSize="11" FontWeight="Bold"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Background="#1ABF5AF2" BorderBrush="#30BF5AF2" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="GPU: " Foreground="#BF5AF2" FontSize="11" FontWeight="Bold"/>
+                                                                <TextBlock x:Name="SettingsMonitorGpuText" Text="0.0%" Foreground="#FFFFFF" FontSize="11" FontWeight="Bold"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Background="#1A30D158" BorderBrush="#3030D158" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="RAM: " Foreground="#30D158" FontSize="11" FontWeight="Bold"/>
+                                                                <TextBlock x:Name="SettingsMonitorRamText" Text="0.0 MB" Foreground="#FFFFFF" FontSize="11" FontWeight="Bold"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Content="Buka Monitor"
+                                                        Style="{StaticResource PrimaryButton}"
+                                                        Height="36" MinWidth="110"
+                                                        VerticalAlignment="Center"
+                                                        Click="OpenAppMonitorBtn_Click"/>
+                                            </Grid>
+                                        </Border>
 
                                         <Border Style="{StaticResource SettingRowBorder}">
                                             <StackPanel>

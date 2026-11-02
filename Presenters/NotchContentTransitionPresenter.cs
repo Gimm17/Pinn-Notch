@@ -18,6 +18,7 @@ public sealed class NotchContentViewRefs
     public FrameworkElement? AudioContent { get; init; }
     public FrameworkElement? AudioScrollViewer { get; init; }
     public FrameworkElement? SecondaryContent { get; init; }
+    public FrameworkElement? ControlCenterContent { get; init; }
     public Func<long, bool>? IsSessionCurrent { get; init; }
 }
 
@@ -381,6 +382,7 @@ public sealed class NotchContentTransitionPresenter : IDisposable
             NotchView.AudioMixer => _refs.AudioContent ?? _refs.AudioScrollViewer,
             NotchView.Camera => _refs.CameraContent,
             NotchView.Secondary => _refs.SecondaryContent,
+            NotchView.ControlCenter => _refs.ControlCenterContent,
             _ => null
         };
     }
@@ -393,6 +395,7 @@ public sealed class NotchContentTransitionPresenter : IDisposable
         if (_refs.AudioContent != null) list.Add(_refs.AudioContent);
         else if (_refs.AudioScrollViewer != null) list.Add(_refs.AudioScrollViewer);
         if (_refs.SecondaryContent != null) list.Add(_refs.SecondaryContent);
+        if (_refs.ControlCenterContent != null) list.Add(_refs.ControlCenterContent);
         return list;
     }
 
