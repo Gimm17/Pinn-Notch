@@ -49,7 +49,7 @@ public sealed class SettingsUpdatePresenter : IDisposable
                     if (_refs == null || !_canUseNetwork() || _lifetime.IsCancellationRequested) return;
                     if (includePrereleases != _includePrereleases()) continue;
                     _availableUpdate = update;
-                    _refs.Status.Text = update == null ? Loc.Get("settings.checkUpdate") :
+                    _refs.Status.Text = update == null ? Loc.Get("settings.upToDate") :
                         update.IsNewerVersion ? Loc.Get("settings.updateAvailable", update.Version) : Loc.Get("settings.upToDate");
                     _refs.Download.Visibility = update?.IsNewerVersion == true ? Visibility.Visible : Visibility.Collapsed;
                     try { UpdateDetected?.Invoke(this, update); }
