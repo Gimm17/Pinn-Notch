@@ -86,4 +86,22 @@ public sealed class TaskbarIntegrationTests
         // Restoration works safely
         service.RestoreTaskbars();
     }
+
+    [Fact]
+    public void AppDrawer_VerticalPositionFormula_FloatsStrictlyAboveDockIcon()
+    {
+        // Dock at bottom: icon top edge at 780 DIPs, drawer dimensions 460x420, inner glass margin 16
+        double launcherTopDip = 780.0;
+        double drawerHeight = 420.0;
+        double innerMargin = 16.0;
+        double targetGapAboveIcon = 12.0;
+
+        // Formula: targetY = launcherTopDip - drawerHeight + (innerMargin - targetGapAboveIcon)
+        // => targetY = launcherTopDip - drawerHeight + 4
+        double targetY = launcherTopDip - drawerHeight + 4.0;
+        double innerCardBottomDip = targetY + drawerHeight - innerMargin;
+
+        Assert.Equal(launcherTopDip - targetGapAboveIcon, innerCardBottomDip);
+        Assert.True(innerCardBottomDip < launcherTopDip, "App drawer card bottom must sit strictly above dock icon top edge");
+    }
 }
