@@ -39,10 +39,71 @@ public partial class MainWindow
 
     private bool _isCameraActive => _camera.IsActive;
     private bool IsCameraPreviewLifecycleActive => _camera.IsLifecycleActive;
+    private bool IsInCameraViewContext => _isCameraView
+        || _navigationVisualTarget == VNotch.Models.NotchView.Camera
+        || _transitionCoordinator?.Snapshot.TargetView == VNotch.Models.NotchView.Camera;
+
+    private void AutoStartCameraPreviewIfNeeded()
+    {
+        if (!_isCameraActive && !_camera.IsStarting && IsInCameraViewContext)
+        {
+            StartCameraPreview().SafeFireAndForget("CAMERA-AUTOSTART");
+        }
+    }
 
     private void InitializeCameraController()
     {
         _camera.FrameAvailable += OnCameraFrameAvailable;
+        ApplyCameraMirrorState(animate: false);
+    }
+
+    private void CameraMirrorToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        ToggleCameraMirror();
+    }
+
+    public ScaleTransform? CameraMirrorTransform => CameraPreviewScale;
+
+    private void ApplyCameraMirrorState(bool animate = false)
+    {
+        if (CameraMirrorTransform == null) return;
+        double targetScaleX = _settings.MirrorCameraPreview ? -1.0 : 1.0;
+        if (animate && !AnimationConfig.ReduceMotion)
+        {
+            var anim = MakeAnim(CameraMirrorTransform.ScaleX, targetScaleX, new Duration(TimeSpan.FromMilliseconds(220)), _easeExpOut6);
+            CameraMirrorTransform.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+        }
+        else
+        {
+            CameraMirrorTransform.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            CameraMirrorTransform.ScaleX = targetScaleX;
+        }
+
+        UpdateCameraMirrorButtonVisual();
+    }
+
+    private void UpdateCameraMirrorButtonVisual()
+    {
+        if (CameraMirrorStatusText == null) return;
+        bool isMirrored = _settings.MirrorCameraPreview;
+        CameraMirrorStatusText.Text = isMirrored ? "Mirror: ON" : "Mirror: OFF";
+        CameraMirrorStatusText.Foreground = isMirrored
+            ? new SolidColorBrush(Color.FromRgb(0x00, 0xA2, 0xED))
+            : new SolidColorBrush(Color.FromArgb(0xDD, 0xFF, 0xFF, 0xFF));
+    }
+
+    private void CameraSection_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        ToggleCameraMirror(animate: true);
+    }
+
+    private void ToggleCameraMirror(bool animate = true)
+    {
+        _settings.MirrorCameraPreview = !_settings.MirrorCameraPreview;
+        ApplyCameraMirrorState(animate: animate);
+        _settingsService?.SaveAsync(_settings).SafeFireAndForget("SETTINGS-SAVE");
     }
 
     private readonly System.Collections.Generic.Dictionary<UIElement, Brush?> _cameraAppearanceMasks = new();
@@ -91,9 +152,11 @@ public partial class MainWindow
         CameraPreviewScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
         CameraPreviewBlur.BeginAnimation(BlurEffect.RadiusProperty, null);
         CameraOverlay.BeginAnimation(OpacityProperty, null);
+        ApplyCameraMirrorState(animate: false);
 
         CameraPreviewImage.Opacity = 0.0;
-        CameraPreviewScale.ScaleX = 1.06;
+        double baseScaleX = _settings.MirrorCameraPreview ? -1.06 : 1.06;
+        CameraPreviewScale.ScaleX = baseScaleX;
         CameraPreviewScale.ScaleY = 1.06;
         CameraPreviewBlur.Radius = _settings.EnableBlurEffects ? 16.0 : 0.0;
 
@@ -111,7 +174,8 @@ public partial class MainWindow
         var overlayDuration = new Duration(TimeSpan.FromMilliseconds(320));
 
         var previewFadeIn = MakeAnim(CameraPreviewImage.Opacity, 1.0, morphDuration, _easeExpOut6, null);
-        var scaleXIn = MakeAnim(CameraPreviewScale.ScaleX, 1.0, morphDuration, _easeExpOut6, null);
+        double targetScaleX = _settings.MirrorCameraPreview ? -1.0 : 1.0;
+        var scaleXIn = MakeAnim(CameraPreviewScale.ScaleX, targetScaleX, morphDuration, _easeExpOut6, null);
         var scaleYIn = MakeAnim(CameraPreviewScale.ScaleY, 1.0, morphDuration, _easeExpOut6, null);
         var blurClear = MakeAnim(CameraPreviewBlur.Radius, 0.0, morphDuration, _easeExpOut6, null);
 
@@ -167,7 +231,6 @@ public partial class MainWindow
     {
         e.Handled = true;
 
-        if (_isAnimating || !_isCameraView) return;
         if (_camera.IsStarting || _camera.IsStopping) return;
 
         if (!_isCameraActive)
@@ -198,7 +261,7 @@ public partial class MainWindow
             PrimeCameraPreviewMorphIn();
             CameraErrorOverlay.Visibility = Visibility.Collapsed;
 
-            string? error = await _camera.StartAsync(_settings.CameraDeviceId, () => _isCameraView);
+            string? error = await _camera.StartAsync(_settings.CameraDeviceId, () => IsInCameraViewContext);
             if (error != null)
             {
                 throw new InvalidOperationException(error);
@@ -207,9 +270,13 @@ public partial class MainWindow
         catch (Exception ex)
         {
             StopCameraPreviewSafe();
-            if (_isCameraView)
+            if (IsInCameraViewContext)
             {
                 CameraErrorOverlay.Visibility = Visibility.Visible;
+                if (CameraErrorText != null)
+                {
+                    CameraErrorText.Text = string.IsNullOrWhiteSpace(ex.Message) ? "Cannot detect camera device" : ex.Message;
+                }
             }
             else
             {
@@ -265,11 +332,13 @@ public partial class MainWindow
         CameraPreviewScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
         CameraPreviewBlur.BeginAnimation(BlurEffect.RadiusProperty, null);
         CameraOverlay.BeginAnimation(OpacityProperty, null);
+        ApplyCameraMirrorState(animate: false);
 
         CameraPreviewImage.Opacity = 0;
         CameraPreviewImage.Source = null;
         ApplyAppearanceOpacity();
-        CameraPreviewScale.ScaleX = 1.06;
+        double exitScaleX = _settings.MirrorCameraPreview ? -1.06 : 1.06;
+        CameraPreviewScale.ScaleX = exitScaleX;
         CameraPreviewScale.ScaleY = 1.06;
         CameraPreviewBlur.Radius = _settings.EnableBlurEffects ? 16.0 : 0.0;
         CameraOverlay.Opacity = 1;
@@ -298,11 +367,13 @@ public partial class MainWindow
         CameraPreviewScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
         CameraPreviewBlur.BeginAnimation(BlurEffect.RadiusProperty, null);
         CameraOverlay.BeginAnimation(OpacityProperty, null);
+        ApplyCameraMirrorState(animate: false);
 
         CameraPreviewImage.Opacity = 0;
         CameraPreviewImage.Source = null;
         ApplyAppearanceOpacity();
-        CameraPreviewScale.ScaleX = 1.06;
+        double exitScaleX = _settings.MirrorCameraPreview ? -1.06 : 1.06;
+        CameraPreviewScale.ScaleX = exitScaleX;
         CameraPreviewScale.ScaleY = 1.06;
         CameraPreviewBlur.Radius = _settings.EnableBlurEffects ? 16.0 : 0.0;
         CameraOverlay.Opacity = 0;
@@ -421,7 +492,8 @@ public partial class MainWindow
         if (fadeToken != _camera.FadeToken || _isCameraActive) return;
         CancelCameraPreviewMorphOut();
         CameraPreviewImage.Opacity = 0;
-        CameraPreviewScale.ScaleX = 1.06;
+        double exitScaleX = _settings.MirrorCameraPreview ? -1.06 : 1.06;
+        CameraPreviewScale.ScaleX = exitScaleX;
         CameraPreviewScale.ScaleY = 1.06;
         CameraPreviewBlur.Radius = _settings.EnableBlurEffects ? 16.0 : 0.0;
         CameraOverlay.Opacity = 1;

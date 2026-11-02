@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
         xmlns:tb="http://www.hardcodet.net/taskbar"
-        Title="Pinn-Noch"
+        Title="Pinn-Notch"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -1036,6 +1036,35 @@
                                           Fill="{x:Static svc:UiPalette.PrimaryBrush}"/>
                                 </Viewbox>
                             </ctrl:ActionBorder>
+                            <ctrl:ActionBorder x:Name="ControlCenterIconButton"
+                                    Tag="ControlCenter"
+                                    Width="22" Height="22"
+                                    Background="Transparent"
+                                    Cursor="Hand"
+                                    Margin="0,0,4,0"
+                                    Opacity="0.45"
+                                    ToolTip="Control Center"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    PreviewMouseLeftButtonDown="NavIcon_PreviewMouseLeftButtonDown"
+                                    PreviewMouseMove="NavIcon_PreviewMouseMove"
+                                    PreviewMouseLeftButtonUp="NavIcon_PreviewMouseLeftButtonUp"
+                                    LostMouseCapture="NavIcon_LostMouseCapture"
+                                    Click="ControlCenterIconButton_Click">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                        <TranslateTransform X="0" Y="0"/>
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="8" ShadowDepth="0" Opacity="0.9"/>
+                                </Border.Effect>
+                                <Viewbox Width="15" Height="15" Stretch="Uniform"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Path Data="M3,5 C3,4.45 3.45,4 4,4 L8,4 C8.55,4 9,4.45 9,5 L9,7 C9,7.55 8.55,8 8,8 L4,8 C3.45,8 3,7.55 3,7 Z M11,5.25 C11,4.7 11.45,4.25 12,4.25 L20,4.25 C20.55,4.25 21,4.7 21,5.25 C21,5.8 20.55,6.25 20,6.25 L12,6.25 C11.45,6.25 11,5.8 11,5.25 Z M15,11 C15,10.45 15.45,10 16,10 L20,10 C20.55,10 21,10.45 21,11 L21,13 C21,13.55 20.55,14 20,14 L16,14 C15.45,14 15,13.55 15,13 Z M3,11.25 C3,10.7 3.45,10.25 4,10.25 L13,10.25 C13.55,10.25 14,10.7 14,11.25 C14,11.8 13.55,12.25 13,12.25 L4,12.25 C3.45,12.25 3,11.8 3,11.25 Z M7,17 C7,16.45 7.45,16 8,16 L12,16 C12.55,16 13,16.45 13,17 L13,19 C13,19.55 12.55,20 12,20 L8,20 C7.45,20 7,19.55 7,19 Z M3,17.25 C3,16.7 3.45,16.25 4,16.25 L5,16.25 C5.55,16.25 6,16.7 6,17.25 C6,17.8 5.55,18.25 5,18.25 L4,18.25 C3.45,18.25 3,17.8 3,17.25 Z M15,17.25 C15,16.7 15.45,16.25 16,16.25 L20,16.25 C20.55,16.25 21,16.7 21,17.25 C21,17.8 20.55,18.25 20,18.25 L16,18.25 C15.45,18.25 15,17.8 15,17.25 Z"
+                                          Fill="{x:Static svc:UiPalette.PrimaryBrush}"/>
+                                </Viewbox>
+                            </ctrl:ActionBorder>
                         </StackPanel>
                     </Grid>
 
@@ -1828,6 +1857,7 @@
                                             Cursor="Hand"
                                             MouseLeftButtonDown="ThumbnailBorder_MouseLeftButtonDown"
                                             MouseRightButtonUp="Thumbnail_MouseRightButtonUp"
+                                            MouseWheel="ThumbnailBorder_MouseWheel"
                                             RenderTransformOrigin="0.5,0.5">
                                         <Border.RenderTransform>
                                             <ScaleTransform x:Name="ThumbnailScale" ScaleX="1" ScaleY="1"/>
@@ -2589,7 +2619,7 @@
                                 Cursor="Hand"
                                 RenderTransformOrigin="0.5,0.5"
                                 SizeChanged="CameraSection_SizeChanged"
-                                Click="CameraSection_Click">
+                                Click="CameraSection_Click" MouseRightButtonDown="CameraSection_MouseRightButtonDown">
                             <Border.RenderTransform>
                                 <ScaleTransform x:Name="CameraSectionScale" ScaleX="1" ScaleY="1"/>
                             </Border.RenderTransform>
@@ -2607,7 +2637,7 @@
                                     </Image.Effect>
                                 </Image>
 
-                                <Border x:Name="CameraOverlay" Background="Transparent">
+                                <Border x:Name="CameraOverlay" Background="Transparent" IsHitTestVisible="False">
                                     <Viewbox Width="28" Height="28" Stretch="Uniform"
                                              VerticalAlignment="Center" HorizontalAlignment="Center"
                                              Margin="0,-2,0,0">
@@ -2616,7 +2646,7 @@
                                     </Viewbox>
                                 </Border>
 
-                                <Border x:Name="CameraErrorOverlay" Background="#60000000" Visibility="Collapsed">
+                                <Border x:Name="CameraErrorOverlay" Background="#60000000" Visibility="Collapsed" Cursor="Hand" MouseLeftButtonDown="CameraSection_Click">
                                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
                                         <Path Data="M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 17c-.77 1.333.192 3 1.732 3z"
                                               Stroke="{x:Static svc:UiPalette.IconBrush}" StrokeThickness="1.5" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center"/>
@@ -2625,6 +2655,48 @@
                                         <TextBlock Text="click to try again" x:Name="CameraRetryText" Style="{StaticResource SmallText}" FontSize="8"
                                                    Foreground="#99FFFFFF" HorizontalAlignment="Center" FontStyle="Italic"/>
                                     </StackPanel>
+                                </Border>
+
+                                <!-- Floating Camera Mirror / Flip Toggle Button -->
+                                <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12">
+                                    <Border x:Name="CameraMirrorToggleButton"
+                                            Height="30"
+                                            CornerRadius="15"
+                                            Background="#A0141418"
+                                            BorderBrush="#40FFFFFF"
+                                            BorderThickness="1.2"
+                                            Padding="10,0"
+                                            Cursor="Hand"
+                                            MouseLeftButtonDown="CameraMirrorToggleButton_Click"
+                                            ToolTip="Klik untuk Flip / Mirror Kamera Horizontal (Atau klik kanan pada video)">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="10" Opacity="0.4" ShadowDepth="2"/>
+                                        </Border.Effect>
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#E0141418"/>
+                                                        <Setter Property="BorderBrush" Value="#FF00A2ED"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="⇄"
+                                                       FontSize="13"
+                                                       FontWeight="Bold"
+                                                       Foreground="#FF00A2ED"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,-1,5,0"/>
+                                            <TextBlock x:Name="CameraMirrorStatusText"
+                                                       Text="Mirror: ON"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#FF00A2ED"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
                                 </Border>
 
                             </Grid>
@@ -2752,6 +2824,15 @@
                                          TextOptions.TextFormattingMode="Ideal"
                                          TextOptions.TextRenderingMode="Grayscale"
                                          TextOptions.TextHintingMode="Animated"/>
+
+                    <ctrl:ControlCenterView x:Name="ControlCenterContent"
+                                            Opacity="0"
+                                            Visibility="Collapsed"
+                                            Margin="14,36,14,12"
+                                            HorizontalAlignment="Center"
+                                            Width="440"
+                                            UseLayoutRounding="False"
+                                            SnapsToDevicePixels="False"/>
 
                     <Grid x:Name="CountdownCompleteOverlay"
                           HorizontalAlignment="Center"

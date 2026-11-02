@@ -273,6 +273,7 @@ public partial class MainWindow : Window
             AudioScrollViewer = AudioScrollViewer,
             SecondaryContent = SecondaryContent,
             CameraContent = CameraContent,
+            ControlCenterContent = ControlCenterContent,
             IsSessionCurrent = sessionId => !_cleanedUp && sessionId == _transitionCoordinator.ActiveTransitionId
         });
         _viewModel = viewModel;
@@ -296,6 +297,8 @@ public partial class MainWindow : Window
             () => (IVolumeService)App.Services.GetService(typeof(IVolumeService))!,
             () => _isAnimating, () => IsLiquidGlassEnabled);
         AudioContent.FitHeightRequested += AnimateAudioNotchHeight;
+        ControlCenterContent.Attach(_viewModel.ControlCenter);
+        _viewModel.ControlCenter.RequestOpenAppMonitor = () => ToggleAppMonitor(true);
         AudioContent.OutputDeviceChanged += () =>
         {
             mediaService.InvalidateVolumeSessionCache();
@@ -511,6 +514,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        UpdatePlayPauseIcon(animate: false);
         InitializeSessionUnlockFeedback();
         InitNotchSmartAutoHide();
         _invisibleHotkey ??= new VNotch.Controllers.InvisibleHotkeyController(this, ToggleInvisibleMode);
@@ -788,6 +792,7 @@ public partial class MainWindow : Window
         _localAudioView = snapshot.CurrentView == VNotch.Models.NotchView.AudioMixer;
         _localSecondaryView = snapshot.CurrentView == VNotch.Models.NotchView.Secondary;
         _localTimerView = snapshot.CurrentView == VNotch.Models.NotchView.Timer;
+        _localControlCenterView = snapshot.CurrentView == VNotch.Models.NotchView.ControlCenter;
         UpdateGlassMotionState();
         SyncPrivacyDotVisibilityForCurrentView();
         UpdateSpotifyCanvasPresentationContext();
@@ -853,10 +858,14 @@ public partial class MainWindow : Window
                 or VNotch.Controllers.NotchShapeState.MusicCollapsing;
         if (args.TargetView != VNotch.Models.NotchView.Camera && IsCameraPreviewLifecycleActive)
             StopCameraPreviewForViewTransition();
-        else if (args.TargetView == VNotch.Models.NotchView.Camera && _pendingCameraPreviewVisualTeardown)
-            FinalizePendingCameraPreviewTeardown();
+        else if (args.TargetView == VNotch.Models.NotchView.Camera)
+        {
+            if (_pendingCameraPreviewVisualTeardown)
+                FinalizePendingCameraPreviewTeardown();
+            AutoStartCameraPreviewIfNeeded();
+        }
         if (args.TargetView != VNotch.Models.NotchView.Compact && args.Reason != "CountdownCompletion" &&
-            (args.TargetView is VNotch.Models.NotchView.Secondary or VNotch.Models.NotchView.Camera || args.FromView is VNotch.Models.NotchView.Secondary or VNotch.Models.NotchView.Camera))
+            (args.TargetView is VNotch.Models.NotchView.Secondary or VNotch.Models.NotchView.Camera or VNotch.Models.NotchView.ControlCenter || args.FromView is VNotch.Models.NotchView.Secondary or VNotch.Models.NotchView.Camera or VNotch.Models.NotchView.ControlCenter))
         {
             ExpandNotch(args.TransitionId, targetView: args.TargetView, fromView: args.FromView);
             return;
@@ -937,6 +946,17 @@ public partial class MainWindow : Window
                     SwitchToSecondaryView(args.TransitionId);
                 }
                 break;
+
+            case VNotch.Models.NotchView.ControlCenter:
+                if (requiresExpansion)
+                {
+                    ExpandNotch(args.TransitionId, targetView: VNotch.Models.NotchView.ControlCenter);
+                }
+                else
+                {
+                    SwitchToControlCenterView(args.TransitionId);
+                }
+                break;
         }
     }
 
@@ -1008,6 +1028,16 @@ public partial class MainWindow : Window
         if (shouldBeVisible)
         {
             NotchContainer.Visibility = Visibility.Visible;
+            bool smartShouldHide = (_settings.NotchAutoHideMode == "Always" && !_isNotchRevealedByMouse && !_isNotchTemporarilyRevealed && !_isExpanded && !_isMusicExpanded)
+                                || (_settings.NotchAutoHideMode == "Smart" && _isNotchOverlapped && !_isNotchRevealedByMouse && !_isNotchTemporarilyRevealed && !_isExpanded && !_isMusicExpanded);
+
+            if (smartShouldHide)
+            {
+                _isNotchSmartHidden = true;
+                ApplyNotchSmartAutoHideSlide(true);
+                _isFullscreenSlideAnimating = false;
+                return;
+            }
             if (wasCollapsed || currentY > 0 || currentY < -slideDistance)
             {
                 NotchContainerTranslate.Y = -slideDistance;
@@ -1464,7 +1494,7 @@ public partial class MainWindow : Window
         OpenAppSettings();
     }
 
-    private void OpenAppSettings(bool showTranslation = false)
+    public void OpenAppSettings(bool showTranslation = false)
     {
         if (IsGreetingInteractionBlocked) return;
         if (_activeSettingsWindow is { IsVisible: true } activeSettings)
@@ -1524,9 +1554,11 @@ public partial class MainWindow : Window
         _settingsHotkey?.Apply(_settings.SettingsHotkey);
         _clipboardHistory?.ApplySettings(_settings);
         if (_settings.HideCamera && IsCameraPreviewLifecycleActive) StopCameraPreviewForViewExit();
+        ApplyCameraMirrorState(animate: false);
         NetworkPrivacy.Current.Apply(_settings);
         ApplyInvisibleMode();
         _liveTranslation?.ApplySettings(_settings);
+        InitializePinnMascot();
 
         UpdateWindowAndNotchPlacementSettings(oldSettings, newSettings, settingsWindow);
         ApplySettings(oldSettings, sizeChanged);
@@ -1708,6 +1740,13 @@ public partial class MainWindow : Window
             // Reconfigure immediately so changing this option does not require an app
             if (_hwnd != IntPtr.Zero)
                 ConfigureOverlayWindow();
+        }
+
+        if (oldSettings == null ||
+            oldSettings.EnablePinnMascot != _settings.EnablePinnMascot ||
+            !string.Equals(oldSettings.PinnMascotPosition, _settings.PinnMascotPosition, StringComparison.Ordinal))
+        {
+            InitializePinnMascot();
         }
 
         if (oldSettings == null || !string.Equals(oldSettings.ExpandedWidget, _settings.ExpandedWidget, StringComparison.Ordinal))
