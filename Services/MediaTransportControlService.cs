@@ -60,8 +60,10 @@ public sealed partial class MediaTransportControlService
     {
         try
         {
-            if (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
-                (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null))
+            // If YouTube Music window is visible on screen, or has active media without external session conflicts, control YouTube Music!
+            if (YouTubeMusicPlayerService.Instance.IsWindowVisible ||
+                (YouTubeMusicPlayerService.Instance.HasActiveMedia &&
+                 (YouTubeMusicPlayerService.Instance.IsPlaying || _getActiveSession() == null)))
             {
                 await YouTubeMusicPlayerService.Instance.TogglePlayPauseAsync();
                 return;

@@ -146,11 +146,12 @@ public partial class YouTubeMusicWindow : Window
     function clickElement(el) {
         if (!el) return false;
         try {
+            const opts = { bubbles: true, cancelable: true, composed: true, view: window };
+            el.dispatchEvent(new MouseEvent('mousedown', opts));
+            el.dispatchEvent(new MouseEvent('mouseup', opts));
+            el.dispatchEvent(new MouseEvent('click', opts));
             if (typeof el.click === 'function') {
                 el.click();
-            } else {
-                const opts = { bubbles: true, cancelable: true, composed: true, view: window };
-                el.dispatchEvent(new MouseEvent('click', opts));
             }
             return true;
         } catch (e) {
@@ -162,13 +163,8 @@ public partial class YouTubeMusicWindow : Window
 
     window.__pinnPlayOrStart = function() {
         try {
-            const now = Date.now();
-            if (now - lastPlayTriggerTime < 4000) {
-                return 'play_in_progress';
-            }
-
             const v = document.querySelector('video');
-            if (v && !v.paused && !v.ended) {
+            if (v && !v.paused && !v.ended && v.currentTime > 0) {
                 return 'already_playing';
             }
 
@@ -178,15 +174,9 @@ public partial class YouTubeMusicWindow : Window
                 return 'buffering';
             }
 
-            const toast = document.querySelector('ytmusic-toast-renderer, paper-toast');
-            if (toast && /radio|queue|memuat|starting/i.test(toast.textContent || '')) {
-                return 'starting_radio';
-            }
-
             // 1. Resume existing paused video if valid and past beginning
             if (v && v.src && v.paused && isFinite(v.duration) && v.duration > 0 && v.currentTime > 0) {
-                lastPlayTriggerTime = now;
-                v.play();
+                v.play().catch(() => {});
                 return 'resumed_video';
             }
 
@@ -197,59 +187,49 @@ public partial class YouTubeMusicWindow : Window
             if (playBtn && hasBarTrack) {
                 const label = (playBtn.getAttribute('aria-label') || playBtn.getAttribute('title') || '').toLowerCase();
                 if (label.includes('play') || label.includes('putar')) {
-                    lastPlayTriggerTime = now;
                     clickElement(playBtn);
                     return 'clicked_player_bar_play';
                 }
             }
 
-            // 3. Look for 'Play all' button in 'Quick picks' section
-            const allShelves = document.querySelectorAll('ytmusic-shelf-renderer');
-            for (const shelf of allShelves) {
-                const headerText = (shelf.querySelector('h2, .title')?.textContent || '').toLowerCase();
-                if (headerText.includes('quick') || headerText.includes('picks') || headerText.includes('cepat') || headerText.includes('pilihan')) {
-                    const playAll = shelf.querySelector('button[aria-label*=""Play all"" i], button[aria-label*=""Putar semua"" i], #play-button button, yt-button-renderer button');
-                    if (playAll && clickElement(playAll)) {
-                        lastPlayTriggerTime = now;
+            // 3. Look for 'Play all' button across all sections and carousels
+            const allPlayAlls = Array.from(document.querySelectorAll('button, yt-button-renderer button, a.yt-simple-endpoint, yt-chip-cloud-chip-renderer'));
+            for (const btn of allPlayAlls) {
+                const text = (btn.textContent || '').trim().toLowerCase();
+                const aria = (btn.getAttribute('aria-label') || '').toLowerCase();
+                if (text === 'play all' || text === 'putar semua' || aria.includes('play all') || aria.includes('putar semua')) {
+                    if (btn.offsetParent !== null || btn.getBoundingClientRect().width > 0) {
+                        clickElement(btn);
                         return 'clicked_quick_picks_play_all';
                     }
-
-                    // Or first item in this shelf
-                    const firstRow = shelf.querySelector('ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer');
-                    if (firstRow) {
-                        const rowPlayBtn = firstRow.querySelector('ytmusic-play-button-renderer #button, .play-button, ytmusic-item-thumbnail-overlay-renderer');
-                        if (rowPlayBtn && clickElement(rowPlayBtn)) {
-                            lastPlayTriggerTime = now;
-                            return 'clicked_quick_picks_first_item_btn';
-                        }
-                        const rowLink = firstRow.querySelector('.title a, yt-formatted-string.title a, a.yt-simple-endpoint');
-                        if (rowLink && clickElement(rowLink)) {
-                            lastPlayTriggerTime = now;
-                            return 'clicked_quick_picks_first_item_link';
-                        }
-                    }
                 }
             }
 
-            // 4. Try any first song row on Home
+            // 4. Try clicking the first song link (navigates to /watch and auto-plays!)
+            const firstSongLink = document.querySelector(
+                'ytmusic-responsive-list-item-renderer a.yt-simple-endpoint[href*=""watch""], ytmusic-two-row-item-renderer a.yt-simple-endpoint[href*=""watch""], a.yt-simple-endpoint[href*=""watch?v=""]'
+            );
+            if (firstSongLink) {
+                clickElement(firstSongLink);
+                return 'clicked_first_song_link';
+            }
+
+            // 5. Try any first song row item on Home/Explore
             const firstItem = document.querySelector('ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer');
             if (firstItem) {
-                const btn = firstItem.querySelector('ytmusic-play-button-renderer #button, .play-button, ytmusic-item-thumbnail-overlay-renderer');
-                if (btn && clickElement(btn)) {
-                    lastPlayTriggerTime = now;
-                    return 'clicked_first_item_btn';
-                }
-                const link = firstItem.querySelector('.title a, yt-formatted-string.title a, a.yt-simple-endpoint');
+                const link = firstItem.querySelector('a.yt-simple-endpoint, .title a');
                 if (link && clickElement(link)) {
-                    lastPlayTriggerTime = now;
                     return 'clicked_first_item_link';
+                }
+                const innerBtn = firstItem.querySelector('ytmusic-play-button-renderer #button, button#button, .play-button');
+                if (innerBtn && clickElement(innerBtn)) {
+                    return 'clicked_first_item_btn';
                 }
             }
 
-            // 5. Try any general play button
+            // 6. Try any general play button
             const anyPlay = document.querySelector('ytmusic-play-button-renderer #button, button[aria-label*=""Play all"" i], button[aria-label*=""Putar semua"" i], .play-button');
             if (anyPlay && clickElement(anyPlay)) {
-                lastPlayTriggerTime = now;
                 return 'clicked_any_play';
             }
         } catch (e) {
@@ -662,7 +642,17 @@ public partial class YouTubeMusicWindow : Window
         await InitializeWebViewAsync();
     }
 
-    private async Task InitializeWebViewAsync()
+    private Task? _initTask;
+
+    private Task InitializeWebViewAsync()
+    {
+        if (_isInitialized) return Task.CompletedTask;
+        if (_initTask != null) return _initTask;
+        _initTask = InitializeWebViewCoreAsync();
+        return _initTask;
+    }
+
+    private async Task InitializeWebViewCoreAsync()
     {
         if (_isInitialized) return;
         try
@@ -775,30 +765,29 @@ public partial class YouTubeMusicWindow : Window
 
         Task.Run(async () =>
         {
-            for (int i = 0; i < 20 && !ct.IsCancellationRequested; i++)
+            for (int i = 0; i < 25 && !ct.IsCancellationRequested; i++)
             {
                 await Task.Delay(400, ct).ConfigureAwait(false);
                 if (ct.IsCancellationRequested) return;
 
                 if (YouTubeMusicPlayerService.Instance.IsPlaying)
                 {
+                    RuntimeLog.Info(LogCategory, "AutoPlay action confirmed playing; exiting auto-play loop.");
                     return;
                 }
 
-                bool triggered = false;
                 try
                 {
-                    triggered = await Dispatcher.InvokeAsync(PlayOrStartAsync).Task.Unwrap();
+                    await Dispatcher.InvokeAsync(PlayOrStartAsync).Task.Unwrap();
                 }
                 catch (Exception ex)
                 {
                     RuntimeLog.Warn(LogCategory, $"AutoPlay invocation error: {ex.Message}");
                 }
 
-                // If playback was triggered, buffering, or already playing, stop the retry loop immediately!
-                if (triggered)
+                if (YouTubeMusicPlayerService.Instance.IsPlaying)
                 {
-                    RuntimeLog.Info(LogCategory, "AutoPlay action successfully triggered; exiting auto-play loop.");
+                    RuntimeLog.Info(LogCategory, "AutoPlay action confirmed playing; exiting auto-play loop.");
                     return;
                 }
             }
@@ -811,6 +800,16 @@ public partial class YouTubeMusicWindow : Window
         try
         {
             if (MusicWebView?.CoreWebView2 == null) return false;
+
+            // If on home/explore and not playing, navigate directly to last played video if available
+            string curUrl = MusicWebView.CoreWebView2.Source ?? "";
+            if (!curUrl.Contains("watch?v=") && !string.IsNullOrEmpty(YouTubeMusicPlayerService.Instance.LastPlayedVideoId))
+            {
+                RuntimeLog.Info(LogCategory, $"Navigating to last played track: {YouTubeMusicPlayerService.Instance.LastPlayedVideoId}");
+                MusicWebView.CoreWebView2.Navigate($"https://music.youtube.com/watch?v={YouTubeMusicPlayerService.Instance.LastPlayedVideoId}");
+                return true;
+            }
+
             string res = await MusicWebView.CoreWebView2.ExecuteScriptAsync("window.__pinnPlayOrStart ? window.__pinnPlayOrStart() : 'no_function'");
             RuntimeLog.Info(LogCategory, $"PlayOrStartAsync result: {res}");
             if (string.IsNullOrEmpty(res)) return false;
