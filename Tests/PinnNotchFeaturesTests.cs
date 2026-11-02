@@ -6,21 +6,21 @@ using Xunit;
 
 namespace VNotch.Tests;
 
-public class PinnNochFeaturesTests
+public class PinnNotchFeaturesTests
 {
     [Fact]
-    public void AppPaths_UsesPinnNochDirectory()
+    public void AppPaths_UsesPinnNotchDirectory()
     {
-        Assert.Equal("Pinn-Noch", AppPaths.DirectoryName);
+        Assert.Equal("Pinn-Notch", AppPaths.DirectoryName);
         Assert.Equal("V-Notch", AppPaths.LegacyDirectoryName);
-        Assert.EndsWith("Pinn-Noch", AppPaths.RoamingAppDataRoot);
+        Assert.EndsWith("Pinn-Notch", AppPaths.RoamingAppDataRoot);
     }
 
     [Fact]
-    public void SingleInstanceGuard_UsesPinnNochMutex()
+    public void SingleInstanceGuard_UsesPinnNotchMutex()
     {
         string mutexName = SingleInstanceGuard.GetCurrentUserMutexName();
-        Assert.StartsWith(@"Local\PinnNoch_SingleInstance_", mutexName);
+        Assert.StartsWith(@"Local\PinnNotch_SingleInstance_", mutexName);
     }
 
     [Fact]

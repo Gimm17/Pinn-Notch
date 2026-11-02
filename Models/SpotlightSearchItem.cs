@@ -52,6 +52,8 @@ public sealed record SpotlightSearchItem(
             var entry = Services.Spotlight.SpotlightSystemCatalog.Find(Target);
             if (entry?.Kind == Kind)
             {
+                if (entry.Key == "appMonitor")
+                    return ResolveSystemLabel("spotlight.system.appMonitorSubtitle", "Pinn-Notch • CPU, GPU & RAM usage");
                 return entry.Kind switch
                 {
                     SpotlightResultKind.Settings => ResolveSystemLabel("spotlight.system.settings", "Windows Settings"),

@@ -69,7 +69,7 @@ internal static class Program
             return;
         }
         var app = new StressApp(args.Length > 0 ? args[0] : "default", Path.GetFullPath(args.Length > 1 ? args[1] : "artifacts/fps-stress/default"));
-        app.Resources["SFProDisplay"] = new FontFamily("pack://application:,,,/Pinn-Noch;component/Fonts/#SF Pro Display, Nirmala UI, Segoe UI");
+        app.Resources["SFProDisplay"] = new FontFamily("pack://application:,,,/Pinn-Notch;component/Fonts/#SF Pro Display, Nirmala UI, Segoe UI");
         app.Resources["SFProText"] = app.Resources["SFProDisplay"];
         app.Resources["IconFont"] = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol");
         app.Run();

@@ -108,6 +108,7 @@ update_settings.ps1
 !/Tools/SystemMonitorLifetimeProbe/
 !/Tools/UpdateCompatibility/
 !/Tools/TranslationBench/
+!/Tools/TranslucentTB/
 /changes
 build-installer.ps1
 .test-output/ai-errors/Locales/ar.json
@@ -148,3 +149,7 @@ CLAUDE.md
 .github/context-mode/
 .context-mode/
 /.github/context-mode
+ 
+scratch/
+vid_bug/
+

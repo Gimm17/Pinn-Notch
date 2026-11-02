@@ -54,6 +54,7 @@ public partial class MainWindow
 
         NotchView currentView = NotchView.Media;
         if (_isCameraView) currentView = NotchView.Camera;
+        else if (_isControlCenterView) currentView = NotchView.ControlCenter;
         else if (_isAudioView)
         {
             currentView = NotchView.AudioMixer;
@@ -127,7 +128,7 @@ public partial class MainWindow
         {
             SwitchFromTimerToPrimaryView();
         }
-        else if (_isSecondaryView && !_isAnimating)
+        else if ((_isSecondaryView || _isControlCenterView) && !_isAnimating)
         {
             StopCameraPreviewForViewExit();
             SwitchToPrimaryView();
@@ -141,6 +142,21 @@ public partial class MainWindow
         {
             SwitchToSecondaryView();
         }
+    }
+
+    private void ControlCenterIconButton_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (!_isControlCenterView && !_isAnimating)
+        {
+            SwitchToControlCenterView();
+        }
+    }
+
+    private void SwitchToControlCenterView(long? transitionId = null)
+    {
+        if (transitionId == null) _transitionCoordinator.RequestView(NotchView.ControlCenter, "SwitchToControlCenterView");
+        else ExpandNotch(transitionId, targetView: NotchView.ControlCenter);
     }
 
     private void SwitchToSecondaryView(long? transitionId = null)
@@ -194,7 +210,7 @@ public partial class MainWindow
         double timerTarget = 0.45;
         double audioTarget = 0.45;
 
-        var target = _navigationVisualTarget ?? (_isCameraView ? NotchView.Camera : _isAudioView ? NotchView.AudioMixer :
+        var target = _navigationVisualTarget ?? (_isCameraView ? NotchView.Camera : _isControlCenterView ? NotchView.ControlCenter : _isAudioView ? NotchView.AudioMixer :
             _isTimerView ? NotchView.Timer : _isSecondaryView ? NotchView.Secondary : NotchView.Media);
         homeTarget = target == NotchView.Media ? 1 : 0.45;
         clipboardTarget = target == NotchView.Secondary ? 1 : 0.45;
@@ -207,6 +223,7 @@ public partial class MainWindow
         if (_navDragItem != ClipboardIconButton) AnimateNavIconOpacity(ClipboardIconButton, clipboardTarget, animate);
         if (_navDragItem != TimerIconButton) AnimateNavIconOpacity(TimerIconButton, timerTarget, animate);
         if (_navDragItem != AudioIconButton) AnimateNavIconOpacity(AudioIconButton, audioTarget, animate);
+        if (ControlCenterIconButton != null && _navDragItem != ControlCenterIconButton) AnimateNavIconOpacity(ControlCenterIconButton, target == NotchView.ControlCenter ? 1 : 0.45, animate);
 
 
     }

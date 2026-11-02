@@ -21,7 +21,7 @@ public sealed class LiquidGlassRefractionEffect : ShaderEffect
         {
             // 1. Try loading from embedded application resource stream first
 #pragma warning disable S1075 // Pack URI scheme is required to access WPF embedded assembly resources
-            string assemblyName = typeof(LiquidGlassRefractionEffect).Assembly.GetName().Name ?? "Pinn-Noch";
+            string assemblyName = typeof(LiquidGlassRefractionEffect).Assembly.GetName().Name ?? "Pinn-Notch";
             var resourceUri = new Uri($"pack://application:,,,/{assemblyName};component/Shaders/LiquidGlassRefraction.ps", UriKind.Absolute);
 #pragma warning restore S1075
             try

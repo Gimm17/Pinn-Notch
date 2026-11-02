@@ -10,7 +10,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Pinn-Noch;component/Controls/SettingsComboBoxStyles.xaml"/>
+                <ResourceDictionary Source="/Pinn-Notch;component/Controls/SettingsComboBoxStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <fonts:AppFont x:Key="SettingsFont" Fallbacks="Segoe UI Emoji, Nirmala UI, Segoe UI" />
             <SolidColorBrush x:Key="SettingsTextBrush" Color="#C8C8C8"/>

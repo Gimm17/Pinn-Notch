@@ -113,10 +113,12 @@ public partial class NotchSettings
     public string TaskbarFreezeMode { get; set; } = "HideSuppress"; // "HideSuppress", "ClickThrough", "FreezeAutoHide" 
 
     public bool HideCamera { get; set; } = false;
+    public bool MirrorCameraPreview { get; set; } = true;
+    public bool ClipboardAutoCapture { get; set; } = false;
     public bool ClipboardAutoDeleteSensitive { get; set; }
-    public bool ClipboardCaptureText { get; set; } = true;
-    public bool ClipboardCaptureImages { get; set; } = true;
-    public bool ClipboardCaptureFiles { get; set; } = true;
+    public bool ClipboardCaptureText { get; set; } = false;
+    public bool ClipboardCaptureImages { get; set; } = false;
+    public bool ClipboardCaptureFiles { get; set; } = false;
     private int _clipboardCaptureDelay = 250;
     public int ClipboardCaptureDelay { get => _clipboardCaptureDelay; set => _clipboardCaptureDelay = ClampInt(value, 100, 2000); }
     public string ClipboardHotkey { get; set; } = "";
@@ -271,8 +273,8 @@ public partial class NotchSettings
     public string Language { get; set; } = "en";
 
     public string ExpandedWidget { get; set; } = "clock";
-    public string NavTabOrder { get; set; } = "Media,Secondary,Timer,AudioMixer,Camera";
-    public string VisibleNavTabs { get; set; } = "Media,Secondary,Timer,AudioMixer,Camera";
+    public string NavTabOrder { get; set; } = "Media,Secondary,Timer,AudioMixer,Camera,ControlCenter";
+    public string VisibleNavTabs { get; set; } = "Media,Secondary,Timer,AudioMixer,Camera,ControlCenter";
     public string ClockPageStyle { get; set; } = "analog";
 
     public string ProcessPriority { get; set; } = "Normal";

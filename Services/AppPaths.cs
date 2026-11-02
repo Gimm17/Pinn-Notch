@@ -20,7 +20,7 @@ internal static partial class AppPaths
         int attributes,
         out byte outIsDir);
 
-    internal const string DirectoryName = "Pinn-Noch";
+    internal const string DirectoryName = "Pinn-Notch";
     internal const string LegacyDirectoryName = "V-Notch";
     internal const string OldLegacyDirectoryName = "VNotch";
     internal static string LocalAppDataRoot => Path.Combine(

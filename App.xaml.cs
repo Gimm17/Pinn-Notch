@@ -35,7 +35,10 @@ public partial class App : Application
         await Task.Yield();
         try
         {
+            if (!IsRestarting)
+        {
             TaskbarIntegrationService.Instance?.RestoreTaskbars();
+        }
             if (MainWindow is MainWindow window) await window.CleanupAsync();
             if (Services?.GetService<IMediaDetectionService>() is MediaDetectionService media)
                 await media.DrainShutdownAsync();
@@ -126,7 +129,7 @@ public partial class App : Application
                 {
                     AppIntegrityService.ShowIntegrityAlert(
                         Loc.Get(IntegrityWarningTitleKey),
-                        Loc.Get("integrity.untrustedSource", "https://untrusted.example.invalid/Pinn-Noch.exe"));
+                        Loc.Get("integrity.untrustedSource", "https://untrusted.example.invalid/Pinn-Notch.exe"));
                 }
                 Shutdown(0);
                 return;
@@ -165,6 +168,7 @@ public partial class App : Application
             // Let WPF present the shell before optional disk work and service warmup.
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             if (IsShutdownRequested || Dispatcher.HasShutdownStarted) return;
+            taskbarService.ApplySettings(loadedSettings);
             await RuntimeLog.InitializeNewSessionAsync("vnotch-debug.log");
             RuntimeLog.Log("SYSTEM", $"Application startup. Log file: {RuntimeLog.LogPath}");
             Services.GetRequiredService<AppFileCleanupService>().Start();
@@ -207,8 +211,8 @@ public partial class App : Application
         try
         {
             MessageBox.Show(
-                $"Pinn-Noch encountered a fatal error during startup and must close.\n\nCrash details saved to:\n{CrashReporter.CrashLogPath}\n\nError: {ex.Message}",
-                "Pinn-Noch Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                $"Pinn-Notch encountered a fatal error during startup and must close.\n\nCrash details saved to:\n{CrashReporter.CrashLogPath}\n\nError: {ex.Message}",
+                "Pinn-Notch Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         catch
         {
@@ -304,7 +308,7 @@ public partial class App : Application
 
         if (!ownsMutex)
         {
-            MessageBox.Show(Loc.Get("error.alreadyRunning"), "Pinn-Noch",
+            MessageBox.Show(Loc.Get("error.alreadyRunning"), "Pinn-Notch",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             Shutdown();
             return false;
@@ -363,10 +367,10 @@ public partial class App : Application
         try
         {
             string message =
-                $"Pinn-Noch encountered an unexpected error and must close. Details were written to:\n{RuntimeLog.LogPath}\n\nCrash Report:\n{CrashReporter.CrashLogPath}";
+                $"Pinn-Notch encountered an unexpected error and must close. Details were written to:\n{RuntimeLog.LogPath}\n\nCrash Report:\n{CrashReporter.CrashLogPath}";
             MessageBox.Show(
                 message,
-                "Pinn-Noch Error",
+                "Pinn-Notch Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -423,7 +427,11 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        TaskbarIntegrationService.Instance?.RestoreTaskbars();
+        if (!IsRestarting)
+        {
+            TaskbarIntegrationService.Instance?.RestoreTaskbars();
+        }
+        YouTubeMusicPlayerService.Instance.Shutdown();
         InteractionSounds.Shutdown();
         try
         {
@@ -443,10 +451,12 @@ public partial class App : Application
         }
     }
 
+    public static bool IsRestarting { get; private set; }
     public static void RestartApplication()
     {
         try
         {
+            IsRestarting = true;
             var exePath = Environment.ProcessPath
                 ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
 

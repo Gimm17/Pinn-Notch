@@ -41,6 +41,10 @@ public partial class MainWindow
     private bool _localSecondaryView;
     private bool _isSecondaryView { get => _localSecondaryView; set => _localSecondaryView = value; }
     private bool _isCameraView;
+    private bool _localControlCenterView;
+    private bool _isControlCenterView { get => _localControlCenterView; set => _localControlCenterView = value; }
+    private const double ControlCenterWidth = 460;
+    private const double ControlCenterHeight = 250;
     private DateTime _lastViewSwitchUtc = DateTime.MinValue;
     private static readonly TimeSpan ViewSwitchCooldown = TimeSpan.FromMilliseconds(600);
     private bool _isScrollSessionLocked;

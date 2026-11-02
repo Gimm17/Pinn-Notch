@@ -48,7 +48,7 @@ public sealed class FirstOpenLatencyTests(ITestOutputHelper output)
             timer.Start();
             try
             {
-                typeof(MainWindow).GetMethod("OpenAppSettings", Private)!.Invoke(window, [false]);
+                typeof(MainWindow).GetMethod("OpenAppSettings", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!.Invoke(window, [false]);
                 await WpfFrameWaiter.UntilAsync(() => closed, "settings close completes", ct);
             }
             finally { timer.Stop(); }

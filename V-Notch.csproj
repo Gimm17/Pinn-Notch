@@ -17,7 +17,7 @@
     <CETCompat>false</CETCompat>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>Pinn-Noch</AssemblyName>
+    <AssemblyName>Pinn-Notch</AssemblyName>
     <RootNamespace>VNotch</RootNamespace>
 
     <PublishSingleFile>true</PublishSingleFile>
@@ -37,11 +37,11 @@
     <Version>2.2.0</Version>
     <AssemblyVersion>2.2.0</AssemblyVersion>
     <FileVersion>2.2.0</FileVersion>
-    <Authors>Pinn-Noch</Authors>
-    <Company>Pinn-Noch</Company>
-    <Product>Pinn-Noch</Product>
-    <Copyright>Copyright © 2026 Pinn-Noch</Copyright>
-    <PackageId>Pinn-Noch</PackageId>
+    <Authors>Pinn-Notch</Authors>
+    <Company>Pinn-Notch</Company>
+    <Product>Pinn-Notch</Product>
+    <Copyright>Copyright © 2026 Pinn-Notch</Copyright>
+    <PackageId>Pinn-Notch</PackageId>
     <PackageProjectUrl>https://github.com/w0otdev/V-Notch</PackageProjectUrl>
     <RepositoryUrl>https://github.com/w0otdev/V-Notch</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -61,6 +61,7 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
     <PackageReference Include="System.Data.OleDb" Version="8.0.1" />
     <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="Vortice.Direct2D1" Version="3.8.3" />
     <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
     <PackageReference Include="Vortice.Direct3D9" Version="3.8.3" />
@@ -97,6 +98,7 @@
     <None Update="Introduction\**\*" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
     <None Update="Assets\Translation\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
     <None Update="Assets\SPL_CLICK_SFX.m4a" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="Tools\TranslucentTB\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
   
 

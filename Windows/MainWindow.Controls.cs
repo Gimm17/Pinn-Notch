@@ -18,7 +18,7 @@ public partial class MainWindow
     #region Media Controls
 
     private const string MediaCtrlLogTag = "MEDIA-CTRL";
-    private bool _isPlaying = true;
+    private bool _isPlaying = false;
 
     private async Task TogglePlayPauseInstantAsync()
     {
@@ -34,7 +34,8 @@ public partial class MainWindow
                 DismissVolumeIndicatorImmediate(restoreMedia: true);
             }
 
-            _isPlaying = !_viewModel.IsPlaying;
+            bool hasTrack = _currentMediaInfo != null && _currentMediaInfo.IsAnyMediaPlaying && !string.IsNullOrEmpty(_currentMediaInfo.CurrentTrack);
+            _isPlaying = hasTrack ? !_viewModel.IsPlaying : false;
             UpdatePlayPauseIcon();
 
             if (!_isExpanded && !_isAnimating &&
@@ -53,7 +54,10 @@ public partial class MainWindow
                 PlayGentleButtonPressAnimation(InlinePlayPauseButton);
             }
 
-            _progressEngine.NotifyUserPlayPause(_isPlaying);
+            if (hasTrack)
+            {
+                _progressEngine.NotifyUserPlayPause(_isPlaying);
+            }
             await _viewModel.PlayPauseCommand.ExecuteAsync(null);
         }
         catch (Exception ex)
@@ -77,12 +81,21 @@ public partial class MainWindow
         UpdatePlayPauseIcon();
     }
 
-    private void UpdatePlayPauseIcon()
+    private void UpdatePlayPauseIcon(bool animate = true)
     {
         RefreshPlaybackAccessibleNames();
-        MediaPlayback.PresentPlayback(_isPlaying);
+        MediaPlayback.PresentPlayback(_isPlaying, animate);
         if (_presentedInlinePlaying == _isPlaying) return;
+        bool isInitial = _presentedInlinePlaying == null;
         _presentedInlinePlaying = _isPlaying;
+        if (isInitial || !animate || !InlinePlayPauseButton.IsVisible)
+        {
+            InlinePlayIcon.Visibility = _isPlaying ? Visibility.Collapsed : Visibility.Visible;
+            InlinePauseIcon.Visibility = _isPlaying ? Visibility.Visible : Visibility.Collapsed;
+            InlinePlayIcon.Opacity = _isPlaying ? 0 : 1;
+            InlinePauseIcon.Opacity = _isPlaying ? 1 : 0;
+            return;
+        }
         var duration = TimeSpan.FromMilliseconds(180);
 
         if (_isPlaying)
@@ -101,11 +114,15 @@ public partial class MainWindow
         try
         {
             _lastMediaActionTime = DateTime.UtcNow;
-            _isPlaying = !_viewModel.IsPlaying;
+            bool hasTrack = _currentMediaInfo != null && _currentMediaInfo.IsAnyMediaPlaying && !string.IsNullOrEmpty(_currentMediaInfo.CurrentTrack);
+            _isPlaying = hasTrack ? !_viewModel.IsPlaying : false;
             UpdatePlayPauseIcon();
             PlayButtonPressAnimation(InlinePlayPauseButton);
 
-            _progressEngine.NotifyUserPlayPause(_isPlaying);
+            if (hasTrack)
+            {
+                _progressEngine.NotifyUserPlayPause(_isPlaying);
+            }
 
             await _viewModel.PlayPauseCommand.ExecuteAsync(null);
         }
@@ -158,6 +175,13 @@ public partial class MainWindow
         OpenCurrentMediaSourceFromThumbnail();
     }
 
+    private void ThumbnailBorder_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (e.Delta == 0 || _isAnimating) return;
+        e.Handled = true;
+        MediaPlayback.AdjustVolume(e.Delta);
+    }
+
     private void CompactThumbnailBorder_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (_settings.EnableGestureControls && !_isExpanded && !_isMusicExpanded &&
@@ -176,9 +200,23 @@ public partial class MainWindow
     private void OpenCurrentMediaSourceFromThumbnail()
     {
         var info = _currentMediaInfo;
-        if (info == null || !info.IsAnyMediaPlaying) return;
+        if (info == null || !info.IsAnyMediaPlaying)
+        {
+            YouTubeMusicPlayerService.Instance.OpenWindow(activate: true);
+            return;
+        }
         Task.Run(() => MediaWindowActivator.TryActivateForMedia(info), System.Threading.CancellationToken.None)
             .SafeFireAndForget("MEDIA-ACTIVATE");
+    }
+
+    private void OpenYouTubeMusic_Click(object sender, RoutedEventArgs e)
+    {
+        YouTubeMusicPlayerService.Instance.OpenWindow(activate: true);
+    }
+
+    private void ExitYouTubeMusic_Click(object sender, RoutedEventArgs e)
+    {
+        YouTubeMusicPlayerService.Instance.Shutdown();
     }
 
     private void MediaButton_MouseEnter(object sender, MouseEventArgs e)

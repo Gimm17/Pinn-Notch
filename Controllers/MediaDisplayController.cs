@@ -250,7 +250,9 @@ public sealed class MediaDisplayController
 
         // Browser media artwork can arrive in a later metadata snapshot for the same title.
         if (_thumbnailShownForCurrentTrack && !info.IsThumbnailOnlyUpdate &&
-            info.Platform is not (MediaPlatform.SoundCloud or MediaPlatform.Browser))
+            info.Platform is not (MediaPlatform.SoundCloud or MediaPlatform.Browser) &&
+            !string.Equals(info.SourceAppId, "YouTubeMusic", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(info.MediaSource, "YouTube Music", StringComparison.OrdinalIgnoreCase))
             return ThumbnailAction.None;
 
         _lastAnimatedThumbnail = info.Thumbnail;

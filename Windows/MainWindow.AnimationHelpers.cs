@@ -731,12 +731,14 @@ public partial class MainWindow
 
         bool showBatterySection = show && _settings.ShowBatteryIndicator;
         var activeTargetView = _navigationVisualTarget ?? (_isCameraView ? VNotch.Models.NotchView.Camera :
+            _isControlCenterView ? VNotch.Models.NotchView.ControlCenter :
             _isAudioView ? VNotch.Models.NotchView.AudioMixer :
             _isTimerView ? VNotch.Models.NotchView.Timer :
             _isSecondaryView ? VNotch.Models.NotchView.Secondary : VNotch.Models.NotchView.Media);
         bool showNavIconsBg = activeTargetView is VNotch.Models.NotchView.Secondary
             or VNotch.Models.NotchView.Timer
-            or VNotch.Models.NotchView.AudioMixer;
+            or VNotch.Models.NotchView.AudioMixer
+            or VNotch.Models.NotchView.ControlCenter;
         double iconTargetY = _settings.EnableDynamicIslandMode ? 5 : 0;
 
         if (show)

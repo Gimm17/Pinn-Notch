@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -192,7 +193,7 @@ public partial class MainWindow
 
         if (_settings.PinnMascotPosition == "Left")
         {
-            PinnMascot.Margin = new Thickness(24, -16, 0, 0);
+            PinnMascot.Margin = new Thickness(150, -16, 0, 0);
         }
         else if (_settings.PinnMascotPosition == "Center")
         {
@@ -200,8 +201,84 @@ public partial class MainWindow
         }
         else
         {
-            PinnMascot.Margin = new Thickness(0, -16, 24, 0);
+            // Position safely to the left of the battery & settings status bar controls so it never covers them
+            PinnMascot.Margin = new Thickness(0, -16, 118, 0);
         }
+    }
+
+    private void PinnMascot_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        ShowPinnMascotContextMenu();
+    }
+
+    private void ShowPinnMascotContextMenu()
+    {
+        if (PinnMascot == null) return;
+
+        var menu = new ContextMenu();
+
+        var hideItem = new MenuItem { Header = Loc.Get("mascot.menu.hide") };
+        hideItem.Click += (_, _) =>
+        {
+            _settings.EnablePinnMascot = false;
+            _settingsService.Save(_settings);
+            InitializePinnMascot();
+        };
+
+        var posRight = new MenuItem
+        {
+            Header = Loc.Get("mascot.menu.right"),
+            IsChecked = _settings.PinnMascotPosition != "Center" && _settings.PinnMascotPosition != "Left"
+        };
+        posRight.Click += (_, _) =>
+        {
+            _settings.PinnMascotPosition = "Right";
+            _settingsService.Save(_settings);
+            InitializePinnMascot();
+        };
+
+        var posCenter = new MenuItem
+        {
+            Header = Loc.Get("mascot.menu.center"),
+            IsChecked = _settings.PinnMascotPosition == "Center"
+        };
+        posCenter.Click += (_, _) =>
+        {
+            _settings.PinnMascotPosition = "Center";
+            _settingsService.Save(_settings);
+            InitializePinnMascot();
+        };
+
+        var posLeft = new MenuItem
+        {
+            Header = Loc.Get("mascot.menu.left"),
+            IsChecked = _settings.PinnMascotPosition == "Left"
+        };
+        posLeft.Click += (_, _) =>
+        {
+            _settings.PinnMascotPosition = "Left";
+            _settingsService.Save(_settings);
+            InitializePinnMascot();
+        };
+
+        var settingsItem = new MenuItem { Header = Loc.Get("mascot.menu.settings") };
+        settingsItem.Click += (_, _) => OpenAppSettings();
+
+        menu.Items.Add(hideItem);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(posRight);
+        menu.Items.Add(posCenter);
+        menu.Items.Add(posLeft);
+        menu.Items.Add(new Separator());
+        var monitorItem = new MenuItem { Header = "📊 Monitor Resource (CPU/GPU/RAM)" };
+        monitorItem.Click += (_, _) => ToggleAppMonitor(true);
+        menu.Items.Add(monitorItem);
+        menu.Items.Add(settingsItem);
+
+        menu.PlacementTarget = PinnMascot;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
     }
 
     public void OnMediaPlayingStateChanged(bool isPlaying)
@@ -426,6 +503,22 @@ public partial class MainWindow
                         UpdateNotchSmartAutoHideState();
                     }
                 }
+                else
+                {
+                    // Desync recovery: Ensure notch isn't stuck at Y=0 when overlapping windows exist and mouse is away
+                    bool shouldBeHidden = (_settings.NotchAutoHideMode == "Always")
+                                       || (_settings.NotchAutoHideMode == "Smart" && _isNotchOverlapped);
+                    if (shouldBeHidden && !_isNotchTemporarilyRevealed && !_isExpanded && !_isMusicExpanded && NotchContainerTranslate != null)
+                    {
+                        double slideDistance = NotchBorder?.ActualHeight > 0 ? NotchBorder.ActualHeight + 10 : _collapsedHeight + 10;
+                        double expectedY = _settings.NotchHiddenPeekEnabled ? -(slideDistance - Math.Clamp(_settings.NotchHiddenPeekHeightPx, 1, 12)) : -slideDistance;
+                        if (NotchContainerTranslate.Y > expectedY + 3)
+                        {
+                            _isNotchSmartHidden = true;
+                            ApplyNotchSmartAutoHideSlide(true);
+                        }
+                    }
+                }
             }
         }
     }
@@ -451,7 +544,7 @@ public partial class MainWindow
         _notchNotificationRevealTimer.Start();
     }
 
-    public void UpdateNotchSmartAutoHideState()
+    public void UpdateNotchSmartAutoHideState(bool force = false)
     {
         bool shouldHide = false;
         if (_settings.NotchAutoHideMode == "Always")
@@ -467,14 +560,14 @@ public partial class MainWindow
             shouldHide = false;
         }
 
-        if (shouldHide != _isNotchSmartHidden)
+        if (force || shouldHide != _isNotchSmartHidden)
         {
             _isNotchSmartHidden = shouldHide;
             ApplyNotchSmartAutoHideSlide(shouldHide);
         }
     }
 
-    private void ApplyNotchSmartAutoHideSlide(bool hide)
+    internal void ApplyNotchSmartAutoHideSlide(bool hide)
     {
         if (NotchContainer == null || NotchContainerTranslate == null) return;
 

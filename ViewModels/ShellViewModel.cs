@@ -22,6 +22,7 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     public SecondaryViewModel Secondary { get; }
     public AudioMixerViewModel AudioMixer { get; }
     public SettingsViewModel Settings { get; }
+    public ControlCenterViewModel ControlCenter { get; }
     public TimerViewModel Timer { get; } = new();
 
     public Func<bool>? IsExpandedCheck { get => Progress.IsExpandedCheck; set => Progress.IsExpandedCheck = value; }
@@ -47,6 +48,7 @@ public partial class ShellViewModel : ObservableObject, IDisposable
         Secondary = new(batteryService);
         AudioMixer = new(volumeService);
         Settings = new(settingsService);
+        ControlCenter = new(new SystemControlService(), volumeService, batteryService);
         _mediaUpdates = new(dispatcher.BeginInvokeBackground, ApplyMediaUpdate);
         _mediaService.MediaChanged += OnMediaChanged;
 

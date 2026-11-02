@@ -2,7 +2,7 @@
         x:Class="VNotch.SetupWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Pinn-Noch Setup"
+        Title="Pinn-Notch Setup"
         Width="800"
         Height="620"
         MinWidth="520"
