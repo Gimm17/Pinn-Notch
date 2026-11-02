@@ -1468,7 +1468,7 @@ public partial class SettingsWindow
 
 
 
-    private const string Cpp26DiscussionUrl = "https://github.com/w0otdev/V-Notch/discussions/32";
+    private const string Cpp26DiscussionUrl = "https://github.com/Gimm17/Pinn-Notch/discussions";
 
     private bool _isCpp26BannerVisible;
 

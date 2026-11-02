@@ -89,12 +89,12 @@ public static partial class AppIntegrityService
         out byte outApplicable);
 
     private const string LogCategory = "INTEGRITY";
-    private const string OfficialRepoOwner = "w0otdev";
-    private const string OfficialRepoName = "V-Notch";
+    private const string OfficialRepoOwner = "Gimm17";
+    private const string OfficialRepoName = "Pinn-Notch";
 #pragma warning disable S1075 // Official project repository releases URL
-    public const string OfficialReleasesUrl = "https://github.com/w0otdev/V-Notch/releases";
+    public const string OfficialReleasesUrl = "https://github.com/Gimm17/Pinn-Notch/releases";
 #pragma warning restore S1075
-    private const string UserAgent = "V-Notch-Integrity-Checker";
+    private const string UserAgent = "Pinn-Notch-Integrity-Checker";
 
     private static readonly HttpClient HttpClientInstance = CreateHttpClient();
 
@@ -390,7 +390,7 @@ public static partial class AppIntegrityService
     /// </summary>
     public static Task StartBackgroundCheckAsync(TimeSpan? delay = null)
     {
-        // Custom Pinn-Notch builds do not match official upstream w0otdev release hashes
+        // Custom Pinn-Notch builds do not match official release hashes
         return Task.CompletedTask;
     }
 

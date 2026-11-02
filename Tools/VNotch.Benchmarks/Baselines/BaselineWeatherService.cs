@@ -282,7 +282,7 @@ public sealed class BaselineWeatherService : IWeatherService
     private static HttpClient CreateHttpClient()
     {
         var client = new HttpClient(NetworkPrivacy.Handler(NetworkFeature.Weather)) { Timeout = TimeSpan.FromSeconds(8) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("V-Notch/1.7.0 (https://github.com/w0otdev/V-Notch)");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("Pinn-Notch/2.2.0 (https://github.com/Gimm17/Pinn-Notch)");
         return client;
     }
 }

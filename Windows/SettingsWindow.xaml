@@ -2947,7 +2947,7 @@
                                                            Style="{StaticResource SettingTitleText}"
                                                            TextWrapping="Wrap"/>
                                                 <TextBlock x:Name="StarRepoDescription"
-                                                           Text="Giving a star on GitHub is completely free, but it is a huge motivation for w0otdev to keep maintaining and developing this project."
+                                                           Text="Giving a star on GitHub is completely free, but it is a huge motivation for Gimm17 to keep maintaining and developing Pinn-Notch."
                                                            Style="{StaticResource SettingHintText}"
                                                            LineHeight="17"
                                                            Margin="0,4,0,0"
@@ -2993,17 +2993,17 @@
 
                                                 <StackPanel Grid.Column="0" Margin="0,0,22,0">
                                                     <TextBlock x:Name="DonatingTitle"
-                                                               Text="Thank you for supporting V-Notch"
+                                                               Text="Thank you for supporting Pinn-Notch"
                                                                Style="{StaticResource SettingTitleText}"
                                                                TextWrapping="Wrap"/>
                                                     <TextBlock x:Name="DonatingDescription"
-                                                               Text="V-Notch is 100% non-profit. Donations help cover the costs that let me stay focused and keep maintaining this product."
+                                                               Text="Pinn-Notch is 100% free and open-source. Starring and sharing the project on GitHub helps us grow and keep building new features."
                                                                Style="{StaticResource SettingHintText}"
                                                                LineHeight="18"
                                                                Margin="0,4,0,0"/>
 
                                                     <Button x:Name="DonatePaypalButton"
-                                                            Content="Support via PayPal"
+                                                            Content="Support on GitHub"
                                                             Style="{StaticResource PrimaryButton}"
                                                             Click="DonatePaypal_Click"
                                                             HorizontalAlignment="Left"
@@ -3012,14 +3012,14 @@
                                                             Margin="0,16,0,0"/>
 
                                                     <TextBlock x:Name="DonatePaypalLinkText"
-                                                               Text="https://www.paypal.com/paypalme/PhuocLe678"
+                                                               Text="https://github.com/Gimm17/Pinn-Notch"
                                                                Style="{StaticResource SettingHintText}"
                                                                Foreground="#A8B3C3"
                                                                TextWrapping="Wrap"
                                                                Margin="0,4,0,0"/>
                                                 </StackPanel>
 
-                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Visibility="Collapsed">
                                                     <TextBlock x:Name="DonatingBankTitle"
                                                                Text="Domestic MB Bank QR"
                                                                Style="{StaticResource SettingTitleText}"
@@ -3048,10 +3048,10 @@
                                         <!-- Divider between Donation and Other Projects -->
                                         <Border Height="1" Background="#14FFFFFF" Margin="0,10,0,12"/>
 
-                                        <!-- Other Projects by w0otdev Section -->
-                                        <StackPanel Margin="0">
+                                        <!-- Projects Section -->
+                                        <StackPanel Margin="0" Visibility="Collapsed">
                                             <TextBlock x:Name="OtherProjectsHeader"
-                                                       Text="Other projects by w0otdev"
+                                                       Text="Pinn-Notch Ecosystem"
                                                        Style="{StaticResource SettingTitleText}"
                                                        Margin="2,0,0,2"/>
                                             <TextBlock x:Name="OtherProjectsSubtext"

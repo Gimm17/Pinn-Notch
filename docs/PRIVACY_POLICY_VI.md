@@ -1,4 +1,4 @@
-# Chính Sách Bảo Mật — V-Notch
+# Chính Sách Bảo Mật — Pinn-Notch
 
 **Ngày hiệu lực:** 24 tháng 10 năm 2026
 
@@ -6,25 +6,25 @@
 
 **Phạm vi:** Mã nguồn hiện tại ngày 24 tháng 10 năm 2026; tính năng khả dụng phụ thuộc bản cài đặt.
 
-**Nhà phát triển:** w0otdev  
-**Liên hệ:** [github.com/w0otdev/V-Notch/issues](https://github.com/w0otdev/V-Notch/issues)  
+**Nhà phát triển:** Gimm17  
+**Liên hệ:** [github.com/Gimm17/Pinn-Notch/issues](https://github.com/Gimm17/Pinn-Notch/issues)  
 
 ---
 
 ## 1. Giới thiệu
 
-V-Notch là ứng dụng desktop miễn phí, mã nguồn mở dành cho Windows, tái hiện trải nghiệm notch kiểu macOS và Dynamic Island của iPhone. Ứng dụng hiển thị phương tiện đang phát, trạng thái pin và Bluetooth, khay chứa tệp tạm thời (File Shelf), xem trước camera, âm lượng hệ thống và bộ trộn âm thanh từng ứng dụng, màn hình theo dõi tài nguyên phần cứng (CPU, RAM, GPU), đồng hồ, lịch, bộ đếm giờ/bấm giờ, trình tìm kiếm và khởi chạy nhanh Spotlight, cùng các thông tin ngữ cảnh khác với hoạt ảnh mượt mà và hiệu ứng quang học kính lỏng (Liquid Glass) chân thực.
+Pinn-Notch là ứng dụng desktop miễn phí, mã nguồn mở dành cho Windows, tái hiện trải nghiệm notch kiểu macOS và Dynamic Island của iPhone. Ứng dụng hiển thị phương tiện đang phát, trạng thái pin và Bluetooth, khay chứa tệp tạm thời (File Shelf), xem trước camera, âm lượng hệ thống và bộ trộn âm thanh từng ứng dụng, màn hình theo dõi tài nguyên phần cứng (CPU, RAM, GPU), đồng hồ, lịch, bộ đếm giờ/bấm giờ, trình tìm kiếm và khởi chạy nhanh Spotlight, cùng các thông tin ngữ cảnh khác với hoạt ảnh mượt mà và hiệu ứng quang học kính lỏng (Liquid Glass) chân thực.
 
-Chính sách bảo mật này giải thích chi tiết: chính xác dữ liệu nào ứng dụng truy cập, tại sao truy cập, dữ liệu đó đi đâu, và được lưu giữ trong bao lâu. Nội dung phản ánh đúng hành vi thực tế của mã nguồn, vốn được công khai hoàn toàn để kiểm tra tại [github.com/w0otdev/V-Notch](https://github.com/w0otdev/V-Notch).
+Chính sách bảo mật này giải thích chi tiết: chính xác dữ liệu nào ứng dụng truy cập, tại sao truy cập, dữ liệu đó đi đâu, và được lưu giữ trong bao lâu. Nội dung phản ánh đúng hành vi thực tế của mã nguồn, vốn được công khai hoàn toàn để kiểm tra tại [github.com/Gimm17/Pinn-Notch](https://github.com/Gimm17/Pinn-Notch).
 
-**Nguyên tắc cốt lõi:** V-Notch ưu tiên xử lý cục bộ trên thiết bị của bạn. Ứng dụng không có analytics, không telemetry, không quảng cáo, không theo dõi định danh người dùng, và không yêu cầu tài khoản V-Notch. Ứng dụng không vận hành bất kỳ máy chủ backend riêng nào. Theo tài liệu hiện có, các yêu cầu mạng ra ngoài phục vụ các mục đích chức năng hoặc tùy chọn cụ thể: kiểm tra cập nhật, lấy ảnh bìa / lời bài hát / phụ đề / Spotify Canvas cho bài hát bạn đang phát, và — nếu bạn chủ động bật — hiển thị dự báo thời tiết. Spotlight AI tùy chọn gửi tin nhắn và ngữ cảnh hội thoại tới nhà cung cấp bạn chọn, đồng thời có thể tra cứu số dư DeepSeek khi bạn yêu cầu. Tất cả được mô tả chi tiết trong Mục 4.
+**Nguyên tắc cốt lõi:** Pinn-Notch ưu tiên xử lý cục bộ trên thiết bị của bạn. Ứng dụng không có analytics, không telemetry, không quảng cáo, không theo dõi định danh người dùng, và không yêu cầu tài khoản Pinn-Notch. Ứng dụng không vận hành bất kỳ máy chủ backend riêng nào. Theo tài liệu hiện có, các yêu cầu mạng ra ngoài phục vụ các mục đích chức năng hoặc tùy chọn cụ thể: kiểm tra cập nhật, lấy ảnh bìa / lời bài hát / phụ đề / Spotify Canvas cho bài hát bạn đang phát, và — nếu bạn chủ động bật — hiển thị dự báo thời tiết. Spotlight AI tùy chọn gửi tin nhắn và ngữ cảnh hội thoại tới nhà cung cấp bạn chọn, đồng thời có thể tra cứu số dư DeepSeek khi bạn yêu cầu. Tất cả được mô tả chi tiết trong Mục 4.
 
 Chính sách bảo mật này cần được đọc cùng với [Điều Khoản Dịch Vụ](TERMS_OF_SERVICE_VI.md) của chúng tôi, văn bản điều chỉnh việc sử dụng ứng dụng nói chung, bao gồm các tuyên bố miễn trừ trách nhiệm, giới hạn trách nhiệm pháp lý, và luật áp dụng cùng quy trình giải quyết tranh chấp áp dụng cho cả hai văn bản này.
 
 Tài liệu này mô tả hoạt động của chính ứng dụng, không cam kết rằng trang web độc lập, thành phần hệ điều hành, WebView, CDN hoặc các bản dựng do người khác sửa đổi không xử lý dữ liệu. Cần đối chiếu tính năng và hành vi với bản cài đặt thực tế.
 
 Chính sách này dùng các thuật ngữ sau:
-- **"Cục bộ"** — dữ liệu ở lại trên máy của bạn và không được V-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ.
+- **"Cục bộ"** — dữ liệu ở lại trên máy của bạn và không được Pinn-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ.
 - **"Tạm thời"** — dữ liệu chỉ giữ trong bộ nhớ (RAM/VRAM) trong khi cần để hiển thị hoặc xử lý, sau đó bị loại bỏ ngay lập tức; không bao giờ ghi xuống đĩa.
 - **"Tùy chọn (opt-in)"** — tính năng ở trạng thái tắt và không hoạt động cho đến khi bạn chủ động bật hoặc kích hoạt nó.
 
@@ -51,7 +51,7 @@ Chính sách này dùng các thuật ngữ sau:
 | **Âm lượng & Audio Mixer** | Đọc/điều chỉnh âm lượng tổng và từng ứng dụng (Core Audio) | Không | Không |
 | **Phát hiện nguồn phát** | Tiêu đề cửa sổ đang hiển thị; URL trình duyệt (UI Automation) | Không | Có thể: ánh xạ tiêu đề media/nguồn trong cache (§5.3); nhật ký chẩn đoán nếu bật (§5.4) |
 | **Bluetooth & trạng thái pin** | Tên thiết bị, loại, mức pin phụ kiện, trạng thái kết nối | Không | Không (tạm thời trong bộ nhớ) |
-| **Lịch sử, Chỉ báo & Xem trước Clipboard** | Văn bản, HTML/RTF, ảnh, tệp/thư mục đã sao chép và metadata ứng dụng nguồn | Lịch sử Clipboard không tự động tải nội dung lên | Có — tại `%LOCALAPPDATA%\V-Notch\Clipboard\` (§3.10, §5.7) |
+| **Lịch sử, Chỉ báo & Xem trước Clipboard** | Văn bản, HTML/RTF, ảnh, tệp/thư mục đã sao chép và metadata ứng dụng nguồn | Lịch sử Clipboard không tự động tải nội dung lên | Có — tại `%LOCALAPPDATA%\Pinn-Notch\Clipboard\` (§3.10, §5.7) |
 | **Chỉ báo quyền riêng tư** | Micro, camera, hoặc quay màn hình có đang hoạt động không | Không | Không (tạm thời trong bộ nhớ) |
 | **Đồng hồ, Lịch, Hẹn giờ** | Giờ hệ thống, bộ đếm ngược, bấm giờ | Không | Cấu hình hẹn giờ lưu trong cài đặt |
 | **Cử chỉ chuột** | Di chuyển/nhấp chuột trên vùng notch | Không | Không |
@@ -63,13 +63,13 @@ Chính sách này dùng các thuật ngữ sau:
 
 ### 3.1 Phương tiện đang phát (Windows Media Session)
 
-V-Notch dùng API System Media Transport Controls (SMTC) của Windows để đọc metadata về phương tiện đang phát trên hệ thống — ví dụ từ Spotify, trình phát web YouTube/SoundCloud, Apple Music, Tidal, hoặc bất kỳ tab trình duyệt nào. Metadata bao gồm tên bài, nghệ sĩ, tên album, ảnh bìa nhúng, vị trí phát, thời lượng, và trạng thái phát/tạm dừng.
+Pinn-Notch dùng API System Media Transport Controls (SMTC) của Windows để đọc metadata về phương tiện đang phát trên hệ thống — ví dụ từ Spotify, trình phát web YouTube/SoundCloud, Apple Music, Tidal, hoặc bất kỳ tab trình duyệt nào. Metadata bao gồm tên bài, nghệ sĩ, tên album, ảnh bìa nhúng, vị trí phát, thời lượng, và trạng thái phát/tạm dừng.
 
 Dữ liệu này được đọc liên tục khi đang phát, dùng để hiển thị notch theo thời gian thực, và chỉ giữ trong bộ nhớ. Nó không bao giờ được ghi xuống đĩa. Tên bài và nghệ sĩ có thể được gửi tới các dịch vụ bên thứ ba để tra cứu ảnh bìa, lời bài hát, hoặc phụ đề — xem Mục 4.
 
 ### 3.2 Phát hiện nguồn phát (Tiêu đề cửa sổ & URL trình duyệt)
 
-Để xác định *nơi* media đang phát (ví dụ phân biệt tab YouTube với tab SoundCloud) và lấy đúng ảnh bìa cùng lời bài hát, V-Notch thực hiện hai kiểu kiểm tra cục bộ:
+Để xác định *nơi* media đang phát (ví dụ phân biệt tab YouTube với tab SoundCloud) và lấy đúng ảnh bìa cùng lời bài hát, Pinn-Notch thực hiện hai kiểu kiểm tra cục bộ:
 
 - **Quét tiêu đề cửa sổ** — Liệt kê tiêu đề của các cửa sổ cấp cao đang hiển thị và chỉ giữ lại những tiêu đề chứa một trong các từ khóa nền tảng cố định: `spotify`, `youtube`, `soundcloud`, `instagram`, `twitter` / `x`, `apple music`, `apple`, `music`, `twitch`, `discord`, `vesktop`, `netflix`, `tidal`, `deezer`, `bandcamp`, `bilibili`, `vimeo`, `crunchyroll`. Các từ khóa nền tảng mạng xã hội và phát trực tuyến mở rộng dùng để hỗ trợ phát hiện việc phát video/âm thanh bên trong các tab hoặc ứng dụng đó — chúng chỉ được so khớp với văn bản tiêu đề cửa sổ, hoàn toàn không đọc nội dung trang. Các tiêu đề cửa sổ không khớp sẽ bị loại bỏ ngay lập tức và không bao giờ được giữ lại.
 - **Đọc URL trình duyệt** — Với các trình duyệt được hỗ trợ (Chrome, Edge, Firefox, Brave, Opera, Vivaldi, Zen, Arc, Thorium, Floorp, Waterfox, và các trình duyệt nền Chromium/Gecko khác), ứng dụng dùng API trợ năng UI Automation của Windows để đọc thanh địa chỉ và các tab đang mở nhằm tìm một URL media. Chỉ những URL là liên kết media mới được xử lý.
@@ -82,21 +82,21 @@ Việc kiểm tra này diễn ra hoàn toàn trên thiết bị của bạn. Cá
 
 ### 3.3 Tìm kiếm Spotlight & Trình khởi chạy nhanh (`Alt + Space`)
 
-V-Notch tích hợp trình tìm kiếm Spotlight cho phép bạn tìm ứng dụng, tìm kiếm tệp và tính toán biểu thức toán học nhanh chóng:
+Pinn-Notch tích hợp trình tìm kiếm Spotlight cho phép bạn tìm ứng dụng, tìm kiếm tệp và tính toán biểu thức toán học nhanh chóng:
 
 - **Tìm kiếm ứng dụng** — Lập chỉ mục các phím tắt Start Menu và các ứng dụng Windows đã cài đặt.
 - **Tìm kiếm tệp** — Truy vấn chỉ mục Windows Search Index cục bộ (qua OLE DB) hoặc instance Everything của voidtools đang chạy trên máy (qua Everything IPC socket cục bộ).
 - **Máy tính số học tích hợp** — Tính toán các biểu thức số học và đại số trực tiếp trên máy bằng MathNet.Numerics.
-- **Bảng xếp hạng tần suất khởi chạy** — Để hiển thị nhanh các mục bạn hay mở, V-Notch lưu một tệp xếp hạng cục bộ (`%APPDATA%\V-Notch\spotlight-usage.json`) chứa ID mục, tên, số lần mở và thời gian gần nhất (giới hạn tối đa 100 mục).
+- **Bảng xếp hạng tần suất khởi chạy** — Để hiển thị nhanh các mục bạn hay mở, Pinn-Notch lưu một tệp xếp hạng cục bộ (`%APPDATA%\Pinn-Notch\spotlight-usage.json`) chứa ID mục, tên, số lần mở và thời gian gần nhất (giới hạn tối đa 100 mục).
 
 **Spotlight Search xử lý truy vấn ứng dụng/tệp và phép tính cục bộ.** Chế độ AI riêng biệt gửi tin nhắn bạn chủ động gửi và ngữ cảnh hội thoại như mô tả tại §4.8.
 
 ### 3.4 Hiệu ứng Liquid Glass & Chụp nền màn hình
 
-V-Notch trang bị động cơ mô phỏng quang học Liquid Glass giúp tái hiện hiện tượng khúc xạ ánh sáng, tán sắc sắc sai (chromatic aberration), uốn mép (edge bend), vát cạnh (bevel) và làm mờ nền theo phong cách macOS và Dynamic Island.
+Pinn-Notch trang bị động cơ mô phỏng quang học Liquid Glass giúp tái hiện hiện tượng khúc xạ ánh sáng, tán sắc sắc sai (chromatic aberration), uốn mép (edge bend), vát cạnh (bevel) và làm mờ nền theo phong cách macOS và Dynamic Island.
 
-- Để tính toán khúc xạ quang học, V-Notch lấy mẫu một vùng pixel nhỏ của màn hình ngay phía sau notch bằng DirectX 11 (DXGI Desktop Duplication) hoặc Windows Magnification API.
-- **Cam kết bảo mật:** Việc lấy mẫu pixel chỉ diễn ra trong bộ nhớ GPU/CPU cục bộ theo từng khung hình để hiển thị hiệu ứng thị giác. Các khung hình bị loại bỏ ngay lập tức sau khi hiển thị lên màn hình. **V-Notch không chủ đích ghi/lưu hoặc tải lên các khung hình được lấy mẫu; Windows và thành phần đồ họa có thể có cơ chế bộ nhớ/cache riêng.**
+- Để tính toán khúc xạ quang học, Pinn-Notch lấy mẫu một vùng pixel nhỏ của màn hình ngay phía sau notch bằng DirectX 11 (DXGI Desktop Duplication) hoặc Windows Magnification API.
+- **Cam kết bảo mật:** Việc lấy mẫu pixel chỉ diễn ra trong bộ nhớ GPU/CPU cục bộ theo từng khung hình để hiển thị hiệu ứng thị giác. Các khung hình bị loại bỏ ngay lập tức sau khi hiển thị lên màn hình. **Pinn-Notch không chủ đích ghi/lưu hoặc tải lên các khung hình được lấy mẫu; Windows và thành phần đồ họa có thể có cơ chế bộ nhớ/cache riêng.**
 
 ### 3.5 Giám sát tài nguyên phần cứng (CPU, RAM, GPU)
 
@@ -104,66 +104,66 @@ Module System Monitor đọc các thông số hiệu năng phần cứng theo th
 
 ### 3.6 Xem trước Camera (Tùy chọn)
 
-V-Notch có thể hiển thị xem trước camera trực tiếp, nhưng chỉ khi bạn chủ động mở tính năng đó. Trong khi hoạt động, các khung hình camera được xử lý cục bộ để hiển thị trên màn hình. **Không có khung hình nào được ghi lại, lưu trữ, chụp ảnh, hoặc truyền đi.** Khi bạn đóng xem trước, camera được giải phóng ngay lập tức. Khi xem trước camera của chính V-Notch đang bật, ứng dụng tự ẩn chấm báo "camera đang dùng" của mình để tránh hiển thị dư thừa.
+Pinn-Notch có thể hiển thị xem trước camera trực tiếp, nhưng chỉ khi bạn chủ động mở tính năng đó. Trong khi hoạt động, các khung hình camera được xử lý cục bộ để hiển thị trên màn hình. **Không có khung hình nào được ghi lại, lưu trữ, chụp ảnh, hoặc truyền đi.** Khi bạn đóng xem trước, camera được giải phóng ngay lập tức. Khi xem trước camera của chính Pinn-Notch đang bật, ứng dụng tự ẩn chấm báo "camera đang dùng" của mình để tránh hiển thị dư thừa.
 
 ### 3.7 File Shelf (Tùy chọn)
 
-Khi bạn kéo tệp vào File Shelf, V-Notch ghi lại đường dẫn của mỗi tệp và metadata hệ thống tệp cơ bản (tên, kích thước, loại) để hiển thị và quản lý khay chứa. Ứng dụng dùng `FileSystemWatcher` trên các vị trí đó để giữ khay đồng bộ nếu tệp bị di chuyển hoặc xóa. **Nội dung tệp của bạn không bao giờ bị mở, đọc, sửa đổi, hay truyền đi.** Danh sách đường dẫn tệp được lưu cục bộ trong cài đặt để khay được giữ lại giữa các phiên làm việc (xem Mục 5).
+Khi bạn kéo tệp vào File Shelf, Pinn-Notch ghi lại đường dẫn của mỗi tệp và metadata hệ thống tệp cơ bản (tên, kích thước, loại) để hiển thị và quản lý khay chứa. Ứng dụng dùng `FileSystemWatcher` trên các vị trí đó để giữ khay đồng bộ nếu tệp bị di chuyển hoặc xóa. **Nội dung tệp của bạn không bao giờ bị mở, đọc, sửa đổi, hay truyền đi.** Danh sách đường dẫn tệp được lưu cục bộ trong cài đặt để khay được giữ lại giữa các phiên làm việc (xem Mục 5).
 
 ### 3.8 Âm lượng hệ thống & Bộ trộn âm thanh (Audio Mixer)
 
-V-Notch dùng API Windows Core Audio (qua NAudio) để đọc âm lượng tổng của hệ thống, theo dõi phiên âm thanh của từng ứng dụng đang mở, và điều chỉnh mức âm lượng tương ứng khi bạn sử dụng thanh trượt trên notch. Không có âm thanh nào bị ghi âm, thu lại hoặc chặn bắt; chỉ mức âm lượng dạng số và định danh phiên âm thanh của các audio endpoint đang hoạt động được đọc và thiết lập.
+Pinn-Notch dùng API Windows Core Audio (qua NAudio) để đọc âm lượng tổng của hệ thống, theo dõi phiên âm thanh của từng ứng dụng đang mở, và điều chỉnh mức âm lượng tương ứng khi bạn sử dụng thanh trượt trên notch. Không có âm thanh nào bị ghi âm, thu lại hoặc chặn bắt; chỉ mức âm lượng dạng số và định danh phiên âm thanh của các audio endpoint đang hoạt động được đọc và thiết lập.
 
 ### 3.9 Trạng thái thiết bị Bluetooth & Mức pin
 
-V-Notch theo dõi các sự kiện kết nối/ngắt kết nối Bluetooth bằng API liệt kê thiết bị của Windows để hiển thị thông báo kết nối (ví dụ khi tai nghe của bạn kết nối) và mức pin của phụ kiện. Ứng dụng đọc tên hiển thị của thiết bị, loại thiết bị (tai nghe, loa, bàn phím...), trạng thái kết nối và phần trăm pin khi được hỗ trợ. Thông tin này chỉ được dùng tạm thời trên màn hình và không được lưu hay truyền đi.
+Pinn-Notch theo dõi các sự kiện kết nối/ngắt kết nối Bluetooth bằng API liệt kê thiết bị của Windows để hiển thị thông báo kết nối (ví dụ khi tai nghe của bạn kết nối) và mức pin của phụ kiện. Ứng dụng đọc tên hiển thị của thiết bị, loại thiết bị (tai nghe, loa, bàn phím...), trạng thái kết nối và phần trăm pin khi được hỗ trợ. Thông tin này chỉ được dùng tạm thời trên màn hình và không được lưu hay truyền đi.
 
 ### 3.10 Lịch sử, Chỉ báo & Xem trước Clipboard
 
-V-Notch đăng ký trình lắng nghe định dạng Clipboard của Windows để hiển thị huy hiệu "Copied", xem trước và lưu lịch sử Clipboard. Khi thu thập đang hoạt động (thu thập văn bản, ảnh và tệp được bật mặc định), ứng dụng đọc các định dạng được hỗ trợ và lưu bản sao cục bộ: văn bản thuần, HTML/RTF, ảnh và nội dung tệp/thư mục đã sao chép, kèm thời gian và tên/đường dẫn tệp thực thi của ứng dụng nguồn. Lịch sử vẫn còn sau khi khởi động lại ứng dụng. Bạn cũng có thể nhập mục bằng kéo thả.
+Pinn-Notch đăng ký trình lắng nghe định dạng Clipboard của Windows để hiển thị huy hiệu "Copied", xem trước và lưu lịch sử Clipboard. Khi thu thập đang hoạt động (thu thập văn bản, ảnh và tệp được bật mặc định), ứng dụng đọc các định dạng được hỗ trợ và lưu bản sao cục bộ: văn bản thuần, HTML/RTF, ảnh và nội dung tệp/thư mục đã sao chép, kèm thời gian và tên/đường dẫn tệp thực thi của ứng dụng nguồn. Lịch sử vẫn còn sau khi khởi động lại ứng dụng. Bạn cũng có thể nhập mục bằng kéo thả.
 
 Kéo thả ảnh được biểu diễn bằng URL HTTP(S) có thể tải ảnh từ máy chủ nguồn; máy chủ nhận URL được yêu cầu, địa chỉ IP và metadata kết nối thông thường. Việc nhập chủ động này dùng cùng quyền mạng với tra cứu ảnh bìa trực tuyến: chế độ hoàn toàn ngoại tuyến hoặc tắt tra cứu ảnh bìa sẽ chặn yêu cầu; thu hồi quyền sẽ hủy việc đọc phản hồi đang diễn ra. Mỗi lượt tải bị giới hạn 20 MiB, kể cả khi máy chủ không khai báo kích thước. Dữ liệu ảnh nhúng được xử lý cục bộ.
 
-Trước khi đọc nội dung để lưu lịch sử, V-Notch bỏ qua mục có cờ `ExcludeClipboardContentFromMonitorProcessing` hoặc `Clipboard Viewer Ignore`, hoặc DWORD `CanIncludeInClipboardHistory` bằng 0. Cờ lịch sử không đọc được cũng khiến mục bị bỏ qua. Cơ chế này phụ thuộc ứng dụng nguồn cung cấp cờ; không thể nhận diện mọi mật khẩu hay nội dung nhạy cảm. Lịch sử Clipboard không tự động tải nội dung lên. Nội dung bạn dán vào tin nhắn AI trực tuyến rồi gửi sẽ được truyền theo §4.8.
+Trước khi đọc nội dung để lưu lịch sử, Pinn-Notch bỏ qua mục có cờ `ExcludeClipboardContentFromMonitorProcessing` hoặc `Clipboard Viewer Ignore`, hoặc DWORD `CanIncludeInClipboardHistory` bằng 0. Cờ lịch sử không đọc được cũng khiến mục bị bỏ qua. Cơ chế này phụ thuộc ứng dụng nguồn cung cấp cờ; không thể nhận diện mọi mật khẩu hay nội dung nhạy cảm. Lịch sử Clipboard không tự động tải nội dung lên. Nội dung bạn dán vào tin nhắn AI trực tuyến rồi gửi sẽ được truyền theo §4.8.
 
 Tạm dừng thu thập trong khay Clipboard hoặc tắt từng loại văn bản/ảnh/tệp trong cài đặt Clipboard để ngừng thu thập mới. Các công tắc này không xóa lịch sử đã lưu. Đường dẫn, thời hạn lưu và cách xóa được mô tả tại §5.7.
 
 ### 3.11 Chỉ báo quyền riêng tư (Mic / Camera / Quay màn hình)
 
-Mô phỏng hành vi của iOS/macOS, V-Notch có thể hiển thị một chấm màu nhỏ khi micro, camera, hoặc tính năng quay màn hình của bạn đang được *bất kỳ* ứng dụng nào trên hệ thống sử dụng. Đây chỉ là phản ánh trạng thái cảm biến — xử lý tạm thời trong bộ nhớ và không lưu hay truyền tải bất kỳ thông tin nào.
+Mô phỏng hành vi của iOS/macOS, Pinn-Notch có thể hiển thị một chấm màu nhỏ khi micro, camera, hoặc tính năng quay màn hình của bạn đang được *bất kỳ* ứng dụng nào trên hệ thống sử dụng. Đây chỉ là phản ánh trạng thái cảm biến — xử lý tạm thời trong bộ nhớ và không lưu hay truyền tải bất kỳ thông tin nào.
 
 ### 3.12 Tiện ích môi trường (Đồng hồ, Lịch, Hẹn giờ & Bấm giờ)
 
-V-Notch tích hợp sẵn các tiện ích hiển thị giờ hệ thống, ngày tháng, giờ quốc tế, lịch tương tác, và bộ đếm ngược / bấm giờ thể thao. Toàn bộ quá trình tính toán và đếm giờ đều chạy hoàn toàn cục bộ trên thiết bị của bạn.
+Pinn-Notch tích hợp sẵn các tiện ích hiển thị giờ hệ thống, ngày tháng, giờ quốc tế, lịch tương tác, và bộ đếm ngược / bấm giờ thể thao. Toàn bộ quá trình tính toán và đếm giờ đều chạy hoàn toàn cục bộ trên thiết bị của bạn.
 
 ### 3.13 Cử chỉ & Đầu vào chuột
 
-Để hỗ trợ các thao tác cử chỉ vuốt và nhấp đúp trên notch (chuyển/lùi bài, mở khay tệp, phát/tạm dừng), V-Notch theo dõi di chuyển và nhấp chuột trong phạm vi vùng notch. Đầu vào này được diễn giải cục bộ để nhận diện cử chỉ và không bao giờ bị ghi log hay truyền đi.
+Để hỗ trợ các thao tác cử chỉ vuốt và nhấp đúp trên notch (chuyển/lùi bài, mở khay tệp, phát/tạm dừng), Pinn-Notch theo dõi di chuyển và nhấp chuột trong phạm vi vùng notch. Đầu vào này được diễn giải cục bộ để nhận diện cử chỉ và không bao giờ bị ghi log hay truyền đi.
 
 ### 3.14 Cắt ảnh bìa thông minh trên thiết bị (ONNX)
 
-Nếu được bật, V-Notch dùng mô hình nhận diện đối tượng YOLO11n đi kèm, chạy cục bộ qua ONNX Runtime, để tự động cắt ảnh bìa rộng một cách thông minh (canh giữa khuôn mặt hoặc chủ thể bài hát). **Toàn bộ quá trình phân tích ảnh chạy 100% trên thiết bị của bạn. Không có hình ảnh, đầu vào mô hình, hay kết quả nhận diện nào được gửi đi.** Tính năng này không cần kết nối mạng.
+Nếu được bật, Pinn-Notch dùng mô hình nhận diện đối tượng YOLO11n đi kèm, chạy cục bộ qua ONNX Runtime, để tự động cắt ảnh bìa rộng một cách thông minh (canh giữa khuôn mặt hoặc chủ thể bài hát). **Toàn bộ quá trình phân tích ảnh chạy 100% trên thiết bị của bạn. Không có hình ảnh, đầu vào mô hình, hay kết quả nhận diện nào được gửi đi.** Tính năng này không cần kết nối mạng.
 
 ---
 
 ## 4. Kết nối mạng
 
-V-Notch không có máy chủ backend và không thực hiện analytics, telemetry hay theo dõi người dùng. Ứng dụng chỉ thực hiện yêu cầu ra ngoài tới các dịch vụ bên thứ ba công khai sau đây, và **chỉ** cho các mục đích chức năng được mô tả. Không có định danh thiết bị hay mã theo dõi nào được đính kèm; tính năng Spotify Canvas tùy chọn chỉ dùng phiên Spotify của bạn như mô tả tại Mục 4.5.
+Pinn-Notch không có máy chủ backend và không thực hiện analytics, telemetry hay theo dõi người dùng. Ứng dụng chỉ thực hiện yêu cầu ra ngoài tới các dịch vụ bên thứ ba công khai sau đây, và **chỉ** cho các mục đích chức năng được mô tả. Không có định danh thiết bị hay mã theo dõi nào được đính kèm; tính năng Spotify Canvas tùy chọn chỉ dùng phiên Spotify của bạn như mô tả tại Mục 4.5.
 
 ### 4.1 Kiểm tra & Tải bản cập nhật ứng dụng — GitHub
 
-- **Điểm đến:** `https://api.github.com/repos/w0otdev/V-Notch/releases/latest`
-- **Tại sao:** Để phát hiện xem có phiên bản V-Notch mới hơn hay không.
-- **Dữ liệu gửi đi:** Header HTTP tiêu chuẩn, gồm `User-Agent: V-Notch-Updater` và header `If-None-Match` (ETag) có điều kiện để lưu cache. Tính năng này không gửi metadata media, thông tin đăng nhập hay nội dung tệp cục bộ. Như mọi yêu cầu HTTPS, dịch vụ từ xa có thể thấy thông tin kết nối như địa chỉ IP của bạn.
+- **Điểm đến:** `https://api.github.com/repos/Gimm17/Pinn-Notch/releases/latest`
+- **Tại sao:** Để phát hiện xem có phiên bản Pinn-Notch mới hơn hay không.
+- **Dữ liệu gửi đi:** Header HTTP tiêu chuẩn, gồm `User-Agent: Pinn-Notch-Updater` và header `If-None-Match` (ETag) có điều kiện để lưu cache. Tính năng này không gửi metadata media, thông tin đăng nhập hay nội dung tệp cục bộ. Như mọi yêu cầu HTTPS, dịch vụ từ xa có thể thấy thông tin kết nối như địa chỉ IP của bạn.
 - **Dữ liệu nhận về:** Tag phiên bản mới nhất, ghi chú phát hành (changelog), URL tải bộ cài; khi cập nhật còn có manifest đã ký, chữ ký tách rời và bộ cài.
 - **Tần suất:** Giới hạn tối đa một lần mỗi 45 giây; phản hồi được cache trong bộ nhớ và xác thực lại bằng ETag.
 - **Bảo mật & Tính toàn vẹn:** Từ phiên bản 1.9.2, cập nhật trong ứng dụng bắt buộc dùng HTTPS và manifest có chữ ký ECDSA P-256/SHA-256, được xác minh cục bộ bằng khóa công khai nhúng trong ứng dụng. Phiên bản, tên bộ cài, kích thước và mã băm SHA-256 đã ký phải khớp trước khi chạy bộ cài. Chữ ký thiếu hoặc không hợp lệ và việc hạ phiên bản đều bị từ chối. Authenticode là tùy chọn trừ khi có cấu hình thêm allowlist chứng chỉ; Windows vẫn có thể hiện cảnh báo nhà phát hành không xác định hoặc SmartScreen. Ứng dụng bản cũ dùng cơ chế xác minh cũ cho lần nâng cấp đầu tiên lên phiên bản này.
 - **Dữ liệu xác minh:** Manifest và chữ ký tách rời được tải từ cùng các asset GitHub release với bộ cài và xử lý trong bộ nhớ. Việc xác minh chữ ký không liên hệ dịch vụ mới hay tải lên tệp cục bộ, thông tin đăng nhập hoặc mã định danh thiết bị. GitHub và hạ tầng tải xuống có thể thấy thông tin kết nối tiêu chuẩn, gồm địa chỉ IP và header HTTP của bạn.
-- **Quyền kiểm soát của bạn:** Việc tải và cài đặt bản cập nhật chỉ xảy ra **khi** bạn chủ động chọn thực hiện. Khi bạn bắt đầu cập nhật, bộ cài (`V-Notch-Setup.exe`) được tải từ GitHub Releases về thư mục tạm của bạn và khởi chạy.
+- **Quyền kiểm soát của bạn:** Việc tải và cài đặt bản cập nhật chỉ xảy ra **khi** bạn chủ động chọn thực hiện. Khi bạn bắt đầu cập nhật, bộ cài (`Pinn-Notch-Setup.exe`) được tải từ GitHub Releases về thư mục tạm của bạn và khởi chạy.
 
 ### 4.2 Tra cứu ảnh bìa album
 
-Khi SMTC không cung cấp ảnh bìa nhúng (thường gặp khi nghe nhạc trên trình duyệt web), V-Notch cố gắng tìm ảnh bìa tương ứng. Tên bài và nghệ sĩ được dùng làm từ khóa tìm kiếm. Tùy nguồn phát, ứng dụng có thể liên hệ:
+Khi SMTC không cung cấp ảnh bìa nhúng (thường gặp khi nghe nhạc trên trình duyệt web), Pinn-Notch cố gắng tìm ảnh bìa tương ứng. Tên bài và nghệ sĩ được dùng làm từ khóa tìm kiếm. Tùy nguồn phát, ứng dụng có thể liên hệ:
 
 **YouTube / Google:**
 - `https://www.youtube.com/results?...` — quét trang tìm kiếm công khai để tìm video tương ứng.
@@ -181,10 +181,10 @@ Khi SMTC không cung cấp ảnh bìa nhúng (thường gặp khi nghe nhạc tr
 
 ### 4.3 Lời bài hát đồng bộ — LRCLIB và lrc mux
 
-V-Notch thử nghiệm hai nhà cung cấp lời bài hát độc lập theo thứ tự và dừng lại ngay khi một trong hai trả về kết quả:
+Pinn-Notch thử nghiệm hai nhà cung cấp lời bài hát độc lập theo thứ tự và dừng lại ngay khi một trong hai trả về kết quả:
 
-- **LRCLIB** — `https://lrclib.net/api/get?...` (khớp chính xác) và endpoint tìm kiếm (khớp mờ). **Dữ liệu gửi đi:** tên bài, tên nghệ sĩ, và thời lượng bài hát làm tham số truy vấn, kèm `User-Agent` nhận diện V-Notch.
-- **lrc mux** — `https://api.lrcmux.dev/get?...`, dùng làm nguồn tổng hợp dự phòng khi LRCLIB không có kết quả khớp. **Dữ liệu gửi đi:** tên bài, tên nghệ sĩ, và thời lượng bài hát làm tham số truy vấn, kèm `User-Agent` nhận diện V-Notch. lrc mux là dịch vụ tổng hợp lời bài hát của bên thứ ba với các nguồn thượng nguồn riêng; V-Notch không kiểm soát nhà cung cấp thượng nguồn mà dịch vụ này truy vấn nội bộ.
+- **LRCLIB** — `https://lrclib.net/api/get?...` (khớp chính xác) và endpoint tìm kiếm (khớp mờ). **Dữ liệu gửi đi:** tên bài, tên nghệ sĩ, và thời lượng bài hát làm tham số truy vấn, kèm `User-Agent` nhận diện Pinn-Notch.
+- **lrc mux** — `https://api.lrcmux.dev/get?...`, dùng làm nguồn tổng hợp dự phòng khi LRCLIB không có kết quả khớp. **Dữ liệu gửi đi:** tên bài, tên nghệ sĩ, và thời lượng bài hát làm tham số truy vấn, kèm `User-Agent` nhận diện Pinn-Notch. lrc mux là dịch vụ tổng hợp lời bài hát của bên thứ ba với các nguồn thượng nguồn riêng; Pinn-Notch không kiểm soát nhà cung cấp thượng nguồn mà dịch vụ này truy vấn nội bộ.
 
 **Dữ liệu nhận về (cả hai):** Các dòng lời bài hát đã đồng bộ thời gian, chỉ dùng tạm thời trong bộ nhớ để hiển thị và không bao giờ ghi xuống đĩa. Bên nhận thấy IP kết nối; truy vấn nghe nhạc có thể là dữ liệu cá nhân tùy ngữ cảnh.
 
@@ -199,15 +199,15 @@ V-Notch thử nghiệm hai nhà cung cấp lời bài hát độc lập theo th�
 
 Canvas và quyền truy cập mạng/đăng nhập của tính năng **mặc định tắt**. Trước khi bật, bạn phải chủ động xác nhận thông báo trong ứng dụng về cookie phiên, phương thức truy cập không chính thức và khả năng bị hạn chế dịch vụ/tài khoản. Cấu hình cũ hoặc nhập từ tệp không được dùng làm xác nhận. Tắt Canvas hoặc thu hồi quyền mạng sẽ xóa xác nhận, hủy yêu cầu do ứng dụng quản lý và đóng đăng nhập. Cookie mã hóa trên máy được giữ lại; dùng **Ngắt kết nối** để xóa cookie. Bật lại yêu cầu xác nhận mới. Sự đồng ý là cơ chế kiểm soát trong sản phẩm, không phải chấp thuận từ Spotify; xem [Hướng dẫn người dùng Spotify](https://www.spotify.com/us/legal/user-guidelines/).
 
-Khi bạn chọn **Kết nối Spotify**, V-Notch mở trang đăng nhập chính thức của Spotify trong một hồ sơ Microsoft Edge WebView2 tạm thời. Sau khi đăng nhập, ứng dụng chỉ đọc cookie phiên `sp_dc`, xóa hoàn toàn hồ sơ trình duyệt tạm và lưu cookie đã mã hóa bằng Windows DPAPI cho tài khoản người dùng Windows hiện tại. Cookie này không bao giờ được gửi đến bất kỳ máy chủ nào của V-Notch hay máy chủ thu thập dữ liệu nào.
+Khi bạn chọn **Kết nối Spotify**, Pinn-Notch mở trang đăng nhập chính thức của Spotify trong một hồ sơ Microsoft Edge WebView2 tạm thời. Sau khi đăng nhập, ứng dụng chỉ đọc cookie phiên `sp_dc`, xóa hoàn toàn hồ sơ trình duyệt tạm và lưu cookie đã mã hóa bằng Windows DPAPI cho tài khoản người dùng Windows hiện tại. Cookie này không bao giờ được gửi đến bất kỳ máy chủ nào của Pinn-Notch hay máy chủ thu thập dữ liệu nào.
 
-Khi Canvas được bật, phiên được gửi đến Spotify (`open.spotify.com`) để lấy access token ngắn hạn. V-Notch gửi tên bài và nghệ sĩ cùng token đó tới dịch vụ danh mục của Spotify (`api-partner.spotify.com`) để tìm Spotify track ID. Nếu tra cứu này không khả dụng, ứng dụng gửi tên bài, nghệ sĩ và thời lượng tới Musixmatch (`apic-desktop.musixmatch.com`) làm phương án dự phòng. Sau đó, ứng dụng yêu cầu metadata Canvas từ Spotify (`spclient.wg.spotify.com`) và phát video trực tiếp từ mạng phân phối nội dung `*.scdn.co` của Spotify. Các tài nguyên web player Spotify công khai (`open.spotify.com`, `open.spotifycdn.com`) có thể được tải để duy trì tính tương thích của truy vấn; các yêu cầu này không chứa phiên hay metadata bài hát. Giá trị tương thích để tạo token và hash truy vấn ban đầu đi kèm ứng dụng trong `Assets/MediaProtocols.json`, với giá trị dự phòng nhúng sẵn. Chúng được duy trì qua bản cập nhật ứng dụng, không yêu cầu người dùng sửa cấu hình; ứng dụng không kết nối tới máy chủ secret/cấu hình riêng. Cơ chế tự tìm hash truy vấn từ tài nguyên web player Spotify công khai vẫn được giữ.
+Khi Canvas được bật, phiên được gửi đến Spotify (`open.spotify.com`) để lấy access token ngắn hạn. Pinn-Notch gửi tên bài và nghệ sĩ cùng token đó tới dịch vụ danh mục của Spotify (`api-partner.spotify.com`) để tìm Spotify track ID. Nếu tra cứu này không khả dụng, ứng dụng gửi tên bài, nghệ sĩ và thời lượng tới Musixmatch (`apic-desktop.musixmatch.com`) làm phương án dự phòng. Sau đó, ứng dụng yêu cầu metadata Canvas từ Spotify (`spclient.wg.spotify.com`) và phát video trực tiếp từ mạng phân phối nội dung `*.scdn.co` của Spotify. Các tài nguyên web player Spotify công khai (`open.spotify.com`, `open.spotifycdn.com`) có thể được tải để duy trì tính tương thích của truy vấn; các yêu cầu này không chứa phiên hay metadata bài hát. Giá trị tương thích để tạo token và hash truy vấn ban đầu đi kèm ứng dụng trong `Assets/MediaProtocols.json`, với giá trị dự phòng nhúng sẵn. Chúng được duy trì qua bản cập nhật ứng dụng, không yêu cầu người dùng sửa cấu hình; ứng dụng không kết nối tới máy chủ secret/cấu hình riêng. Cơ chế tự tìm hash truy vấn từ tài nguyên web player Spotify công khai vẫn được giữ.
 
-Bạn có thể ngắt kết nối Spotify bất kỳ lúc nào trong Cài đặt. Thao tác này sẽ xóa vĩnh viễn phiên đã lưu khỏi V-Notch. Nếu xác thực thất bại hoặc bài hát không có Canvas, ứng dụng tự động chuyển về hình nền lời bài hát thông thường.
+Bạn có thể ngắt kết nối Spotify bất kỳ lúc nào trong Cài đặt. Thao tác này sẽ xóa vĩnh viễn phiên đã lưu khỏi Pinn-Notch. Nếu xác thực thất bại hoặc bài hát không có Canvas, ứng dụng tự động chuyển về hình nền lời bài hát thông thường.
 
 ### 4.6 Thời tiết (Tùy chọn)
 
-Khi bạn bật widget thời tiết, V-Notch chỉ thực hiện các yêu cầu mạng **sau khi** bạn đã chủ động bật tính năng này. Widget thời tiết **tắt theo mặc định**; không có yêu cầu liên quan đến thời tiết nào được thực hiện khi cài đặt mới cho đến khi bạn bật nó.
+Khi bạn bật widget thời tiết, Pinn-Notch chỉ thực hiện các yêu cầu mạng **sau khi** bạn đã chủ động bật tính năng này. Widget thời tiết **tắt theo mặc định**; không có yêu cầu liên quan đến thời tiết nào được thực hiện khi cài đặt mới cho đến khi bạn bật nó.
 
 - **Định vị dựa trên IP (mặc định):** `https://ipwho.is/` — Vị trí gần đúng (vĩ độ, kinh độ, thành phố) của bạn được xác định từ địa chỉ IP. Đây **không phải** vị trí GPS chính xác; nó là ước lượng địa lý thô dựa trên khu vực đăng ký của dải IP. Chỉ kết nối HTTPS được sử dụng.
 - **Nhập thành phố thủ công (tùy chọn):** Nếu bạn nhập tên thành phố thủ công, `https://geocoding-api.open-meteo.com/v1/search` được dùng để phân giải tên thành tọa độ. Khi có thành phố thủ công, hoàn toàn không có tra cứu IP nào được thực hiện.
@@ -222,13 +222,13 @@ Cả hai dịch vụ trên đều là bên thứ ba độc lập với chính s�
 
 ### 4.7 Các bên thứ ba
 
-Các dịch vụ nêu trên (Spotify, GitHub, Google/YouTube, các instance Piped/Invidious, SoundCloud, LRCLIB, ipwho.is, và Open-Meteo) là các bên thứ ba độc lập với chính sách bảo mật riêng của họ. Khi V-Notch liên hệ với họ, địa chỉ IP của bạn tất yếu sẽ hiển thị với dịch vụ đó, như với mọi yêu cầu web thông thường. V-Notch không kiểm soát hoạt động độc lập của các dịch vụ này; trách nhiệm pháp lý của từng bên phụ thuộc pháp luật và hoàn cảnh thực tế. Nếu muốn tránh các tra cứu này, bạn có thể tắt các tính năng ảnh bìa/lời bài hát/phụ đề/Canvas/thời tiết và kiểm tra cập nhật, không gửi tin nhắn AI hoặc làm mới số dư (§4.8), hoặc chặn truy cập mạng của ứng dụng qua tường lửa.
+Các dịch vụ nêu trên (Spotify, GitHub, Google/YouTube, các instance Piped/Invidious, SoundCloud, LRCLIB, ipwho.is, và Open-Meteo) là các bên thứ ba độc lập với chính sách bảo mật riêng của họ. Khi Pinn-Notch liên hệ với họ, địa chỉ IP của bạn tất yếu sẽ hiển thị với dịch vụ đó, như với mọi yêu cầu web thông thường. Pinn-Notch không kiểm soát hoạt động độc lập của các dịch vụ này; trách nhiệm pháp lý của từng bên phụ thuộc pháp luật và hoàn cảnh thực tế. Nếu muốn tránh các tra cứu này, bạn có thể tắt các tính năng ảnh bìa/lời bài hát/phụ đề/Canvas/thời tiết và kiểm tra cập nhật, không gửi tin nhắn AI hoặc làm mới số dư (§4.8), hoặc chặn truy cập mạng của ứng dụng qua tường lửa.
 
 ---
 
 ### 4.8 Spotlight AI (Tùy chọn)
 
-Với OpenAI, Gemini, Claude và DeepSeek, khi bạn gửi tin nhắn AI, V-Notch gửi nội dung, ngữ cảnh hội thoại gần đây và model đã chọn trực tiếp qua HTTPS tới nhà cung cấp. Khóa API được gửi trong header xác thực. Yêu cầu không đi qua máy chủ V-Notch và HTTP client này không tự động đi theo chuyển hướng.
+Với OpenAI, Gemini, Claude và DeepSeek, khi bạn gửi tin nhắn AI, Pinn-Notch gửi nội dung, ngữ cảnh hội thoại gần đây và model đã chọn trực tiếp qua HTTPS tới nhà cung cấp. Khóa API được gửi trong header xác thực. Yêu cầu không đi qua máy chủ Pinn-Notch và HTTP client này không tự động đi theo chuyển hướng.
 
 | Nhà cung cấp | Địa chỉ API | Mục đích |
 | --- | --- | --- |
@@ -246,57 +246,57 @@ Thanh usage giữ số liệu do nhà cung cấp trả về trong bộ nhớ: to
 
 ## 5. Lưu trữ dữ liệu cục bộ
 
-Toàn bộ dữ liệu lưu trữ lâu dài do V-Notch tạo ra chỉ nằm duy nhất trên thiết bị của bạn.
+Toàn bộ dữ liệu lưu trữ lâu dài do Pinn-Notch tạo ra chỉ nằm duy nhất trên thiết bị của bạn.
 
-Thư mục dữ liệu cục bộ chính là `%LOCALAPPDATA%\V-Notch\`. Khi khởi động, ứng dụng thử chuyển dữ liệu cũ từ `%LOCALAPPDATA%\VNotch\` sang đây trước khi mở các kho dữ liệu. Tệp đã có tại đích được giữ nguyên; dữ liệu cũ bị xung đột được giữ trong `legacy-migration-conflicts` dưới thư mục chính. Tệp chưa chuyển được vẫn ở thư mục cũ để thử lại sau. Các bản phục hồi không tự hết hạn.
+Thư mục dữ liệu cục bộ chính là `%LOCALAPPDATA%\Pinn-Notch\`. Khi khởi động, ứng dụng thử chuyển dữ liệu cũ từ `%LOCALAPPDATA%\VNotch\` sang đây trước khi mở các kho dữ liệu. Tệp đã có tại đích được giữ nguyên; dữ liệu cũ bị xung đột được giữ trong `legacy-migration-conflicts` dưới thư mục chính. Tệp chưa chuyển được vẫn ở thư mục cũ để thử lại sau. Các bản phục hồi không tự hết hạn.
 
 Việc dọn tệp tạm định kỳ giữ nguyên lịch sử chat, lịch sử cách ly `.corrupt`, bản xung đột di chuyển, cài đặt/bản sao lưu, model dịch đã cài và phần tải model có thể tiếp tục. Lịch sử Clipboard có quy tắc lưu riêng (§5.7). Trình gỡ cài đặt thử xóa cả hai thư mục cục bộ và thư mục roaming; tệp bị khóa hoặc lỗi xóa có thể để lại dữ liệu, vì vậy hãy kiểm tra các vị trí này khi cần xóa hết dữ liệu cục bộ.
 
-### 5.1 Cài đặt (`%APPDATA%\V-Notch\settings.json`)
+### 5.1 Cài đặt (`%APPDATA%\Pinn-Notch\settings.json`)
 
 Lưu các tùy chọn của bạn: kích thước và vị trí notch, kiểu giao diện và tùy chỉnh Liquid Glass, bật/tắt thông báo, ngôn ngữ, hành vi khởi động cùng Windows, đường dẫn tệp trong File Shelf và các cờ tính năng. Tệp cài đặt có thể chứa YouTube API key nếu bạn tự cung cấp và phiên Spotify nếu bạn chọn Kết nối Spotify. Các thông tin xác thực này, bao gồm khóa nhà cung cấp AI tùy chọn (§5.6), được mã hóa bằng Windows DPAPI (Data Protection API) trước khi ghi xuống đĩa cho tài khoản Windows hiện tại, phụ thuộc bảo mật tài khoản và hệ điều hành. Nếu DPAPI không khả dụng, các giá trị nhạy cảm này sẽ không được lưu.
 
-### 5.2 Lịch sử sử dụng Spotlight (`%APPDATA%\V-Notch\spotlight-usage.json`)
+### 5.2 Lịch sử sử dụng Spotlight (`%APPDATA%\Pinn-Notch\spotlight-usage.json`)
 
-Lưu danh sách các ứng dụng và mục bạn đã mở từ Spotlight (ID, tiêu đề, đường dẫn mục tiêu, số lần mở và mốc thời gian) để xếp hạng gợi ý nhanh. Tệp này giới hạn tối đa 100 mục, lưu cục bộ và không được V-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ.
+Lưu danh sách các ứng dụng và mục bạn đã mở từ Spotlight (ID, tiêu đề, đường dẫn mục tiêu, số lần mở và mốc thời gian) để xếp hạng gợi ý nhanh. Tệp này giới hạn tối đa 100 mục, lưu cục bộ và không được Pinn-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ.
 
-### 5.3 Bộ nhớ đệm nguồn phát (`%APPDATA%\V-Notch\source_cache.json`)
+### 5.3 Bộ nhớ đệm nguồn phát (`%APPDATA%\Pinn-Notch\source_cache.json`)
 
 Lưu ánh xạ theo cơ chế LRU (tối đa 500 mục) giữa tên bài hát đã phát và nguồn media tương ứng (ví dụ YouTube/SoundCloud) để tránh phải tìm kiếm trực tuyến lặp lại cho các bài hát bạn thường xuyên nghe.
 
 ### 5.4 Nhật ký chẩn đoán (`vnotch-debug.log`)
 
-Nằm trong thư mục chương trình của ứng dụng, nhật ký này ghi lại các sự kiện kỹ thuật và lỗi phát sinh để hỗ trợ chẩn đoán sự cố. Do tính chất ghi log, tệp này có thể vô tình chứa tên/nghệ sĩ của các bài hát bạn đã nghe, truy vấn tìm lời bài hát, và tiêu đề cửa sổ đã khớp (ví dụ tiêu đề tab trình duyệt) — đây chính là các thông tin đã được mô tả tại Mục 3 và 4, được ghi cục bộ phục vụ gỡ lỗi. Nhật ký tự động xoay vòng khi đạt kích thước khoảng 5 MB. **Nhật ký này không được V-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ** — nó hoàn toàn nằm trên máy của bạn, không tải lên cùng báo cáo lỗi hay yêu cầu cập nhật, và bạn có thể xóa bất kỳ lúc nào.
+Nằm trong thư mục chương trình của ứng dụng, nhật ký này ghi lại các sự kiện kỹ thuật và lỗi phát sinh để hỗ trợ chẩn đoán sự cố. Do tính chất ghi log, tệp này có thể vô tình chứa tên/nghệ sĩ của các bài hát bạn đã nghe, truy vấn tìm lời bài hát, và tiêu đề cửa sổ đã khớp (ví dụ tiêu đề tab trình duyệt) — đây chính là các thông tin đã được mô tả tại Mục 3 và 4, được ghi cục bộ phục vụ gỡ lỗi. Nhật ký tự động xoay vòng khi đạt kích thước khoảng 5 MB. **Nhật ký này không được Pinn-Notch chủ đích gửi tới nhà cung cấp ngoài, trừ ngoại lệ nêu rõ** — nó hoàn toàn nằm trên máy của bạn, không tải lên cùng báo cáo lỗi hay yêu cầu cập nhật, và bạn có thể xóa bất kỳ lúc nào.
 
 ### 5.5 Mô hình ONNX tùy chọn
 
 Nếu có, tệp mô hình cắt ảnh thông minh (`yolo11n.onnx`) được lưu cục bộ cùng với ứng dụng và chỉ dùng cho mục đích phân tích nhận diện hình ảnh trực tiếp trên thiết bị.
 
-Để xóa dữ liệu do ứng dụng quản lý, hãy ngắt kết nối Spotify trong Cài đặt nếu có, thoát V-Notch, rồi kiểm tra và xóa `%APPDATA%\V-Notch\`, `%LOCALAPPDATA%\V-Notch\`, thư mục cũ `%LOCALAPPDATA%\VNotch\` nếu còn và thư mục cài đặt. Hai thư mục cục bộ chứa cả lịch sử Clipboard, lịch sử/bản phục hồi AI và model dịch. Cần kiểm tra riêng cache, bản sao lưu và dữ liệu đã xuất; xóa thư mục ứng dụng không xóa các bản sao này.
+Để xóa dữ liệu do ứng dụng quản lý, hãy ngắt kết nối Spotify trong Cài đặt nếu có, thoát Pinn-Notch, rồi kiểm tra và xóa `%APPDATA%\Pinn-Notch\`, `%LOCALAPPDATA%\Pinn-Notch\`, thư mục cũ `%LOCALAPPDATA%\VNotch\` nếu còn và thư mục cài đặt. Hai thư mục cục bộ chứa cả lịch sử Clipboard, lịch sử/bản phục hồi AI và model dịch. Cần kiểm tra riêng cache, bản sao lưu và dữ liệu đã xuất; xóa thư mục ứng dụng không xóa các bản sao này.
 
 ---
 
 ### 5.6 Khóa API và lịch sử hội thoại Spotlight AI
 
-Khóa API được lưu trong `%APPDATA%\V-Notch\settings.json`, mã hóa bằng Windows DPAPI cho tài khoản Windows hiện tại. Khóa được loại khỏi bản xuất cài đặt; nhập cài đặt không thay thế khóa AI đang lưu trên máy. Cài đặt cũng lưu nhà cung cấp/model, chế độ Spotlight mặc định và tốc độ hiện chữ. Bản sao lưu cài đặt luân phiên có thể giữ khóa mã hóa cũ; xóa khóa khỏi cài đặt hiện tại không thu hồi khóa hoặc xóa các bản sao này. Hãy thu hồi khóa không còn dùng hoặc bị lộ tại bảng điều khiển nhà cung cấp.
+Khóa API được lưu trong `%APPDATA%\Pinn-Notch\settings.json`, mã hóa bằng Windows DPAPI cho tài khoản Windows hiện tại. Khóa được loại khỏi bản xuất cài đặt; nhập cài đặt không thay thế khóa AI đang lưu trên máy. Cài đặt cũng lưu nhà cung cấp/model, chế độ Spotlight mặc định và tốc độ hiện chữ. Bản sao lưu cài đặt luân phiên có thể giữ khóa mã hóa cũ; xóa khóa khỏi cài đặt hiện tại không thu hồi khóa hoặc xóa các bản sao này. Hãy thu hồi khóa không còn dùng hoặc bị lộ tại bảng điều khiển nhà cung cấp.
 
-Lịch sử AI được lưu riêng tại `%LOCALAPPDATA%\V-Notch\spotlight-chats.enc`. Tệp mã hóa chứa hội thoại, nhà cung cấp/model, bản nháp, thời gian cập nhật, nội dung tin nhắn, trạng thái phản hồi chưa hoàn tất và metadata Gemini đã lưu nếu có. Trong lúc lưu có thể tồn tại tệp tạm đã mã hóa. Windows DPAPI mã hóa lịch sử cho tài khoản Windows hiện tại. Nếu không giải mã được hoặc nội dung không hợp lệ, ứng dụng thử đổi tên tệp mã hóa gốc thành `spotlight-chats.enc.<id>.corrupt`, rồi cho phép lưu lịch sử mới. Nếu việc đọc hoặc cách ly thất bại, ứng dụng giữ nguyên tệp gốc và chặn lưu cho đến khi thử lại thành công. Lịch sử đã lưu và tệp cách ly không có thời hạn tự động xóa theo tuổi dữ liệu.
+Lịch sử AI được lưu riêng tại `%LOCALAPPDATA%\Pinn-Notch\spotlight-chats.enc`. Tệp mã hóa chứa hội thoại, nhà cung cấp/model, bản nháp, thời gian cập nhật, nội dung tin nhắn, trạng thái phản hồi chưa hoàn tất và metadata Gemini đã lưu nếu có. Trong lúc lưu có thể tồn tại tệp tạm đã mã hóa. Windows DPAPI mã hóa lịch sử cho tài khoản Windows hiện tại. Nếu không giải mã được hoặc nội dung không hợp lệ, ứng dụng thử đổi tên tệp mã hóa gốc thành `spotlight-chats.enc.<id>.corrupt`, rồi cho phép lưu lịch sử mới. Nếu việc đọc hoặc cách ly thất bại, ứng dụng giữ nguyên tệp gốc và chặn lưu cho đến khi thử lại thành công. Lịch sử đã lưu và tệp cách ly không có thời hạn tự động xóa theo tuổi dữ liệu.
 
 Xóa hội thoại sẽ ghi lại lịch sử cục bộ khi thao tác lưu thành công. Tạo chat mới không xóa chat cũ; xóa lịch sử khởi chạy Spotlight không xóa hội thoại AI. Xóa hội thoại không xóa bản cách ly hoặc bản giữ lại do xung đột di chuyển dữ liệu. Xóa cục bộ không phải xóa an toàn và không xóa bản sao lưu hệ điều hành hoặc dữ liệu phía nhà cung cấp. Sau khi đóng ứng dụng, bạn có thể xóa tệp lịch sử, các tệp tạm/cách ly liên quan và bản phục hồi cũ để dọn kho dữ liệu này. Khi kiểm tra dữ liệu theo Mục 11, hãy kiểm tra cả hai thư mục cục bộ.
 
 DPAPI bảo vệ dữ liệu khi lưu trên đĩa, không bảo vệ trước phần mềm chạy dưới tài khoản của bạn hoặc thiết bị/tài khoản đã bị xâm nhập. Khóa và nội dung chat phải có trong bộ nhớ khi sử dụng. Đây không phải mã hóa đầu cuối đối với nhà cung cấp AI. Nhật ký AI được thiết kế để ghi nhà cung cấp, trạng thái và loại lỗi thay vì câu hỏi hay toàn bộ nội dung lỗi từ nhà cung cấp; che thông tin xác thực là biện pháp giảm rủi ro, không đảm bảo mọi nhật ký đều không có dữ liệu nhạy cảm.
 
-### 5.7 Lịch sử Clipboard (`%LOCALAPPDATA%\V-Notch\Clipboard\`)
+### 5.7 Lịch sử Clipboard (`%LOCALAPPDATA%\Pinn-Notch\Clipboard\`)
 
-Thư mục con `items` lưu lịch sử thông thường: JSON metadata/nội dung, ảnh và bản sao cục bộ của tệp/thư mục. **V-Notch không mã hóa lịch sử thông thường.** Chuyển mục sang Personal sẽ mã hóa nội dung và metadata trong `personal` bằng AES-GCM; kho dùng mã sáu chữ số cùng một bí mật được Windows DPAPI bảo vệ cho tài khoản Windows hiện tại. Các mục tự động thu thập không được đưa vào Personal mặc định. Nội dung đã mở khóa có mặt trong bộ nhớ; sao chép/kéo thả tệp Personal tạo bản xuất tạm đã giải mã tại `exports\personal`.
+Thư mục con `items` lưu lịch sử thông thường: JSON metadata/nội dung, ảnh và bản sao cục bộ của tệp/thư mục. **Pinn-Notch không mã hóa lịch sử thông thường.** Chuyển mục sang Personal sẽ mã hóa nội dung và metadata trong `personal` bằng AES-GCM; kho dùng mã sáu chữ số cùng một bí mật được Windows DPAPI bảo vệ cho tài khoản Windows hiện tại. Các mục tự động thu thập không được đưa vào Personal mặc định. Nội dung đã mở khóa có mặt trong bộ nhớ; sao chép/kéo thả tệp Personal tạo bản xuất tạm đã giải mã tại `exports\personal`.
 
 Các mục không ghim, không lưu trữ (Archived), không thuộc Personal và đã quá 30 ngày được dọn khi khởi động và trong lần dọn định kỳ mỗi giờ. Các mục ghim, Archived và Personal được giữ đến khi bạn xóa. Ứng dụng thử dọn bản xuất cũ khi khởi động và định kỳ; tệp đang được sử dụng có thể làm chậm việc xóa. Thư mục gốc còn chứa `staging`, `exports` và cấu hình kho Personal.
 
-Xóa từng mục trong khay Clipboard; thao tác đặt lại Personal xóa kho Personal cùng nội dung bên trong. Để xóa toàn bộ lịch sử Clipboard, **thoát V-Notch trước**, rồi xóa `%LOCALAPPDATA%\V-Notch\Clipboard\` cùng các thư mục con. Chỉ xóa `%APPDATA%\V-Notch\` không xóa lịch sử Clipboard. Tạm dừng, công tắc loại nội dung và chế độ Strict Local-Only không xóa lịch sử đã lưu. Xóa dữ liệu không ghi đè an toàn và không xóa bản sao lưu, bản đã xuất hay lịch sử Clipboard của ứng dụng khác.
+Xóa từng mục trong khay Clipboard; thao tác đặt lại Personal xóa kho Personal cùng nội dung bên trong. Để xóa toàn bộ lịch sử Clipboard, **thoát Pinn-Notch trước**, rồi xóa `%LOCALAPPDATA%\Pinn-Notch\Clipboard\` cùng các thư mục con. Chỉ xóa `%APPDATA%\Pinn-Notch\` không xóa lịch sử Clipboard. Tạm dừng, công tắc loại nội dung và chế độ Strict Local-Only không xóa lịch sử đã lưu. Xóa dữ liệu không ghi đè an toàn và không xóa bản sao lưu, bản đã xuất hay lịch sử Clipboard của ứng dụng khác.
 
-## 6. Dữ liệu mà V-Notch KHÔNG thu thập
+## 6. Dữ liệu mà Pinn-Notch KHÔNG thu thập
 
-V-Notch **không được thiết kế để**:
+Pinn-Notch **không được thiết kế để**:
 - bán dữ liệu cá nhân hoặc chia sẻ dữ liệu để quảng cáo hành vi; việc truyền dữ liệu chức năng cho nhà cung cấp độc lập được mô tả tại Mục 4;
 - chạy các công cụ analytics, telemetry, theo dõi hành vi, hay tạo dấu vân tay thiết bị (fingerprinting);
 - tự động gửi báo cáo sự cố hoặc số liệu thống kê sử dụng;
@@ -330,7 +330,7 @@ V-Notch **không được thiết kế để**:
 
 ## 8. Quyền kiểm soát riêng tư & Chế độ ngoại tuyến
 
-V-Notch cung cấp một mục **Quyền riêng tư** riêng biệt trong Cài đặt với các nút bật/tắt chi tiết giúp bạn chủ động cấu hình quyền riêng tư và hạn chế các kết nối mạng:
+Pinn-Notch cung cấp một mục **Quyền riêng tư** riêng biệt trong Cài đặt với các nút bật/tắt chi tiết giúp bạn chủ động cấu hình quyền riêng tư và hạn chế các kết nối mạng:
 
 - **Spotlight AI:** Xóa hội thoại trong lịch sử AI và xóa khóa trong cài đặt Spotlight. Các thao tác này riêng biệt với xóa lịch sử khởi chạy. Dữ liệu phía nhà cung cấp và thu hồi khóa cần công cụ của nhà cung cấp (§5.6).
 - **Chế độ hoàn toàn ngoại tuyến (Strict Local-Only Mode):** Chặn HTTP do ứng dụng quản lý, gồm cập nhật thủ công/tự động, kiểm tra tính toàn vẹn trực tuyến, ảnh bìa/metadata, lời bài hát, phụ đề, Canvas, thời tiết, tin nhắn AI và số dư. Chặn mở và đóng cửa sổ đăng nhập Spotify đang mở. Chặn mở liên kết trực tuyến qua ứng dụng. Yêu cầu và việc đọc phản hồi đang chạy nhận tín hiệu hủy khi thu hồi quyền. Không thể thu hồi dữ liệu đã gửi. Tính năng cục bộ và lựa chọn riêng vẫn được giữ. Đây là kiểm soát cấp ứng dụng, không phải tường lửa hệ điều hành: không bảo đảm chặn lưu lượng của Windows, ứng dụng khác hay kết nối nền tự phát của runtime/WebView; cần kiểm tra bản phát hành bằng công cụ theo dõi mạng.
@@ -347,37 +347,37 @@ V-Notch cung cấp một mục **Quyền riêng tư** riêng biệt trong Cài �
 
 ## 9. Bảo mật
 
-V-Notch hoạt động với quyền người dùng tiêu chuẩn và không yêu cầu quyền quản trị viên (Administrator) trong suốt quá trình hoạt động bình thường. Quyền quản trị viên chỉ được yêu cầu khi thực hiện cài đặt bản cập nhật mới (để chạy trình cài đặt). Các thông tin xác thực được mô tả (cookie `sp_dc` của Spotify, khóa YouTube API và khóa nhà cung cấp AI) được mã hóa bằng Windows DPAPI. Cập nhật trong ứng dụng từ phiên bản 1.9.2 trở đi bắt buộc xác minh manifest có chữ ký như mô tả tại Mục 4.1; cơ chế này không yêu cầu chứng chỉ Authenticode trả phí và không xác thực lần tải thủ công đầu tiên. Vì ứng dụng hoàn toàn là mã nguồn mở, bất kỳ ai cũng có thể tự do kiểm tra và đánh giá mã nguồn tại [github.com/w0otdev/V-Notch](https://github.com/w0otdev/V-Notch).
+Pinn-Notch hoạt động với quyền người dùng tiêu chuẩn và không yêu cầu quyền quản trị viên (Administrator) trong suốt quá trình hoạt động bình thường. Quyền quản trị viên chỉ được yêu cầu khi thực hiện cài đặt bản cập nhật mới (để chạy trình cài đặt). Các thông tin xác thực được mô tả (cookie `sp_dc` của Spotify, khóa YouTube API và khóa nhà cung cấp AI) được mã hóa bằng Windows DPAPI. Cập nhật trong ứng dụng từ phiên bản 1.9.2 trở đi bắt buộc xác minh manifest có chữ ký như mô tả tại Mục 4.1; cơ chế này không yêu cầu chứng chỉ Authenticode trả phí và không xác thực lần tải thủ công đầu tiên. Vì ứng dụng hoàn toàn là mã nguồn mở, bất kỳ ai cũng có thể tự do kiểm tra và đánh giá mã nguồn tại [github.com/Gimm17/Pinn-Notch](https://github.com/Gimm17/Pinn-Notch).
 
-Mặc dù mã hóa DPAPI, xác minh manifest có chữ ký, và việc chạy với quyền người dùng tiêu chuẩn mang lại sự bảo vệ đáng kể, **không có phương thức lưu trữ cục bộ, mã hóa hoặc phân phối phần mềm nào có thể được đảm bảo an toàn tuyệt đối 100%.** Bạn xác nhận rằng việc sử dụng các tính năng lưu trữ, cập nhật và mạng của V-Notch là do bạn tự chịu rủi ro, phù hợp với các tuyên bố miễn trừ "NGUYÊN TRẠNG" và giới hạn trách nhiệm pháp lý trong Điều Khoản Dịch Vụ của chúng tôi.
+Mặc dù mã hóa DPAPI, xác minh manifest có chữ ký, và việc chạy với quyền người dùng tiêu chuẩn mang lại sự bảo vệ đáng kể, **không có phương thức lưu trữ cục bộ, mã hóa hoặc phân phối phần mềm nào có thể được đảm bảo an toàn tuyệt đối 100%.** Bạn xác nhận rằng việc sử dụng các tính năng lưu trữ, cập nhật và mạng của Pinn-Notch là do bạn tự chịu rủi ro, phù hợp với các tuyên bố miễn trừ "NGUYÊN TRẠNG" và giới hạn trách nhiệm pháp lý trong Điều Khoản Dịch Vụ của chúng tôi.
 
 ---
 
 ## 10. Quyền riêng tư trẻ em
 
-V-Notch là tiện ích desktop đa dụng và không hướng riêng tới trẻ em. Nhà phát triển không cố ý thu thập dữ liệu cá nhân từ trẻ em, không yêu cầu tạo tài khoản, và không bao gồm quảng cáo, lập hồ sơ (profiling), hay theo dõi hành vi dưới bất kỳ hình thức nào.
+Pinn-Notch là tiện ích desktop đa dụng và không hướng riêng tới trẻ em. Nhà phát triển không cố ý thu thập dữ liệu cá nhân từ trẻ em, không yêu cầu tạo tài khoản, và không bao gồm quảng cáo, lập hồ sơ (profiling), hay theo dõi hành vi dưới bất kỳ hình thức nào.
 
-Vì V-Notch không có hệ thống tài khoản, ứng dụng **không có cơ chế kỹ thuật nào để xác minh độ tuổi người dùng.** Cha mẹ hoặc người giám hộ có trách nhiệm giám sát việc sử dụng V-Notch của trẻ vị thành niên thuộc quyền quản lý của mình, đặc biệt đối với các tính năng tùy chọn như xem trước camera và Spotify Canvas. Nếu bạn cho rằng một trẻ em đã cung cấp dữ liệu cá nhân theo cách không được mô tả trong Chính sách này (ví dụ, thông qua một GitHub Issue), vui lòng liên hệ với chúng tôi qua Mục 14 để chúng tôi xử lý.
+Vì Pinn-Notch không có hệ thống tài khoản, ứng dụng **không có cơ chế kỹ thuật nào để xác minh độ tuổi người dùng.** Cha mẹ hoặc người giám hộ có trách nhiệm giám sát việc sử dụng Pinn-Notch của trẻ vị thành niên thuộc quyền quản lý của mình, đặc biệt đối với các tính năng tùy chọn như xem trước camera và Spotify Canvas. Nếu bạn cho rằng một trẻ em đã cung cấp dữ liệu cá nhân theo cách không được mô tả trong Chính sách này (ví dụ, thông qua một GitHub Issue), vui lòng liên hệ với chúng tôi qua Mục 14 để chúng tôi xử lý.
 
 ---
 
 ## 11. Quyền riêng tư của bạn (GDPR, CCPA/CPRA & luật tương tự)
 
-Vì V-Notch ưu tiên xử lý cục bộ và không yêu cầu tài khoản V-Notch, một số quyền có thể được thực hiện với dữ liệu cục bộ trên thiết bị. Điều này **không thay thế** các nghĩa vụ và quyền theo luật áp dụng, bao gồm GDPR/CCPA/CPRA hoặc Luật Bảo vệ dữ liệu cá nhân Việt Nam khi có áp dụng:
+Vì Pinn-Notch ưu tiên xử lý cục bộ và không yêu cầu tài khoản Pinn-Notch, một số quyền có thể được thực hiện với dữ liệu cục bộ trên thiết bị. Điều này **không thay thế** các nghĩa vụ và quyền theo luật áp dụng, bao gồm GDPR/CCPA/CPRA hoặc Luật Bảo vệ dữ liệu cá nhân Việt Nam khi có áp dụng:
 
 - Để **xem dữ liệu nào đang được lưu**, hãy xem Mục 5 (Lưu trữ dữ liệu cục bộ) và Mục 2 (Bảng tổng quan).
 - Để **xóa dữ liệu cục bộ cụ thể**, dùng các công cụ xóa một chạm tại Mục 8 (lịch sử Spotlight, nhật ký chẩn đoán) hoặc chỉnh sửa/xóa từng mục trong `settings.json`.
-- Để **xóa dữ liệu cục bộ do ứng dụng quản lý**, hãy ngắt kết nối Spotify trong Cài đặt (nếu có), thoát V-Notch, rồi xóa `%APPDATA%\V-Notch\`, `%LOCALAPPDATA%\V-Notch\`, thư mục cũ `%LOCALAPPDATA%\VNotch\` nếu còn và thư mục cài đặt. Bao gồm cả lịch sử chat cách ly và các bản giữ lại do xung đột di chuyển dữ liệu (Mục 5). Cần kiểm tra riêng thư mục tạm Windows, cache WebView/trình duyệt, bản sao lưu và dữ liệu đã đăng trên GitHub; thao tác này không bảo đảm xóa các bản sao bên ngoài. Thao tác xóa sẽ làm mất cấu hình.
+- Để **xóa dữ liệu cục bộ do ứng dụng quản lý**, hãy ngắt kết nối Spotify trong Cài đặt (nếu có), thoát Pinn-Notch, rồi xóa `%APPDATA%\Pinn-Notch\`, `%LOCALAPPDATA%\Pinn-Notch\`, thư mục cũ `%LOCALAPPDATA%\VNotch\` nếu còn và thư mục cài đặt. Bao gồm cả lịch sử chat cách ly và các bản giữ lại do xung đột di chuyển dữ liệu (Mục 5). Cần kiểm tra riêng thư mục tạm Windows, cache WebView/trình duyệt, bản sao lưu và dữ liệu đã đăng trên GitHub; thao tác này không bảo đảm xóa các bản sao bên ngoài. Thao tác xóa sẽ làm mất cấu hình.
 
 Đối với phần dữ liệu giới hạn rời khỏi thiết bị của bạn để thực hiện một tính năng bạn đã bật (mô tả tại Mục 4), vai trò pháp lý của nhà phát triển và nhà cung cấp phải được xác định theo thực tế xử lý và luật áp dụng, không thể mặc nhiên kết luận mọi bên thứ ba là bên kiểm soát độc lập. Để thực hiện quyền đối với dữ liệu do các dịch vụ đó nắm giữ (ví dụ: một truy vấn tìm kiếm được cache bởi một instance front-end YouTube, hoặc một tra cứu dựa trên IP do `ipwho.is` thực hiện), vui lòng liên hệ trực tiếp với dịch vụ đó qua các liên kết tại Mục 4 ở trên.
 
-Nếu bạn có yêu cầu về quyền riêng tư mà các công cụ cục bộ nêu trên không giải quyết được, bạn có thể liên hệ nhà phát triển qua GitHub Issues (Mục 14). Nhà phát triển có thể xử lý thông tin bạn tự gửi trong Issues hoặc trao đổi trực tiếp; phải xem xét yêu cầu theo nghĩa vụ luật định. Không thể xóa dữ liệu do dịch vụ độc lập nắm giữ chỉ bằng việc gỡ V-Notch.
+Nếu bạn có yêu cầu về quyền riêng tư mà các công cụ cục bộ nêu trên không giải quyết được, bạn có thể liên hệ nhà phát triển qua GitHub Issues (Mục 14). Nhà phát triển có thể xử lý thông tin bạn tự gửi trong Issues hoặc trao đổi trực tiếp; phải xem xét yêu cầu theo nghĩa vụ luật định. Không thể xóa dữ liệu do dịch vụ độc lập nắm giữ chỉ bằng việc gỡ Pinn-Notch.
 
 ---
 
 ## 12. Sử dụng quốc tế
 
-V-Notch xử lý dữ liệu cục bộ trên thiết bị của bạn. Dữ liệu duy nhất đi qua mạng là dữ liệu yêu cầu chức năng giới hạn được mô tả trong Mục 4, gửi tới các dịch vụ bên thứ ba công khai, vốn có thể vận hành máy chủ ở nhiều quốc gia khác nhau. Truy vấn chức năng có thể truyền thông tin tới nhà cung cấp độc lập; nhà phát triển cũng có thể nhận dữ liệu cá nhân do bạn tự gửi qua GitHub Issues hoặc báo cáo bảo mật. Việc xử lý xuyên biên giới bởi bên thứ ba phụ thuộc hoạt động của họ và pháp luật áp dụng.
+Pinn-Notch xử lý dữ liệu cục bộ trên thiết bị của bạn. Dữ liệu duy nhất đi qua mạng là dữ liệu yêu cầu chức năng giới hạn được mô tả trong Mục 4, gửi tới các dịch vụ bên thứ ba công khai, vốn có thể vận hành máy chủ ở nhiều quốc gia khác nhau. Truy vấn chức năng có thể truyền thông tin tới nhà cung cấp độc lập; nhà phát triển cũng có thể nhận dữ liệu cá nhân do bạn tự gửi qua GitHub Issues hoặc báo cáo bảo mật. Việc xử lý xuyên biên giới bởi bên thứ ba phụ thuộc hoạt động của họ và pháp luật áp dụng.
 
 ---
 
@@ -392,13 +392,13 @@ Chính sách bảo mật này có thể được cập nhật định kỳ khi �
 ## 14. Liên hệ
 
 Mọi câu hỏi hoặc yêu cầu liên quan đến dữ liệu có thể gửi qua Issues. **Issues là công khai: không đăng mật khẩu, cookie phiên, token, hồ sơ cá nhân hay thông tin nhạy cảm.** Với vấn đề bảo mật, chỉ sử dụng kênh riêng tư nếu đã xác minh có công bố trên repo/hồ sơ người duy trì. Liên hệ tại:  
-[https://github.com/w0otdev/V-Notch/issues](https://github.com/w0otdev/V-Notch/issues)
+[https://github.com/Gimm17/Pinn-Notch/issues](https://github.com/Gimm17/Pinn-Notch/issues)
 
 <!-- Publication checklist: validate network behavior, settings toggles, log paths and local deletion against the exact release binary before publication. This comment is not a representation that verification has been completed. -->
 
 ### Bổ sung tùy chọn Privacy (03/10/2026)
 
-Có công tắc riêng cho AI trực tuyến, phụ đề, Spotify Canvas/đăng nhập và thời tiết. Ngoại tuyến ưu tiên chặn mà không xóa lựa chọn riêng. Tắt **Lưu lịch sử chat AI** sẽ ngừng đọc/ghi lịch sử V-Notch. Đổi tùy chọn xóa hội thoại/bản nháp đang ở bộ nhớ để tránh lưu lại về sau; tệp lịch sử cũ được giữ. Bật lại để truy cập và xóa hội thoại đã lưu. Tùy chọn không kiểm soát lưu trữ riêng của nhà cung cấp.
+Có công tắc riêng cho AI trực tuyến, phụ đề, Spotify Canvas/đăng nhập và thời tiết. Ngoại tuyến ưu tiên chặn mà không xóa lựa chọn riêng. Tắt **Lưu lịch sử chat AI** sẽ ngừng đọc/ghi lịch sử Pinn-Notch. Đổi tùy chọn xóa hội thoại/bản nháp đang ở bộ nhớ để tránh lưu lại về sau; tệp lịch sử cũ được giữ. Bật lại để truy cập và xóa hội thoại đã lưu. Tùy chọn không kiểm soát lưu trữ riêng của nhà cung cấp.
 
 ### Dịch trực tiếp — bổ sung ngày 09/10/2026
 
@@ -406,8 +406,8 @@ Dịch trực tiếp và Auto mặc định tắt. Khi bật và đã cài model
 
 Nhận diện ngôn ngữ và dịch dùng model đã cài riêng và được chọn trong Settings. Văn bản gốc/bản dịch không gửi đến API AI, ghi vào nhật ký hay lưu thành lịch sử dịch. Mặc định cache tối đa 128 kết quả trong RAM trong 30 phút; model được giải phóng sau 5 phút không dịch. Cài đặt nâng cao cho phép thay đổi giới hạn, tắt cache hoặc giữ model trong RAM. Chuyển model xóa cache dịch. Đóng popup xóa văn bản đang hiển thị. Bộ nhớ hoán đổi, crash dump của hệ điều hành và lưu trữ của app khác nằm ngoài kiểm soát của tính năng.
 
-Model không nằm trong bộ cài. Chỉ khi bấm **Tải model**, app mới kết nối HTTPS đến Hugging Face và các miền phân phối tệp của họ. Nhà cung cấp nhận IP và metadata yêu cầu mạng thông thường, không nhận vùng văn bản bạn chọn. Phiên bản, kích thước và SHA-256 của tệp được cố định. Chế độ chỉ nội bộ chặn tải; vẫn có thể nhập tệp offline. Model và phần tải dở lưu tại `%LOCALAPPDATA%\V-Notch\translation-models\<model-id>\`. **Xóa model** xóa các tệp model/phần tải dở đã biết.
+Model không nằm trong bộ cài. Chỉ khi bấm **Tải model**, app mới kết nối HTTPS đến Hugging Face và các miền phân phối tệp của họ. Nhà cung cấp nhận IP và metadata yêu cầu mạng thông thường, không nhận vùng văn bản bạn chọn. Phiên bản, kích thước và SHA-256 của tệp được cố định. Chế độ chỉ nội bộ chặn tải; vẫn có thể nhập tệp offline. Model và phần tải dở lưu tại `%LOCALAPPDATA%\Pinn-Notch\translation-models\<model-id>\`. **Xóa model** xóa các tệp model/phần tải dở đã biết.
 
-**Copy** ghi bản dịch được yêu cầu vào clipboard Windows, kèm các cờ loại trừ khỏi theo dõi, lịch sử và đồng bộ cloud. Lịch sử Clipboard của V-Notch tôn trọng các cờ này; app khác có thể bỏ qua chúng và đọc/lưu văn bản. Lựa chọn ngôn ngữ và trạng thái bật/Auto được lưu cùng cấu hình thông thường.
+**Copy** ghi bản dịch được yêu cầu vào clipboard Windows, kèm các cờ loại trừ khỏi theo dõi, lịch sử và đồng bộ cloud. Lịch sử Clipboard của Pinn-Notch tôn trọng các cờ này; app khác có thể bỏ qua chúng và đọc/lưu văn bản. Lựa chọn ngôn ngữ và trạng thái bật/Auto được lưu cùng cấu hình thông thường.
 
-Luồng đọc thử UI Automation tại nguồn sự kiện, phần tử đang focus và (khi nhấn phím tắt) phần tử dưới con trỏ, sau đó thử đọc vùng chọn từ ô Edit Windows gốc. Nhiều vùng chọn được ghép trong giới hạn 2.000 ký tự; thiếu tọa độ không làm mất văn bản hợp lệ. Khi người dùng nhấn Shift hai lần mà các bộ đọc chưa lấy được vùng chọn, app có thể gửi phím Copy đến app nguồn. Terminal được nhận diện dùng Ctrl+Insert thay cho Ctrl+C. Chỉ nội dung clipboard mới do tiến trình nguồn tạo cho yêu cầu này được dùng. App cố gắng khôi phục các định dạng clipboard cũ nếu chưa có lần copy mới; bỏ qua fallback nếu không sao lưu an toàn được clipboard. Bản sao tạm không được ghi vào lịch sử clipboard của V-Notch. Lịch sử Windows hoặc trình quản lý clipboard bên ngoài vẫn có thể nhận lần Copy do app nguồn tạo. Fallback không chạy tự động theo vùng chọn và không hỗ trợ Replace.
+Luồng đọc thử UI Automation tại nguồn sự kiện, phần tử đang focus và (khi nhấn phím tắt) phần tử dưới con trỏ, sau đó thử đọc vùng chọn từ ô Edit Windows gốc. Nhiều vùng chọn được ghép trong giới hạn 2.000 ký tự; thiếu tọa độ không làm mất văn bản hợp lệ. Khi người dùng nhấn Shift hai lần mà các bộ đọc chưa lấy được vùng chọn, app có thể gửi phím Copy đến app nguồn. Terminal được nhận diện dùng Ctrl+Insert thay cho Ctrl+C. Chỉ nội dung clipboard mới do tiến trình nguồn tạo cho yêu cầu này được dùng. App cố gắng khôi phục các định dạng clipboard cũ nếu chưa có lần copy mới; bỏ qua fallback nếu không sao lưu an toàn được clipboard. Bản sao tạm không được ghi vào lịch sử clipboard của Pinn-Notch. Lịch sử Windows hoặc trình quản lý clipboard bên ngoài vẫn có thể nhận lần Copy do app nguồn tạo. Fallback không chạy tự động theo vùng chọn và không hỗ trợ Replace.

@@ -31,18 +31,18 @@ internal sealed record SetupInstallCallbacks(
 
 internal static class SetupOperations
 {
-    private const string AppName = "V-Notch";
-    private const string AppExeName = "V-Notch.exe";
-    private const string Publisher = "w0otdev";
+    private const string AppName = "Pinn-Notch";
+    private const string AppExeName = "Pinn-Notch.exe";
+    private const string Publisher = "Gimm17";
 #pragma warning disable S1075 // Official project repository URL for Windows uninstall registry
-    private const string AppUrl = "https://github.com/w0otdev/V-Notch";
+    private const string AppUrl = "https://github.com/Gimm17/Pinn-Notch";
 #pragma warning restore S1075
-    private const string UninstallRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\V-Notch";
+    private const string UninstallRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Pinn-Notch";
 
     public static string GetDefaultInstallDirectory()
     {
         using var uninstallKey = Registry.CurrentUser.OpenSubKey(UninstallRegistryPath);
-        using var appKey = Registry.CurrentUser.OpenSubKey($@"Software\{AppName}");
+        using var appKey = Registry.CurrentUser.OpenSubKey($@"Software\Pinn-Notch");
         return SelectInstallDirectory(
             [uninstallKey?.GetValue("InstallLocation") as string, appKey?.GetValue("InstallDir") as string],
             Path.Combine(
@@ -396,7 +396,7 @@ internal static class SetupOperations
             uninstallKey.SetValue("QuietUninstallString", $"\"{installedExePath}\" --uninstall");
         }
 
-        using var appKey = openKey($@"Software\{AppName}");
+        using var appKey = openKey($@"Software\Pinn-Notch");
         appKey?.SetValue("InstallDir", installDirectory);
     }
 
@@ -424,7 +424,7 @@ internal static class SetupOperations
 
         try
         {
-            Registry.CurrentUser.DeleteSubKeyTree($@"Software\{AppName}", throwOnMissingSubKey: false);
+            Registry.CurrentUser.DeleteSubKeyTree($@"Software\Pinn-Notch", throwOnMissingSubKey: false);
         }
         catch (UnauthorizedAccessException ex)
         {

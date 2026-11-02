@@ -1,9 +1,9 @@
-# Third-party notices — V-Notch
+# Third-party notices — Pinn-Notch
 
 **Reviewed document date:** October 23, 2026
 **Status:** Attribution inventory; not a certification of license compliance. Reconcile the bundled release with its dependency lockfile, SBOM and actual included assets before distribution.
 
-V-Notch includes third-party components and assets listed below. Their licenses
+Pinn-Notch includes third-party components and assets listed below. Their licenses
 apply to those components and assets.
 
 ## YOLOX-Nano ONNX model
@@ -182,7 +182,7 @@ SOFTWARE.
 
 ### OverShifted/LiquidGlass — MIT
 
-Copyright (c) 2026 Sepehr Kalanaki (OverShifted). The adapted refraction formulas and noise in Shaders/LiquidGlassRefraction.hlsl, and its compiled .ps output, are based on this project. V-Notch contains a modified HLSL adaptation for its WPF rendering pipeline. License reference commit: 3797fa541c1f026c521a75885ee271f03bdf9f0f; the original adaptation commit is not recorded.
+Copyright (c) 2026 Sepehr Kalanaki (OverShifted). The adapted refraction formulas and noise in Shaders/LiquidGlassRefraction.hlsl, and its compiled .ps output, are based on this project. Pinn-Notch contains a modified HLSL adaptation for its WPF rendering pipeline. License reference commit: 3797fa541c1f026c521a75885ee271f03bdf9f0f; the original adaptation commit is not recorded.
 
 Complete upstream license: <https://raw.githubusercontent.com/OverShifted/LiquidGlass/3797fa541c1f026c521a75885ee271f03bdf9f0f/LICENSE>
 

@@ -207,14 +207,14 @@ public partial class SettingsWindow
     }
 
 #pragma warning disable S1075 // External community, project and donation URLs
-    private void SocialLink_Website_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://v-notch.vercel.app/");
+    private void SocialLink_Website_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
     private void SocialLink_GitHub_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
-    private void SocialLink_Facebook_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://www.facebook.com/rain.107/");
-    private void SocialLink_Discord_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://discord.com/users/298304189535092737");
-    private void DonatePaypal_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://www.paypal.com/paypalme/PhuocLe678");
+    private void SocialLink_Facebook_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
+    private void SocialLink_Discord_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/discussions");
+    private void DonatePaypal_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
     private void StarRepoButton_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
-    private void ProjectVertex_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/Vertex");
-    private void ProjectScrollV_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/w0otdev/Scroll-V");
+    private void ProjectVertex_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
+    private void ProjectScrollV_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch");
     private void ReportBug_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/issues/new");
     private void RequestFeature_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/issues/new?labels=enhancement&template=feature_request.md");
     private void Discussion_Click(object sender, RoutedEventArgs e) => SafeLauncher.TryOpenUrl("https://github.com/Gimm17/Pinn-Notch/discussions");
