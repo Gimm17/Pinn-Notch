@@ -1139,9 +1139,10 @@ public partial class ClipboardTray : UserControl, IDisposable
 
         // Section 1: Quick Actions
         AddMenu(menu, "clipboard.open", () => OpenEntryAsync(card));
-        if (card.Entry.Kind is ClipboardKind.File or ClipboardKind.Image)
+        if (card.Entry.Kind is ClipboardKind.File or ClipboardKind.Image || card.Entry.FileCount > 0)
         {
             AddMenu(menu, "clipboard.openInExplorer", () => OpenInExplorerAsync(card));
+            AddMenu(menu, "clipboard.shareQr", () => StartQrShareAsync(card));
         }
         AddMenu(menu, "clipboard.copy", () => CopyAsync(card));
         AddMenu(menu, card.Entry.IsPinned ? "clipboard.unpin" : "clipboard.pin", () => _controller.Store.UpdateAsync(card.Entry.Id, pinned: !card.Entry.IsPinned));
@@ -1322,6 +1323,7 @@ public partial class ClipboardTray : UserControl, IDisposable
             "copy" => TrayIconKind.Copy,
             "open" => TrayIconKind.Arrow,
             "openInExplorer" => TrayIconKind.Files,
+            "shareQr" => TrayIconKind.Share,
             "paste" => TrayIconKind.Shopping,
             "pin" or "unpin" => TrayIconKind.Pin,
             "archive" or "unarchive" => TrayIconKind.Archive,

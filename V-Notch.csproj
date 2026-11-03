@@ -68,6 +68,7 @@
     <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
     <PackageReference Include="AngleSharp" Version="1.8.2" />
     <PackageReference Include="YoutubeExplode" Version="6.6.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>

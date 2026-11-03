@@ -67,6 +67,7 @@ public partial class App : Application
             }
             catch { }
 
+            try { Services?.GetService<FileShareService>()?.StopShare(); } catch { }
             if (Services?.GetService<IMediaDetectionService>() is MediaDetectionService media)
                 await media.DrainShutdownAsync();
             if (Services is IAsyncDisposable asyncDisposable)

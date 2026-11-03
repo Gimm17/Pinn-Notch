@@ -30,6 +30,7 @@ public static class ServiceConfigurator
             new DispatcherService(Application.Current.Dispatcher));
         services.AddSingleton<IUpdateService, UpdateService>();
         services.AddSingleton<AppFileCleanupService>();
+        services.AddSingleton<FileShareService>();
         services.AddSingleton<IWeatherService, WeatherService>();
         services.AddSingleton<TaskbarIntegrationService>();
         services.AddSingleton<ISpotlightProvider, AppSearchProvider>();

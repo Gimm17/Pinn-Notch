@@ -1066,5 +1066,13 @@
   "settings.pinnMascotPosition.hint": "Pilih posisi peeking maskot Pinn di notch agar tidak menutupi tombol atau kontrol.",
   "settings.pinnMascotPosition.right": "Kanan (Di samping Baterai)",
   "settings.pinnMascotPosition.center": "Tengah (Center)",
-  "settings.pinnMascotPosition.left": "Kiri (Di samping Tab)"
+  "settings.pinnMascotPosition.left": "Kiri (Di samping Tab)",
+  "clipboard.shareQr": "Bagikan via QR Code",
+  "clipboard.shareQrStarting": "Menyiapkan server berbagi...",
+  "clipboard.shareQrReady": "Scan dengan kamera HP untuk mengunduh",
+  "clipboard.shareQrDownloading": "Sedang diunduh ke perangkat...",
+  "clipboard.shareQrCompleted": "Selesai diunduh!",
+  "clipboard.shareQrStop": "Hentikan Berbagi",
+  "clipboard.shareQrCopy": "Salin Tautan",
+  "clipboard.shareQrCopied": "Tautan Tersalin!"
 }

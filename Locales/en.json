@@ -1066,5 +1066,13 @@
   "settings.pinnMascotPosition.hint": "Choose where Pinn peeks on the notch so it never covers buttons or controls.",
   "settings.pinnMascotPosition.right": "Right (Beside Battery)",
   "settings.pinnMascotPosition.center": "Center",
-  "settings.pinnMascotPosition.left": "Left (Beside Tabs)"
+  "settings.pinnMascotPosition.left": "Left (Beside Tabs)",
+  "clipboard.shareQr": "Share via QR Code",
+  "clipboard.shareQrStarting": "Starting share server...",
+  "clipboard.shareQrReady": "Scan with phone camera to download",
+  "clipboard.shareQrDownloading": "Downloading to device...",
+  "clipboard.shareQrCompleted": "Download finished!",
+  "clipboard.shareQrStop": "Stop Sharing",
+  "clipboard.shareQrCopy": "Copy Link",
+  "clipboard.shareQrCopied": "Link Copied!"
 }

@@ -1257,5 +1257,85 @@
    </StackPanel>
   </Border>
  </Grid>
+
+  <!-- QR Code File Share Panel -->
+  <Grid x:Name="QrSharePanel" Visibility="Collapsed" Panel.ZIndex="120" Background="#90000000"
+        KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle">
+   <Border HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="500" MinWidth="400"
+           Background="#F5101016" BorderBrush="#35FFFFFF" BorderThickness="1.2"
+           CornerRadius="{StaticResource TrayRadiusLarge}" Padding="20">
+    <Border.Effect>
+     <DropShadowEffect BlurRadius="36" ShadowDepth="8" Direction="270" Color="Black" Opacity="0.85" RenderingBias="Performance"/>
+    </Border.Effect>
+    <Grid>
+     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+     </Grid.RowDefinitions>
+
+     <!-- Row 0: Header with close button -->
+     <Grid Grid.Row="0" Margin="0,0,0,14">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+       <local:TrayIcon Kind="Share" Width="16" Height="16" Margin="0,0,8,0" Foreground="{StaticResource TrayAccent}"/>
+       <TextBlock Text="{DynamicResource clipboard.shareQr}" FontSize="15" FontWeight="Bold" FontFamily="{StaticResource SFProDisplay}" Foreground="White"/>
+      </StackPanel>
+      <Button x:Name="CloseQrShareButton" HorizontalAlignment="Right" Style="{StaticResource CardActionButton}" Width="26" Height="26" Click="CloseQrShare_Click">
+       <Path Data="M3,3 L11,11 M11,3 L3,11" Stroke="White" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Button>
+     </Grid>
+
+     <!-- Row 1: File Info Banner -->
+     <Border Grid.Row="1" Background="#15FFFFFF" BorderBrush="#20FFFFFF" BorderThickness="1" CornerRadius="{StaticResource TrayRadiusMedium}" Padding="12,10" Margin="0,0,0,14">
+      <Grid>
+       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+       </Grid.ColumnDefinitions>
+       <local:TrayIcon Kind="Files" Width="22" Height="22" Margin="0,0,10,0" Foreground="#A0A0FF" VerticalAlignment="Center"/>
+       <StackPanel Grid.Column="1" VerticalAlignment="Center">
+        <TextBlock x:Name="QrShareFileName" Text="Filename.ext" FontSize="13" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+        <TextBlock x:Name="QrShareFileSize" Text="0 MB" FontSize="11.5" Foreground="{StaticResource TrayMutedForeground}" Margin="0,2,0,0"/>
+       </StackPanel>
+      </Grid>
+     </Border>
+
+     <!-- Row 2: QR Code Card & Loading state -->
+     <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="12" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,12">
+      <Grid Width="170" Height="170">
+       <Image x:Name="QrCodeImage" Width="170" Height="170" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+       <!-- Loading spinner / progress overlay when engine is starting or downloading -->
+       <Grid x:Name="QrLoadingOverlay" Background="#F0FFFFFF" Visibility="Visible">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+         <TextBlock x:Name="QrLoadingText" Text="Generating QR..." FontSize="12" FontWeight="SemiBold" Foreground="#333" TextAlignment="Center" TextWrapping="Wrap" Margin="10,0"/>
+         <ProgressBar x:Name="QrDownloadProgress" Width="120" Height="4" Margin="0,8,0,0" IsIndeterminate="True" Visibility="Collapsed"/>
+        </StackPanel>
+       </Grid>
+      </Grid>
+     </Border>
+
+     <!-- Row 3: Status hint, link & Action buttons -->
+     <StackPanel Grid.Row="3">
+      <TextBlock x:Name="QrStatusHint" Text="Scan with phone camera to download directly." FontSize="12" Foreground="{StaticResource TrayMutedForeground}" TextAlignment="Center" Margin="0,0,0,12"/>
+
+      <!-- Link bar with Copy button -->
+      <Border Background="#12FFFFFF" BorderBrush="#25FFFFFF" BorderThickness="1" CornerRadius="{StaticResource TrayRadiusSmall}" Padding="8,4" Margin="0,0,0,12">
+       <Grid>
+        <Grid.ColumnDefinitions>
+         <ColumnDefinition Width="*"/>
+         <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="QrShareUrlText" Text="https://..." FontSize="11" Foreground="#DDD" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="4,0,8,0"/>
+        <Button x:Name="CopyQrLinkButton" Grid.Column="1" Style="{StaticResource TrayButton}" Padding="10,4" Content="Copy Link" Click="CopyQrLink_Click"/>
+       </Grid>
+      </Border>
+
+      <!-- Bottom action button: Stop Sharing -->
+      <Button x:Name="StopQrShareButton" Style="{StaticResource TrayButton}" Background="{StaticResource TrayDestructive}" Foreground="White" Content="Stop Sharing" HorizontalAlignment="Center" Padding="18,6" Click="StopQrShare_Click"/>
+     </StackPanel>
+    </Grid>
+   </Border>
+  </Grid>
 </Grid>
 </UserControl>
