@@ -36,11 +36,13 @@ internal sealed partial class SpotlightSearchService
     private readonly EverythingSearchProvider? _everythingSearchProvider;
     private readonly AppSearchProvider[] _appSearchProviders;
     private readonly SystemFileSearchProvider[] _systemFileSearchProviders;
+    private readonly MultiDriveSearchProvider[] _multiDriveSearchProviders;
     private readonly SpotlightUsageStore? _usage;
 
     public bool IsWindowsSearchAvailable =>
         (_windowsSearchProvider?.IsAvailable ?? false) ||
-        (_everythingSearchProvider?.IsAvailable ?? false);
+        (_everythingSearchProvider?.IsAvailable ?? false) ||
+        (_multiDriveSearchProviders.Length > 0 && _multiDriveSearchProviders.Any(p => p.IsAvailable));
 
     public SpotlightSearchService(
         IEnumerable<ISpotlightProvider> providers,
@@ -53,6 +55,7 @@ internal sealed partial class SpotlightSearchService
         var deferredList = new List<ISpotlightProvider>(_providers.Length);
         var appProviders = new List<AppSearchProvider>(2);
         var sysFileProviders = new List<SystemFileSearchProvider>(2);
+        var multiDriveProviders = new List<MultiDriveSearchProvider>(2);
         Func<string, bool>? isExcludedDelegate = _usage != null
             ? path => _usage.Preferences.IsExcluded(path)
             : null;
@@ -85,17 +88,24 @@ internal sealed partial class SpotlightSearchService
             {
                 sysFileProviders.Add(sysFileProvider);
             }
+            else if (provider is MultiDriveSearchProvider multiDriveProvider)
+            {
+                multiDriveProviders.Add(multiDriveProvider);
+                if (isExcludedDelegate != null)
+                    multiDriveProvider.IsExcluded = isExcludedDelegate;
+            }
         }
 
         _instantProviders = instantList.ToArray();
         _deferredProviders = deferredList.ToArray();
         _appSearchProviders = appProviders.ToArray();
         _systemFileSearchProviders = sysFileProviders.ToArray();
+        _multiDriveSearchProviders = multiDriveProviders.ToArray();
     }
 
     internal Task WarmupAsync()
     {
-        int total = _appSearchProviders.Length + _systemFileSearchProviders.Length;
+        int total = _appSearchProviders.Length + _systemFileSearchProviders.Length + _multiDriveSearchProviders.Length;
         if (total == 0) return Task.CompletedTask;
 
         var tasks = new Task[total];
@@ -104,6 +114,8 @@ internal sealed partial class SpotlightSearchService
             tasks[idx++] = _appSearchProviders[i].WarmupAsync();
         for (int i = 0; i < _systemFileSearchProviders.Length; i++)
             tasks[idx++] = _systemFileSearchProviders[i].WarmupAsync();
+        for (int i = 0; i < _multiDriveSearchProviders.Length; i++)
+            tasks[idx++] = _multiDriveSearchProviders[i].WarmupAsync();
 
         return Task.WhenAll(tasks);
     }
