@@ -41,6 +41,7 @@ internal static partial class MediaWindowActivator
         ("deezer", MediaPlatform.Deezer, new[] { "Deezer" }),
         ("applemusic", MediaPlatform.AppleMusic, new[] { "AppleMusic" }),
         ("apple music", MediaPlatform.AppleMusic, new[] { "AppleMusic" }),
+        ("bitchord", MediaPlatform.Unknown, new[] { "BitChord" }),
     };
 
     private static readonly string[] CommonBrowserProcesses =

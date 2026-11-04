@@ -96,6 +96,32 @@ public partial class MainWindow
                string.Equals(info.MediaSource, "YouTube Music", StringComparison.OrdinalIgnoreCase);
     }
 
+    internal static bool IsBitChordTrack(MediaInfo? info)
+    {
+        if (info == null) return false;
+        return (info.SourceAppId != null && info.SourceAppId.Contains("BitChord", StringComparison.OrdinalIgnoreCase)) ||
+               (info.MediaSource != null && info.MediaSource.Contains("BitChord", StringComparison.OrdinalIgnoreCase)) ||
+               (info.SessionInstanceKey != null && info.SessionInstanceKey.Contains("BitChord", StringComparison.OrdinalIgnoreCase));
+    }
+
+    internal static bool ShouldFetchSyncedLyrics(MediaInfo? info)
+    {
+        if (info == null || string.IsNullOrWhiteSpace(info.CurrentTrack)) return false;
+        if (info.Platform == MediaPlatform.Spotify || IsYouTubeMusicTrack(info) || IsBitChordTrack(info))
+            return true;
+        if (info.Platform is MediaPlatform.AppleMusic or MediaPlatform.Tidal or MediaPlatform.Deezer or MediaPlatform.SoundCloud)
+            return true;
+        if (!string.IsNullOrWhiteSpace(info.CurrentArtist) &&
+            !info.CurrentArtist.Equals("YouTube", StringComparison.OrdinalIgnoreCase) &&
+            !info.CurrentArtist.Equals("Browser", StringComparison.OrdinalIgnoreCase) &&
+            !info.CurrentArtist.Equals("Google Chrome", StringComparison.OrdinalIgnoreCase) &&
+            !info.CurrentArtist.Equals("Microsoft Edge", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
     private async Task FetchLyricsForTrack(MediaInfo info)
     {
         if (!CanFetchSyncedText) return;
@@ -115,7 +141,7 @@ public partial class MainWindow
         _syncedTextSource = SyncedTextSource.SpotifyLyrics;
 
         bool isYtMusic = IsYouTubeMusicTrack(info);
-        if (info.Platform != MediaPlatform.Spotify && !isYtMusic)
+        if (!ShouldFetchSyncedLyrics(info))
         {
             ResetSpotifyCanvas();
             HideLyricsWidget();
@@ -1277,7 +1303,7 @@ public partial class MainWindow
     internal void CheckAndRetryYouTubeSubtitlesOnExpand()
     {
         if (!CanFetchSyncedText) return;
-        if (_currentMediaInfo != null && (_currentMediaInfo.Platform == MediaPlatform.Spotify || IsYouTubeMusicTrack(_currentMediaInfo)))
+        if (_currentMediaInfo != null && ShouldFetchSyncedLyrics(_currentMediaInfo))
         {
             FetchLyricsForTrack(_currentMediaInfo).SafeFireAndForget("LYRICS-EXPAND");
             return;

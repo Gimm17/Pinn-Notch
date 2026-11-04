@@ -2000,7 +2000,7 @@ public partial class MainWindow : Window
                 }
             }
             else if (_currentMediaInfo != null
-                     && _currentMediaInfo.Platform == MediaPlatform.Spotify
+                     && ShouldFetchSyncedLyrics(_currentMediaInfo)
                      && !string.IsNullOrEmpty(_currentMediaInfo.CurrentTrack)
                      && !_isLyricsActive)
             {

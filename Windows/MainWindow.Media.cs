@@ -157,8 +157,8 @@ public partial class MainWindow
         UpdatePictureInPictureBadge(info.IsPictureInPicture && (result.HasRealTrack || info.IsAnyMediaPlaying));
 
         bool isYouTubeMusic = result.HasRealTrack && IsYouTubeMusicTrack(info);
-        bool isSpotify = result.HasRealTrack && (MediaPlatformExtensions.ParsePlatform(renderedSource) == MediaPlatform.Spotify || isYouTubeMusic);
-        bool isYouTube = result.HasRealTrack && !isYouTubeMusic && (
+        bool shouldFetchLyrics = result.HasRealTrack && ShouldFetchSyncedLyrics(info);
+        bool isYouTube = result.HasRealTrack && !shouldFetchLyrics && (
             MediaPlatformExtensions.ParsePlatform(renderedSource) is MediaPlatform.YouTube or MediaPlatform.Browser ||
             !string.IsNullOrEmpty(info.YouTubeVideoId) ||
             info.Platform == MediaPlatform.YouTube ||
@@ -169,7 +169,7 @@ public partial class MainWindow
         if (result.IsNewTrack)
         {
             ClearLyrics();
-            if (isSpotify)
+            if (shouldFetchLyrics)
             {
                 FetchLyricsForTrack(info).SafeFireAndForget("LYRICS");
             }
@@ -180,7 +180,7 @@ public partial class MainWindow
         }
         else
         {
-            if (isSpotify && _isExpanded && string.IsNullOrEmpty(_lyricsTrackKey) && (_currentLyrics == null || _currentLyrics.Count == 0))
+            if (shouldFetchLyrics && _isExpanded && string.IsNullOrEmpty(_lyricsTrackKey) && (_currentLyrics == null || _currentLyrics.Count == 0))
             {
                 FetchLyricsForTrack(info).SafeFireAndForget("LYRICS");
             }

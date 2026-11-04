@@ -252,6 +252,27 @@ public sealed class MainWindowLyricsPresentationTests
         Assert.Equal(expected, Invoke(window, "FindLyricIndex", TimeSpan.FromSeconds(seconds)));
     });
 
+    [Fact]
+    public void BitChordAndGeneralMusicTracksAreIdentifiedForSyncedLyrics() => SharedStaTestRunner.Run(() =>
+    {
+        var bitChordInfo1 = new MediaInfo { CurrentTrack = "Ini Abadi", CurrentArtist = "Perunggu", SourceAppId = "BitChord.exe" };
+        var bitChordInfo2 = new MediaInfo { CurrentTrack = "Ini Abadi", CurrentArtist = "Perunggu", MediaSource = "BitChord" };
+        var bitChordInfo3 = new MediaInfo { CurrentTrack = "Ini Abadi", CurrentArtist = "Perunggu", SessionInstanceKey = "com.bitchord.desktop" };
+        var genericSong = new MediaInfo { CurrentTrack = "Bohemian Rhapsody", CurrentArtist = "Queen" };
+        var youtubeBrowser = new MediaInfo { CurrentTrack = "Cat Video", CurrentArtist = "YouTube", MediaSource = "Browser" };
+
+        Assert.True(MainWindow.IsBitChordTrack(bitChordInfo1));
+        Assert.True(MainWindow.IsBitChordTrack(bitChordInfo2));
+        Assert.True(MainWindow.IsBitChordTrack(bitChordInfo3));
+        Assert.False(MainWindow.IsBitChordTrack(genericSong));
+
+        Assert.True(MainWindow.ShouldFetchSyncedLyrics(bitChordInfo1));
+        Assert.True(MainWindow.ShouldFetchSyncedLyrics(bitChordInfo2));
+        Assert.True(MainWindow.ShouldFetchSyncedLyrics(genericSong));
+        Assert.False(MainWindow.ShouldFetchSyncedLyrics(youtubeBrowser));
+        Assert.False(MainWindow.ShouldFetchSyncedLyrics(new MediaInfo { CurrentTrack = "" }));
+    });
+
     private static GreetingAcceptanceTests.MainWindowFixture CreateFixture() => new("en", greeting: false,
         settings => { settings.EnableLocalOnlyMode = true; settings.DisableMouseLeaveAutoClose = true; },
         services => services.AddSingleton<IMediaDetectionService>(new FakeMediaDetectionService()));

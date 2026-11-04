@@ -56,6 +56,13 @@ internal static partial class MediaSourceClassifier
     {
         if (string.IsNullOrEmpty(sessionSourceApp)) return;
 
+        if (sessionSourceApp.Contains("BitChord", StringComparison.OrdinalIgnoreCase) ||
+            sessionSourceApp.Contains("com.bitchord.desktop", StringComparison.OrdinalIgnoreCase))
+        {
+            info.MediaSource = "BitChord";
+            return;
+        }
+
         ReadOnlySpan<char> span = sessionSourceApp.AsSpan();
         vn_media_source_classify_app_id(span, span.Length, out int platVal, out byte isSpotifyPlaying, out byte setRunning);
         var platform = (MediaPlatform)platVal;
@@ -110,6 +117,12 @@ internal static partial class MediaSourceClassifier
                 break;
 
             if (title == null) continue;
+            if (title.Equals("BitChord", StringComparison.OrdinalIgnoreCase) ||
+                title.StartsWith("BitChord -", StringComparison.OrdinalIgnoreCase) ||
+                title.EndsWith("- BitChord", StringComparison.OrdinalIgnoreCase))
+            {
+                info.MediaSource = "BitChord";
+            }
             ReadOnlySpan<char> wSpan = title.AsSpan();
             ReadOnlySpan<char> curTrack = (info.CurrentTrack ?? string.Empty).AsSpan();
             int cap = wSpan.Length + 16;

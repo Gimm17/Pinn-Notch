@@ -121,7 +121,7 @@ public sealed class ElasticSliderPresentationTests
     {
         const string template = """
             <ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="clr-namespace:VNotch.Controls;assembly=V-Notch"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="clr-namespace:VNotch.Controls;assembly=Pinn-Notch"
                 TargetType="controls:ElasticSlider">
               <Border x:Name="PART_Root"><Grid>
                 <Border x:Name="PART_Fill" Width="0" HorizontalAlignment="Left"/>
