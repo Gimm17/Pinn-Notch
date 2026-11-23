@@ -23,6 +23,18 @@ public sealed class TaskbarIntegrationService : IDisposable
     private static TaskbarIntegrationService? _instance;
     public static TaskbarIntegrationService? Instance => _instance;
 
+    private static int _trayInteractionCount;
+    public static bool IsTrayInteractionActive => Volatile.Read(ref _trayInteractionCount) > 0;
+    public static bool IsTaskbarHiddenByFreeze => _instance?._currentSettings is { EnableFreezeTaskbar: true, TaskbarFreezeMode: "HideSuppress" };
+
+    public static void BeginTrayInteraction() => Interlocked.Increment(ref _trayInteractionCount);
+
+    public static void EndTrayInteraction()
+    {
+        if (Interlocked.Decrement(ref _trayInteractionCount) < 0)
+            Interlocked.Exchange(ref _trayInteractionCount, 0);
+    }
+
     private static readonly bool _isWindows11 = Environment.OSVersion.Version.Build >= 22000;
     private static Process? _managedTranslucentTbProcess;
 
@@ -351,8 +363,8 @@ public sealed class TaskbarIntegrationService : IDisposable
     {
         if (_currentSettings == null) return;
 
-        // Keep Freeze Taskbar active against Windows Shell or app redraws
-        if (_currentSettings.EnableFreezeTaskbar)
+        // Keep Freeze Taskbar active against Windows Shell or app redraws unless UIA tray inspection is temporarily exposing it.
+        if (_currentSettings.EnableFreezeTaskbar && !IsTrayInteractionActive)
         {
             ApplyFreezeSettings(_currentSettings);
         }

@@ -36,6 +36,7 @@ public partial class DockWindow : Window
         public SpringValue TransYSpring = new(0.0);
         public bool IsPinned { get; set; } = true;
         public string[] ProcessNames { get; set; } = Array.Empty<string>();
+        public string ExePath { get; set; } = "";
         public IntPtr WindowHwnd { get; set; } = IntPtr.Zero;
         public object? Tag { get; set; }
         public bool IsRunning { get; set; }
@@ -81,6 +82,12 @@ public partial class DockWindow : Window
     private long _revealStartTick;
     private long _hideStartTick;
     private AppDrawerWindow? _appDrawer;
+    private SystemTrayPopupWindow? _systemTrayPopup;
+    private bool _isContextMenuOpen;
+    private bool _isTrayMenuHoldActive;
+    private IReadOnlyList<TrayIconItem> _cachedTrayIcons = Array.Empty<TrayIconItem>();
+    private long _lastTrayCacheTicks;
+    private int _lastLoggedTrayCount = -1;
 
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
@@ -210,6 +217,7 @@ public partial class DockWindow : Window
     private void DockWindow_Loaded(object sender, RoutedEventArgs e)
     {
         RepositionAtBottom();
+        InitializeDockLiquidGlass();
         _overlapMonitor.TriggerRecheck();
     }
 
@@ -324,9 +332,10 @@ public partial class DockWindow : Window
             {
                 // Desktop PC or AC connected
                 BatteryFill.Width = 15.6;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x00, 0xA2, 0xED));
+                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));
                 BatteryChargingBolt.Visibility = Visibility.Visible;
                 BatteryPercentText.Text = "AC";
+                BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
                 BatteryWidget.ToolTip = "Daya Listrik AC (Desktop / Wall Plug / Dock)\n(Klik untuk Pengaturan Daya)";
                 return;
             }
@@ -341,8 +350,8 @@ public partial class DockWindow : Window
             if (info.IsCharging || info.IsPluggedIn)
             {
                 BatteryChargingBolt.Visibility = Visibility.Visible;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x30, 0xD1, 0x58)); // Apple Battery Green
-                BatteryPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x22));
+                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x4A, 0xDE, 0x80)); // Luminous Emerald Green
+                BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
                 BatteryWidget.ToolTip = $"Baterai: {percent}%\nStatus: Sedang Mengisi Daya (Charging)\nMode: Terhubung Listrik (AC Adapter / Dock)\n\n(Klik untuk Pengaturan Daya)";
             }
             else
@@ -350,13 +359,13 @@ public partial class DockWindow : Window
                 BatteryChargingBolt.Visibility = Visibility.Collapsed;
                 if (percent <= 20)
                 {
-                    BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0x3B, 0x30));
-                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0xFF, 0x3B, 0x30));
+                    BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71));
+                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71));
                 }
                 else
                 {
-                    BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x30, 0x30, 0x38));
-                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x22));
+                    BatteryFill.Background = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
+                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
                 }
 
                 string remTime = info.RemainingMinutes > 0 ? $"{info.RemainingMinutes / 60}j {info.RemainingMinutes % 60}m" : "Menghitung...";
@@ -402,9 +411,9 @@ public partial class DockWindow : Window
                 else
                     VolumeIcon.Text = "\uE995"; // High
 
-                VolumeIcon.Foreground = new SolidColorBrush(Color.FromRgb(0x30, 0x30, 0x38));
+                VolumeIcon.Foreground = new SolidColorBrush(Color.FromArgb(0xD8, 0xFF, 0xFF, 0xFF));
                 VolumePercentText.Text = $"{volPercent}%";
-                VolumePercentText.Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x22));
+                VolumePercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
                 VolumeWidget.ToolTip = $"Volume Master: {volPercent}%\n• Klik untuk Mute / Unmute\n• Scroll mouse untuk atur volume";
             }
         }
@@ -572,18 +581,18 @@ public partial class DockWindow : Window
 
         if (isActive)
         {
-            item.Indicator.Background = new SolidColorBrush(Color.FromRgb(0x00, 0xA2, 0xED));
+            item.Indicator.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF));
             item.Indicator.Effect = new DropShadowEffect 
             { 
-                Color = Color.FromRgb(0x00, 0xA2, 0xED), 
-                BlurRadius = 6, 
+                Color = Color.FromRgb(0x38, 0xBD, 0xF8), 
+                BlurRadius = 8, 
                 ShadowDepth = 0, 
-                Opacity = 0.8 
+                Opacity = 0.85 
             };
         }
         else
         {
-            item.Indicator.Background = new SolidColorBrush(Color.FromRgb(0x32, 0x32, 0x3C));
+            item.Indicator.Background = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
             item.Indicator.Effect = null;
         }
     }
@@ -592,40 +601,40 @@ public partial class DockWindow : Window
     {
         var grid = new Grid
         {
-            Width = 46,
-            Height = 54,
-            Margin = new Thickness(7, 0, 7, 0),
+            Width = 44,
+            Height = 52,
+            Margin = new Thickness(6, 0, 6, 0),
             Cursor = Cursors.Hand,
             Background = Brushes.Transparent,
             Tag = app.Key
         };
 
-        var scale = new ScaleTransform(1.0, 1.0, 23, 46);
+        var scale = new ScaleTransform(1.0, 1.0, 22, 44);
         var trans = new TranslateTransform(0, 0);
         grid.RenderTransform = new TransformGroup
         {
             Children = new TransformCollection { scale, trans }
         };
 
-        // Squircle Container Border
+        // Smoked Dark Glass Squircle Container
         var squircleBorder = new Border
         {
-            Width = 46,
-            Height = 46,
-            CornerRadius = new CornerRadius(13),
+            Width = 44,
+            Height = 44,
+            CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
             BorderThickness = new Thickness(1),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF)),
             Background = new LinearGradientBrush(
-                Color.FromArgb(0xEE, 0xFF, 0xFF, 0xFF),
-                Color.FromArgb(0xCC, 0xF0, 0xF0, 0xF6),
+                Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF),
+                Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF),
                 90.0)
         };
         squircleBorder.Effect = new DropShadowEffect
         {
             BlurRadius = 8,
             Color = Colors.Black,
-            Opacity = 0.14,
+            Opacity = 0.22,
             ShadowDepth = 2,
             Direction = 270
         };
@@ -635,8 +644,8 @@ public partial class DockWindow : Window
         {
             var iconImg = new Image
             {
-                Width = 28,
-                Height = 28,
+                Width = 26,
+                Height = 26,
                 Source = app.Icon,
                 Stretch = Stretch.Uniform,
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -647,14 +656,13 @@ public partial class DockWindow : Window
         }
         else
         {
-            // Fallback: initial letter in modern font
             string initial = string.IsNullOrWhiteSpace(app.Title) ? "?" : app.Title[0].ToString().ToUpperInvariant();
             var text = new TextBlock
             {
                 Text = initial,
-                FontSize = 18,
+                FontSize = 17,
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x50)),
+                Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF)),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -662,25 +670,18 @@ public partial class DockWindow : Window
         }
         grid.Children.Add(squircleBorder);
 
-        // Active Glow Border
+        // Subtle Frosted Active Halo
         var activeGlow = new Border
         {
-            Width = 46,
-            Height = 46,
-            CornerRadius = new CornerRadius(13),
+            Width = 44,
+            Height = 44,
+            CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
-            BorderBrush = new SolidColorBrush(Color.FromRgb(0x00, 0xA2, 0xED)),
-            BorderThickness = new Thickness(2),
-            Background = new SolidColorBrush(Color.FromArgb(0x14, 0x00, 0xA2, 0xED)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(0x75, 0xFF, 0xFF, 0xFF)),
+            BorderThickness = new Thickness(1.2),
+            Background = new SolidColorBrush(Color.FromArgb(0x16, 0xFF, 0xFF, 0xFF)),
             IsHitTestVisible = false,
             Opacity = 0.0
-        };
-        activeGlow.Effect = new DropShadowEffect
-        {
-            Color = Color.FromRgb(0x00, 0xA2, 0xED),
-            BlurRadius = 10,
-            ShadowDepth = 0,
-            Opacity = 0.55
         };
         grid.Children.Add(activeGlow);
 
@@ -690,7 +691,7 @@ public partial class DockWindow : Window
             Width = 5,
             Height = 5,
             CornerRadius = new CornerRadius(2.5),
-            Background = new SolidColorBrush(Color.FromRgb(0x32, 0x32, 0x3C)),
+            Background = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF)),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(0, 0, 0, 1),
@@ -708,6 +709,7 @@ public partial class DockWindow : Window
             Title = app.Title,
             IsPinned = false,
             WindowHwnd = app.Hwnd,
+            ExePath = app.ExePath,
             Tag = app.Key,
             ProcessNames = new[] { app.ProcessName }
         };
@@ -717,6 +719,12 @@ public partial class DockWindow : Window
             e.Handled = true;
             AnimateBounce(grid);
             DynamicApp_Click(state);
+        };
+
+        grid.MouseRightButtonUp += (s, e) =>
+        {
+            e.Handled = true;
+            ShowAppContextMenu(state);
         };
 
         // Entrance fade-in animation
@@ -801,6 +809,7 @@ public partial class DockWindow : Window
             if (existing != null)
             {
                 existing.WindowHwnd = app.Hwnd;
+                existing.ExePath = app.ExePath;
                 existing.Title = app.Title;
                 SetItemActiveState(existing, isRunning: true, isActive: app.IsActive);
             }
@@ -835,9 +844,11 @@ public partial class DockWindow : Window
         if (FullscreenDetector.IsForegroundWindowFullscreen(hwnd, IntPtr.Zero))
         {
             _isFullscreenAppActive = true;
+            SetDockGlassPaused(true);
             return;
         }
         _isFullscreenAppActive = false;
+        SetDockGlassPaused(_isDockSlidDown);
 
         // 2. Instant 0ms event-driven active state switch on UI thread
         Win32Interop.GetWindowThreadProcessId(hwnd, out uint pid);
@@ -1071,6 +1082,22 @@ public partial class DockWindow : Window
 
                 var unpinnedList = unpinnedMap.Values.Take(10).ToList();
 
+                long nowTicks = Environment.TickCount64;
+                if (nowTicks - _lastTrayCacheTicks >= 4000)
+                {
+                    _lastTrayCacheTicks = nowTicks;
+                    try
+                    {
+                        _cachedTrayIcons = SystemTrayService.EnumerateLiveTrayIcons();
+                        if (_cachedTrayIcons.Count != _lastLoggedTrayCount && RuntimeLog.IsEnabled(LogLevel.Info))
+                        {
+                            _lastLoggedTrayCount = _cachedTrayIcons.Count;
+                            RuntimeLog.Info("TRAY", () => $"Live system tray icons cached: {_cachedTrayIcons.Count}");
+                        }
+                    }
+                    catch { }
+                }
+
                 Dispatcher.BeginInvoke(() =>
                 {
                     if (_items.Count >= 7)
@@ -1272,8 +1299,8 @@ public partial class DockWindow : Window
             if (screen == null) return null;
             double scale = MonitorSelection.GetScale(screen);
 
-            double dockWidthDip = ActualWidth > 0 ? ActualWidth : 580;
-            double pillHeightDip = 66.0;
+            double dockWidthDip = ActualWidth > 0 ? ActualWidth : 600;
+            double pillHeightDip = 64.0;
             double dockWidthPx = dockWidthDip * scale;
             double pillHeightPx = pillHeightDip * scale;
 
@@ -1282,7 +1309,7 @@ public partial class DockWindow : Window
             double screenBottom = screen.Bounds.Bottom;
 
             double dockLeftPx = screenLeft + (screenWidth - dockWidthPx) / 2.0;
-            double pillBottomPx = screenBottom - (12.0 * scale);
+            double pillBottomPx = screenBottom - (10.0 * scale);
             double pillTopPx = pillBottomPx - pillHeightPx;
 
             // Stable resting bounds (immune to slide-down animations)
@@ -1411,7 +1438,11 @@ public partial class DockWindow : Window
         {
             var settings = _settingsService.Load();
             bool shouldHide = false;
-            if (settings.DockAutoHideMode == "Always")
+            if (_isContextMenuOpen || _isTrayMenuHoldActive || (_systemTrayPopup?.IsVisible == true) || (_appDrawer?.IsVisible == true))
+            {
+                shouldHide = false;
+            }
+            else if (settings.DockAutoHideMode == "Always")
             {
                 shouldHide = !_isRevealedByMouse;
             }
@@ -1444,6 +1475,7 @@ public partial class DockWindow : Window
     {
         // Adaptive Polling: 5 seconds when hidden under the edge, 1.5 seconds when active
         _procCheckTimer.Interval = hide ? TimeSpan.FromSeconds(5) : TimeSpan.FromMilliseconds(1500);
+        SetDockGlassPaused(hide || _isFullscreenAppActive);
 
         var animDuration = TimeSpan.FromMilliseconds(220);
         var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
@@ -1837,6 +1869,287 @@ public partial class DockWindow : Window
 
     #endregion
 
+    #region System Tray Flyout & Taskbar-Style Context Menus
+
+    private void SystemTrayButton_Click(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        ToggleSystemTrayPopup();
+    }
+
+    private void ToggleSystemTrayPopup()
+    {
+        if (_systemTrayPopup == null)
+        {
+            _systemTrayPopup = new SystemTrayPopupWindow();
+            _systemTrayPopup.TrayInteractionStateChanged += active =>
+            {
+                _isTrayMenuHoldActive = active;
+                UpdateDockSlideState();
+            };
+            _systemTrayPopup.PopupClosed += () =>
+            {
+                AnimateTrayChevron(0.0);
+                UpdateDockSlideState();
+            };
+        }
+
+        if (_systemTrayPopup.IsVisible)
+        {
+            _systemTrayPopup.CloseWithAnimation();
+            return;
+        }
+
+        try
+        {
+            Point btnRel = SystemTrayButton.TranslatePoint(new Point(SystemTrayButton.ActualWidth * 0.5, 0), this);
+            Point pillRel = DockPill.TranslatePoint(new Point(0, 0), this);
+            double anchorCenterXDip = Left + btnRel.X;
+            double dockPillTopDip = Top + pillRel.Y;
+
+            int? dockTopPx = null;
+            try
+            {
+                Point screenPillTop = DockPill.PointToScreen(new Point(0, 0));
+                dockTopPx = (int)Math.Round(screenPillTop.Y);
+            }
+            catch { }
+
+            AnimateTrayChevron(180.0);
+            _systemTrayPopup.ShowAt(anchorCenterXDip, dockPillTopDip, dockTopPx, _cachedTrayIcons);
+            UpdateDockSlideState();
+        }
+        catch (Exception ex)
+        {
+            RuntimeLog.Warn("DOCK", $"Failed to position SystemTrayPopup: {ex.Message}");
+        }
+    }
+
+    private void AnimateTrayChevron(double targetAngle)
+    {
+        if (SystemTrayChevronRotate == null) return;
+        var anim = new DoubleAnimation(targetAngle, TimeSpan.FromMilliseconds(180))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        SystemTrayChevronRotate.BeginAnimation(RotateTransform.AngleProperty, anim);
+    }
+
+    private void PinnedApp_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not Grid grid) return;
+
+        DockItemState? item;
+        lock (_items)
+        {
+            item = _items.FirstOrDefault(i => ReferenceEquals(i.Grid, grid));
+        }
+        if (item != null)
+            ShowAppContextMenu(item);
+    }
+
+    private void ShowAppContextMenu(DockItemState item)
+    {
+        var menu = CreateDockContextMenu();
+
+        if (ReferenceEquals(item.Grid, ItemSettings))
+        {
+            menu.Items.Add(CreateDockMenuItem("Pengaturan Pinn-Notch", "\uE713", () => AppSettings_Click(ItemSettings, null!)));
+            menu.Items.Add(CreateDockMenuItem("Pengaturan Windows", "\uE770", () =>
+            {
+                try { Process.Start(new ProcessStartInfo("ms-settings:") { UseShellExecute = true }); } catch { }
+            }));
+            menu.Items.Add(new Separator { Style = (Style)FindResource("DockGlassSeparator") });
+            menu.Items.Add(CreateDockMenuItem("Keluar dari Pinn-Notch (Exit)", "\uE7E8", () => _ = App.RequestShutdownAsync(), isDestructive: true));
+
+            OpenDockContextMenu(menu, item.Grid);
+            return;
+        }
+
+        menu.Items.Add(CreateDockMenuItem($"Buka / Fokus {item.Title}", "\uE8A7", () => ActivateDockItem(item)));
+
+        if (item.IsPinned)
+        {
+            if (ReferenceEquals(item.Grid, ItemExplorer))
+            {
+                menu.Items.Add(CreateDockMenuItem("Jendela Explorer Baru", "\uE8B7", () =>
+                {
+                    try { Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true }); } catch { }
+                }));
+            }
+            else if (ReferenceEquals(item.Grid, ItemBrowser))
+            {
+                menu.Items.Add(CreateDockMenuItem("Tab Browser Baru", "\uE710", () =>
+                {
+                    try { Process.Start(new ProcessStartInfo("https://www.google.com") { UseShellExecute = true }); } catch { }
+                }));
+            }
+            else if (ReferenceEquals(item.Grid, ItemNotes))
+            {
+                menu.Items.Add(CreateDockMenuItem("Catatan Baru (Notepad)", "\uE70F", () =>
+                {
+                    try { Process.Start(new ProcessStartInfo("notepad.exe") { UseShellExecute = true }); } catch { }
+                }));
+            }
+        }
+
+        IntPtr targetHwnd = !item.IsPinned ? item.WindowHwnd : FindExistingAppWindow(item.ProcessNames);
+        if (targetHwnd != IntPtr.Zero && IsWindow(targetHwnd))
+        {
+            bool isMinimized = Win32Interop.IsIconic(targetHwnd);
+            menu.Items.Add(CreateDockMenuItem(isMinimized ? "Pulihkan Jendela (Restore)" : "Perkecil Jendela (Minimize)",
+                isMinimized ? "\uE923" : "\uE921", () =>
+                {
+                    if (Win32Interop.IsIconic(targetHwnd))
+                    {
+                        Win32Interop.ShowWindow(targetHwnd, Win32Interop.SW_RESTORE);
+                        Win32Interop.SetForegroundWindow(targetHwnd);
+                    }
+                    else
+                    {
+                        Win32Interop.ShowWindow(targetHwnd, SW_MINIMIZE);
+                    }
+                    CheckRunningApps();
+                }));
+        }
+
+        var trayMatch = SystemTrayService.FindMatchingTrayIcon(_cachedTrayIcons, item.ExePath, item.ProcessNames);
+        if (trayMatch != null)
+        {
+            menu.Items.Add(CreateDockMenuItem("Menu System Tray", "\uE712", async () =>
+            {
+                _isTrayMenuHoldActive = true;
+                UpdateDockSlideState();
+                try
+                {
+                    int ax = 0, ay = 0;
+                    int? dockTopPx = null;
+                    try
+                    {
+                        Point pt = item.Grid.PointToScreen(new Point(item.Grid.ActualWidth * 0.5, 0));
+                        ax = (int)Math.Round(pt.X);
+                        ay = (int)Math.Round(pt.Y);
+                        dockTopPx = (int)Math.Round(DockPill.PointToScreen(new Point(0, 0)).Y);
+                    }
+                    catch { }
+                    await SystemTrayService.InteractWithTrayIconAsync(trayMatch, contextMenu: true, ax, ay, dockTopPx);
+                }
+                finally
+                {
+                    _isTrayMenuHoldActive = false;
+                    UpdateDockSlideState();
+                }
+            }));
+        }
+
+        string exeToOpen = !string.IsNullOrEmpty(item.ExePath) ? item.ExePath : (trayMatch?.ExecutablePath ?? "");
+        if (!string.IsNullOrEmpty(exeToOpen) && System.IO.File.Exists(exeToOpen))
+        {
+            menu.Items.Add(CreateDockMenuItem("Buka Lokasi File", "\uED25", () => SystemTrayService.OpenFileLocation(exeToOpen)));
+        }
+
+        bool canExit = item.IsRunning || (targetHwnd != IntPtr.Zero) || (trayMatch != null && !trayMatch.IsOwnProcess);
+        if (canExit)
+        {
+            menu.Items.Add(new Separator { Style = (Style)FindResource("DockGlassSeparator") });
+            menu.Items.Add(CreateDockMenuItem($"Tutup {item.Title} (Exit)", "\uE8BB", () =>
+            {
+                SystemTrayService.CloseApplicationGracefully(exeToOpen, item.ProcessNames, targetHwnd);
+                _fastCheckDebouncer.Debounce(CheckRunningApps);
+            }));
+            menu.Items.Add(CreateDockMenuItem("Paksa Tutup (End Task)", "\uE711", () =>
+            {
+                SystemTrayService.ForceKillApplication(exeToOpen, item.ProcessNames, targetHwnd);
+                _fastCheckDebouncer.Debounce(CheckRunningApps);
+            }, isDestructive: true));
+        }
+
+        OpenDockContextMenu(menu, item.Grid);
+    }
+
+    private void ActivateDockItem(DockItemState item)
+    {
+        if (!item.IsPinned)
+        {
+            DynamicApp_Click(item);
+            return;
+        }
+        if (ReferenceEquals(item.Grid, ItemExplorer)) AppExplorer_Click(ItemExplorer, null!);
+        else if (ReferenceEquals(item.Grid, ItemBrowser)) AppBrowser_Click(ItemBrowser, null!);
+        else if (ReferenceEquals(item.Grid, ItemChat)) AppChat_Click(ItemChat, null!);
+        else if (ReferenceEquals(item.Grid, ItemMusic)) AppMusic_Click(ItemMusic, null!);
+        else if (ReferenceEquals(item.Grid, ItemNotes)) AppNotes_Click(ItemNotes, null!);
+        else if (ReferenceEquals(item.Grid, ItemCalendar)) AppCalendar_Click(ItemCalendar, null!);
+        else if (ReferenceEquals(item.Grid, ItemSettings)) AppSettings_Click(ItemSettings, null!);
+    }
+
+    private void DockBackground_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.Handled) return;
+        e.Handled = true;
+
+        var menu = CreateDockContextMenu();
+        menu.Items.Add(CreateDockMenuItem("Buka System Tray", "\uE70E", ToggleSystemTrayPopup));
+        menu.Items.Add(CreateDockMenuItem("Task Manager", "\uE9D9", () =>
+        {
+            try { Process.Start(new ProcessStartInfo("taskmgr.exe") { UseShellExecute = true }); } catch { }
+        }));
+        menu.Items.Add(new Separator { Style = (Style)FindResource("DockGlassSeparator") });
+        menu.Items.Add(CreateDockMenuItem("Pengaturan Pinn-Notch", "\uE713", () => AppSettings_Click(ItemSettings, null!)));
+        menu.Items.Add(CreateDockMenuItem("Pengaturan Taskbar Windows", "\uE7F4", () =>
+        {
+            try { Process.Start(new ProcessStartInfo("ms-settings:taskbar") { UseShellExecute = true }); } catch { }
+        }));
+        menu.Items.Add(new Separator { Style = (Style)FindResource("DockGlassSeparator") });
+        menu.Items.Add(CreateDockMenuItem("Keluar dari Pinn-Notch (Exit)", "\uE7E8", () => _ = App.RequestShutdownAsync(), isDestructive: true));
+
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+        _isContextMenuOpen = true;
+        UpdateDockSlideState();
+        menu.Closed += (_, _) =>
+        {
+            _isContextMenuOpen = false;
+            UpdateDockSlideState();
+        };
+        menu.IsOpen = true;
+    }
+
+    private ContextMenu CreateDockContextMenu() => new()
+    {
+        Style = (Style)FindResource("DockGlassContextMenu")
+    };
+
+    private MenuItem CreateDockMenuItem(string header, string? glyph, Action onClick, bool isDestructive = false)
+    {
+        var mi = new MenuItem
+        {
+            Header = header,
+            Tag = glyph,
+            Style = (Style)FindResource("DockGlassMenuItem")
+        };
+        if (isDestructive)
+            mi.Foreground = new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71));
+        mi.Click += (_, _) => onClick();
+        return mi;
+    }
+
+    private void OpenDockContextMenu(ContextMenu menu, FrameworkElement placementTarget)
+    {
+        menu.PlacementTarget = placementTarget;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
+        _isContextMenuOpen = true;
+        UpdateDockSlideState();
+        menu.Closed += (_, _) =>
+        {
+            _isContextMenuOpen = false;
+            UpdateDockSlideState();
+        };
+        menu.IsOpen = true;
+    }
+
+    #endregion
+
     private bool _isCleanedUp;
 
     public void Cleanup()
@@ -1844,6 +2157,7 @@ public partial class DockWindow : Window
         if (_isCleanedUp) return;
         _isCleanedUp = true;
 
+        try { DisposeDockLiquidGlass(); } catch { }
         try { _cursorPollTimer.Stop(); } catch { }
         try { _clockTimer.Stop(); } catch { }
         try { _procCheckTimer.Stop(); } catch { }
@@ -1859,6 +2173,7 @@ public partial class DockWindow : Window
         }
         catch { }
         try { _overlapMonitor.DockOverlapChanged -= OnDockOverlapChanged; } catch { }
+        try { _systemTrayPopup?.Close(); _systemTrayPopup = null; } catch { }
         try { _appDrawer?.Close(); _appDrawer = null; } catch { }
     }
 

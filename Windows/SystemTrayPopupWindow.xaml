@@ -1,0 +1,217 @@
+<Window x:Class="VNotch.Windows.SystemTrayPopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="System Tray"
+        Width="300"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <DropShadowEffect x:Key="PopupShadow" BlurRadius="28" Color="#000000" Opacity="0.48" ShadowDepth="6" Direction="270"/>
+
+        <Style x:Key="DarkGlassMenuItem" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="#F0FFFFFF"/>
+            <Setter Property="FontFamily" Value="{StaticResource SFProDisplay}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="RowBg" CornerRadius="7" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" Margin="1,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="GlyphText"
+                                           Grid.Column="0"
+                                           Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                           FontFamily="{StaticResource IconFont}"
+                                           FontSize="12"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           Margin="0,0,9,0"
+                                           VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1"
+                                                  ContentSource="Header"
+                                                  VerticalAlignment="Center"
+                                                  RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="{x:Null}">
+                                <Setter TargetName="GlyphText" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="RowBg" Property="Background" Value="#24FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.42"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkGlassSeparator" TargetType="Separator">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="1" Background="#1FFFFFFF"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DarkGlassContextMenu" TargetType="ContextMenu">
+            <Setter Property="HasDropShadow" Value="False"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource DarkGlassMenuItem}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Grid Margin="10,8,10,12">
+                            <Border MinWidth="196"
+                                    CornerRadius="12"
+                                    Background="#EC141720"
+                                    BorderBrush="#36FFFFFF"
+                                    BorderThickness="1"
+                                    Padding="4">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Direction="270" Color="#000000" Opacity="0.5"/>
+                                </Border.Effect>
+                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="RootGrid" Margin="14">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="RootTranslate" Y="0"/>
+        </Grid.RenderTransform>
+
+        <Border x:Name="PopupCard"
+                CornerRadius="18"
+                BorderThickness="1"
+                Padding="12"
+                Effect="{StaticResource PopupShadow}">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#5CFFFFFF" Offset="0.0"/>
+                    <GradientStop Color="#22FFFFFF" Offset="0.45"/>
+                    <GradientStop Color="#16FFFFFF" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#EE191C26" Offset="0.0"/>
+                    <GradientStop Color="#EA12141C" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Grid Grid.Row="0" Margin="2,0,2,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="System Tray"
+                                   FontFamily="{StaticResource SFProDisplay}"
+                                   FontSize="12.5"
+                                   FontWeight="SemiBold"
+                                   Foreground="#F2FFFFFF"
+                                   VerticalAlignment="Center"/>
+                        <Border CornerRadius="8"
+                                Background="#1CFFFFFF"
+                                Padding="6,2"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center">
+                            <TextBlock x:Name="CountBadgeText"
+                                       Text="0"
+                                       FontFamily="{StaticResource SFProDisplay}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       Foreground="#C8FFFFFF"/>
+                        </Border>
+                    </StackPanel>
+
+                    <Border x:Name="RefreshButton"
+                            HorizontalAlignment="Right"
+                            Width="24"
+                            Height="24"
+                            CornerRadius="7"
+                            Background="Transparent"
+                            Cursor="Hand"
+                            MouseLeftButtonDown="RefreshButton_Click"
+                            ToolTip="Muat Ulang System Tray">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#24FFFFFF"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="&#xE72C;"
+                                   FontFamily="{StaticResource IconFont}"
+                                   FontSize="11.5"
+                                   Foreground="#D8FFFFFF"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+
+                <!-- Tray Icons Grid -->
+                <Grid Grid.Row="1">
+                    <ScrollViewer MaxHeight="220"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <WrapPanel x:Name="IconsWrapPanel"
+                                   Width="240"
+                                   HorizontalAlignment="Center"/>
+                    </ScrollViewer>
+
+                    <TextBlock x:Name="EmptyStateText"
+                               Text="Tidak ada ikon system tray aktif"
+                               FontFamily="{StaticResource SFProDisplay}"
+                               FontSize="11.5"
+                               Foreground="#80FFFFFF"
+                               HorizontalAlignment="Center"
+                               Margin="0,16"
+                               Visibility="Collapsed"/>
+                </Grid>
+
+                <!-- Footer Hint -->
+                <TextBlock Grid.Row="2"
+                           Text="Klik kiri: Buka  •  Klik kanan: Menu / Exit"
+                           FontFamily="{StaticResource SFProDisplay}"
+                           FontSize="10"
+                           Foreground="#72FFFFFF"
+                           HorizontalAlignment="Center"
+                           Margin="0,9,0,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
