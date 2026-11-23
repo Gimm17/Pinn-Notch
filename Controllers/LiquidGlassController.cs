@@ -168,7 +168,11 @@ public sealed class LiquidGlassController : IDisposable
             if (_isActive)
             {
                 _exactBitBltCapture = value && SetWindowDisplayAffinitySafe(WDA_EXCLUDEFROMCAPTURE);
-                if (!value) SetWindowDisplayAffinitySafe(WDA_NONE);
+                if (!value)
+                {
+                    SetWindowDisplayAffinitySafe(WDA_NONE);
+                    RefreshMagnifierExcludeFilter();
+                }
                 if (!_exactBitBltCapture && _mag == null) RequestMagnifierFallback();
                 ForceRefresh();
             }
@@ -638,7 +642,11 @@ public sealed class LiquidGlassController : IDisposable
         SignalWakeEventSafe();
 
         _exactBitBltCapture = _hideFromCapture && SetWindowDisplayAffinitySafe(WDA_EXCLUDEFROMCAPTURE);
-        if (!_hideFromCapture) SetWindowDisplayAffinitySafe(WDA_NONE);
+        if (!_hideFromCapture)
+        {
+            SetWindowDisplayAffinitySafe(WDA_NONE);
+            RefreshMagnifierExcludeFilter();
+        }
         if (!_exactBitBltCapture && _mag == null)
         {
             try
@@ -691,6 +699,16 @@ public sealed class LiquidGlassController : IDisposable
         _mag = MagnifierCaptureSource.AcquireShared(_getHwnd());
         _mag.RegisterExcludeHwndProvider(_getHwnd);
         _magReady = _mag.IsReady;
+    }
+
+    private void RefreshMagnifierExcludeFilter()
+    {
+        var mag = _mag;
+        if (mag == null) return;
+        IntPtr hwnd = _getHwnd();
+        if (hwnd == IntPtr.Zero) return;
+        mag.RemoveExcludeHwnd(hwnd);
+        mag.AddExcludeHwnd(hwnd);
     }
 
     public void Dispose()
@@ -970,6 +988,7 @@ public sealed class LiquidGlassController : IDisposable
                 {
                     _exactBitBltCapture = false;
                     SetWindowDisplayAffinitySafe(WDA_NONE);
+                    RefreshMagnifierExcludeFilter();
                 }
                 return false;
             }
@@ -1651,6 +1670,7 @@ public sealed class LiquidGlassController : IDisposable
         {
             _exactBitBltCapture = false;
             SetWindowDisplayAffinitySafe(WDA_NONE);
+            RefreshMagnifierExcludeFilter();
         }
         return true;
     }

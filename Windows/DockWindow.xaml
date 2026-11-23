@@ -18,8 +18,19 @@
         UseLayoutRounding="True">
 
     <Window.Resources>
+        <!-- Adaptive Liquid Glass Brushes (swapped smoothly by backdrop luminance) -->
+        <SolidColorBrush x:Key="DockPrimaryForegroundBrush" Color="#EB14171F"/>
+        <SolidColorBrush x:Key="DockSecondaryForegroundBrush" Color="#A81E2430"/>
+        <SolidColorBrush x:Key="DockIconForegroundBrush" Color="#D8161A24"/>
+        <SolidColorBrush x:Key="DockNetArrowBrush" Color="#0284C7"/>
+        <SolidColorBrush x:Key="DockWidgetHoverBrush" Color="#1C000000"/>
+        <SolidColorBrush x:Key="DockDividerCenterBrush" Color="#26000000"/>
+        <SolidColorBrush x:Key="DockSubDividerCenterBrush" Color="#1C000000"/>
+        <SolidColorBrush x:Key="DockLauncherDotBrush" Color="#D81E2330"/>
+        <SolidColorBrush x:Key="DockLauncherBorderBrush" Color="#80FFFFFF"/>
+
         <!-- Soft Ambient Floating Shadow -->
-        <DropShadowEffect x:Key="DockShadow" BlurRadius="32" Color="#000000" Opacity="0.45" ShadowDepth="6" Direction="270"/>
+        <DropShadowEffect x:Key="DockShadow" BlurRadius="28" Color="#000000" Opacity="0.32" ShadowDepth="5" Direction="270"/>
         <DropShadowEffect x:Key="IconShadow" BlurRadius="8" Color="#000000" Opacity="0.24" ShadowDepth="2" Direction="270"/>
         <DropShadowEffect x:Key="BadgeShadow" BlurRadius="14" Color="#000000" Opacity="0.50" ShadowDepth="3" Direction="270"/>
 
@@ -38,11 +49,12 @@
             <Setter Property="Width" Value="1"/>
             <Setter Property="Height" Value="26"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Background">
+            <Setter Property="Background" Value="{DynamicResource DockDividerCenterBrush}"/>
+            <Setter Property="OpacityMask">
                 <Setter.Value>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#00FFFFFF" Offset="0.0"/>
-                        <GradientStop Color="#2CFFFFFF" Offset="0.5"/>
+                        <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
                         <GradientStop Color="#00FFFFFF" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Setter.Value>
@@ -55,11 +67,12 @@
             <Setter Property="Height" Value="14"/>
             <Setter Property="Margin" Value="2,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Background">
+            <Setter Property="Background" Value="{DynamicResource DockSubDividerCenterBrush}"/>
+            <Setter Property="OpacityMask">
                 <Setter.Value>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#00FFFFFF" Offset="0.0"/>
-                        <GradientStop Color="#1FFFFFFF" Offset="0.5"/>
+                        <GradientStop Color="#FFFFFFFF" Offset="0.5"/>
                         <GradientStop Color="#00FFFFFF" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Setter.Value>
@@ -172,7 +185,7 @@
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Center"
                 CornerRadius="22"
-                Background="#20000000"
+                Background="#16000000"
                 Effect="{StaticResource DockShadow}"
                 IsHitTestVisible="False"/>
 
@@ -196,14 +209,14 @@
                           SizeChanged="DockGlassClipHost_SizeChanged"
                           LayoutUpdated="DockGlassClipHost_LayoutUpdated">
 
-                        <!-- Translucent Fallback Base (hidden once live Liquid Glass backdrop presents) -->
+                        <!-- Translucent Frosted Fallback Base (hidden once live Liquid Glass backdrop presents) -->
                         <Border x:Name="DockGlassFallbackFill"
                                 CornerRadius="22"
                                 IsHitTestVisible="False">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#CE191C26" Offset="0.0"/>
-                                    <GradientStop Color="#C412141D" Offset="1.0"/>
+                                    <GradientStop Color="#B8F6F8FC" Offset="0.0"/>
+                                    <GradientStop Color="#A8EBF0F7" Offset="1.0"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -215,23 +228,25 @@
                                 Visibility="Visible"
                                 Opacity="0"
                                 IsHitTestVisible="False">
-                            <Image x:Name="DockGlassBackdropImage"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Top"
-                                   Stretch="Fill"
-                                   Margin="0"
-                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <Canvas>
+                                <Image x:Name="DockGlassBackdropImage"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Top"
+                                       Stretch="Fill"
+                                       Margin="0"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Canvas>
                         </Border>
 
-                        <!-- Smoked Dark Glass Tint Overlay -->
+                        <!-- Clear Translucent Glass Veil (adaptive via ApplyDockAdaptiveGlassTheme) -->
                         <Border x:Name="DockGlassTintOverlay"
                                 CornerRadius="22"
                                 IsHitTestVisible="False">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#5A222636" Offset="0.0"/>
-                                    <GradientStop Color="#44141722" Offset="0.40"/>
-                                    <GradientStop Color="#620D0F18" Offset="1.0"/>
+                                    <GradientStop Color="#2EFFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#14FFFFFF" Offset="0.45"/>
+                                    <GradientStop Color="#20FFFFFF" Offset="1.0"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                         </Border>
@@ -239,7 +254,7 @@
                         <!-- Subtle Micro-Noise Frost Grain -->
                         <Border x:Name="DockGlassGrainOverlay"
                                 CornerRadius="22"
-                                Opacity="0.06"
+                                Opacity="0.035"
                                 IsHitTestVisible="False"/>
 
                         <!-- Top Edge Soft Specular Sheen (borderless fill avoids any inner double-rounded line) -->
@@ -248,8 +263,8 @@
                                 IsHitTestVisible="False">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#22FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#08FFFFFF" Offset="0.25"/>
+                                    <GradientStop Color="#38FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#10FFFFFF" Offset="0.25"/>
                                     <GradientStop Color="#00FFFFFF" Offset="0.52"/>
                                 </LinearGradientBrush>
                             </Border.Background>
@@ -263,10 +278,10 @@
                                 IsHitTestVisible="False">
                             <Border.BorderBrush>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#68FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#2CFFFFFF" Offset="0.28"/>
-                                    <GradientStop Color="#16FFFFFF" Offset="0.72"/>
-                                    <GradientStop Color="#24FFFFFF" Offset="1.0"/>
+                                    <GradientStop Color="#D8FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#72FFFFFF" Offset="0.30"/>
+                                    <GradientStop Color="#24000000" Offset="0.78"/>
+                                    <GradientStop Color="#30000000" Offset="1.0"/>
                                 </LinearGradientBrush>
                             </Border.BorderBrush>
                         </Border>
@@ -290,18 +305,18 @@
                                 <TranslateTransform x:Name="LauncherTranslate" Y="0"/>
                             </TransformGroup>
                         </Grid.RenderTransform>
-                        <Border Style="{StaticResource SquircleContainer}" VerticalAlignment="Top" BorderBrush="#42FFFFFF" BorderThickness="1">
+                        <Border x:Name="LauncherSquircle" Style="{StaticResource SquircleContainer}" VerticalAlignment="Top" BorderBrush="{DynamicResource DockLauncherBorderBrush}" BorderThickness="1">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#44FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#20FFFFFF" Offset="1.0"/>
+                                    <GradientStop Color="#58FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#30FFFFFF" Offset="1.0"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <UniformGrid Rows="2" Columns="2" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="#F5FFFFFF" Margin="1.5"/>
-                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="#F5FFFFFF" Margin="1.5"/>
-                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="#F5FFFFFF" Margin="1.5"/>
-                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="#F5FFFFFF" Margin="1.5"/>
+                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="{DynamicResource DockLauncherDotBrush}" Margin="1.5"/>
+                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="{DynamicResource DockLauncherDotBrush}" Margin="1.5"/>
+                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="{DynamicResource DockLauncherDotBrush}" Margin="1.5"/>
+                                <Border Width="6.5" Height="6.5" CornerRadius="2" Background="{DynamicResource DockLauncherDotBrush}" Margin="1.5"/>
                             </UniformGrid>
                         </Border>
                     </Grid>
@@ -504,7 +519,7 @@
                             <Style TargetType="Border">
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#24FFFFFF"/>
+                                        <Setter Property="Background" Value="{DynamicResource DockWidgetHoverBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -513,7 +528,7 @@
                                    Text="&#xE70E;"
                                    FontFamily="{StaticResource IconFont}"
                                    FontSize="10.5"
-                                   Foreground="#E6FFFFFF"
+                                   Foreground="{DynamicResource DockIconForegroundBrush}"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    RenderTransformOrigin="0.5,0.5">
@@ -545,7 +560,7 @@
                                 <Style TargetType="Border">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#22FFFFFF"/>
+                                            <Setter Property="Background" Value="{DynamicResource DockWidgetHoverBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -554,7 +569,7 @@
                                 <TextBlock Text="↓"
                                            FontSize="12.5"
                                            FontWeight="Bold"
-                                           Foreground="#38BDF8"
+                                           Foreground="{DynamicResource DockNetArrowBrush}"
                                            VerticalAlignment="Center"
                                            Margin="0,-1,3,0"/>
                                 <TextBlock x:Name="NetSpeedDownText"
@@ -562,7 +577,7 @@
                                            Text="0 B/s"
                                            FontSize="11"
                                            FontWeight="SemiBold"
-                                           Foreground="#F0FFFFFF"
+                                           Foreground="{DynamicResource DockPrimaryForegroundBrush}"
                                            VerticalAlignment="Center"
                                            TextAlignment="Left"/>
                             </StackPanel>
@@ -587,7 +602,7 @@
                                 <Style TargetType="Border">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#22FFFFFF"/>
+                                            <Setter Property="Background" Value="{DynamicResource DockWidgetHoverBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -604,14 +619,14 @@
                                             Width="20" Height="11"
                                             CornerRadius="2.5"
                                             BorderThickness="1.2"
-                                            BorderBrush="#CCFFFFFF"
+                                            BorderBrush="{DynamicResource DockIconForegroundBrush}"
                                             HorizontalAlignment="Left">
                                         <Grid>
                                             <Border x:Name="BatteryFill"
                                                     Width="14"
                                                     Height="7"
                                                     CornerRadius="1.2"
-                                                    Background="#E5FFFFFF"
+                                                    Background="{DynamicResource DockPrimaryForegroundBrush}"
                                                     HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
                                                     Margin="1,0,0,0"/>
@@ -633,7 +648,7 @@
                                             x:Name="BatteryNub"
                                             Width="2" Height="5"
                                             CornerRadius="0,1,1,0"
-                                            Background="#CCFFFFFF"
+                                            Background="{DynamicResource DockIconForegroundBrush}"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             Margin="-0.2,0,0,0"/>
@@ -644,7 +659,7 @@
                                            Text="100%"
                                            FontSize="11"
                                            FontWeight="SemiBold"
-                                           Foreground="#F0FFFFFF"
+                                           Foreground="{DynamicResource DockPrimaryForegroundBrush}"
                                            VerticalAlignment="Center"
                                            TextAlignment="Left"/>
                             </StackPanel>
@@ -670,7 +685,7 @@
                                 <Style TargetType="Border">
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#22FFFFFF"/>
+                                            <Setter Property="Background" Value="{DynamicResource DockWidgetHoverBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -680,7 +695,7 @@
                                            Text="&#xE995;"
                                            FontFamily="{StaticResource IconFont}"
                                            FontSize="12.5"
-                                           Foreground="#D8FFFFFF"
+                                           Foreground="{DynamicResource DockIconForegroundBrush}"
                                            VerticalAlignment="Center"
                                            Margin="0,0,4,0"/>
                                 <TextBlock x:Name="VolumePercentText"
@@ -688,7 +703,7 @@
                                            Text="50%"
                                            FontSize="11"
                                            FontWeight="SemiBold"
-                                           Foreground="#F0FFFFFF"
+                                           Foreground="{DynamicResource DockPrimaryForegroundBrush}"
                                            VerticalAlignment="Center"
                                            TextAlignment="Left"/>
                             </StackPanel>
@@ -712,7 +727,7 @@
                             <Style TargetType="Border">
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#22FFFFFF"/>
+                                        <Setter Property="Background" Value="{DynamicResource DockWidgetHoverBrush}"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -722,13 +737,13 @@
                                        Text="13:15"
                                        FontWeight="SemiBold"
                                        FontSize="13.5"
-                                       Foreground="#F5FFFFFF"
+                                       Foreground="{DynamicResource DockPrimaryForegroundBrush}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock x:Name="ClockDateText"
                                        Text="23/11/2026"
                                        FontSize="9.5"
                                        FontWeight="Medium"
-                                       Foreground="#94FFFFFF"
+                                       Foreground="{DynamicResource DockSecondaryForegroundBrush}"
                                        HorizontalAlignment="Center"
                                        Margin="0,1,0,0"/>
                         </StackPanel>

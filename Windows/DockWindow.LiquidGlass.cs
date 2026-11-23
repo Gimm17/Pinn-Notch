@@ -11,8 +11,10 @@ namespace VNotch.Windows;
 public partial class DockWindow
 {
     private const double DockCornerRadiusDip = 22.0;
-    private const double DockGlassPowerFactor = 2.6;
-    private const double DockGlassBlurAmount = 0.72;
+    private const double DockGlassPowerFactor = 2.8;
+    private const double DockGlassBlurAmount = 0.40;
+
+    internal bool IsLightGlassBackdrop { get; private set; } = true;
 
     private LiquidGlassController? _liquidGlass;
     private LiquidGlassRefractionEffect? _glassRefractionEffect;
@@ -23,6 +25,8 @@ public partial class DockWindow
     private bool _gpuRefractionFailed;
     private bool? _cachedSystemTransparency;
     private long _lastTransparencyCheckTicks;
+    private long _lastAdaptiveGlassCheckTicks;
+    private bool _hasAppliedAdaptiveGlassTheme;
     private Size _lastDockClipSize;
     private CornerRadius _lastDockClipCornerRadius;
     private LiquidGlassController.CaptureRegion? _lastDockCaptureRegion;
@@ -45,6 +49,7 @@ public partial class DockWindow
         if (_isCleanedUp || DockGlassBackdropHost == null) return;
 
         UpdateDockGlassClip();
+        ApplyDockAdaptiveGlassTheme(IsLightGlassBackdrop);
 
         if (!IsDockSystemTransparencyEnabled())
         {
@@ -66,7 +71,7 @@ public partial class DockWindow
 
         _liquidGlass ??= new LiquidGlassController(
             DockGlassBackdropImage,
-            EnsureDockHwnd,
+            () => _hwnd,
             GetDockGlassCaptureRegion,
             activeFps: 45,
             logTag: "DOCK",
@@ -100,18 +105,18 @@ public partial class DockWindow
             RefractionC = 4.4,
             RefractionD = 6.0,
             FPower = 1.0,
-            Noise = 0.05,
+            Noise = 0.04,
             GlowWeight = 0.22,
             GlowBias = 0.0,
             GlowEdge0 = 0.14,
             GlowEdge1 = 0.0,
-            Refraction = 0.45,
-            EdgeBend = 1.15,
-            ChromaticAberration = 0.22,
-            Distortion = 0.16,
-            ZRadius = 0.20,
-            Saturation = 0.18,
-            Brightness = -0.02,
+            Refraction = 0.72,
+            EdgeBend = 1.35,
+            ChromaticAberration = 0.30,
+            Distortion = 0.22,
+            ZRadius = 0.22,
+            Saturation = 0.22,
+            Brightness = 0.03,
             BevelMode = 0,
             TopCornerRadius = DockCornerRadiusDip,
             BottomCornerRadius = DockCornerRadiusDip
@@ -185,6 +190,7 @@ public partial class DockWindow
             DockGlassBackdropHost.Visibility = Visibility.Collapsed;
         if (DockGlassFallbackFill != null)
             DockGlassFallbackFill.Opacity = 1.0;
+        ApplyDockAdaptiveGlassTheme(isLight: true);
     }
 
     internal void SetDockGlassPaused(bool paused)
@@ -222,10 +228,25 @@ public partial class DockWindow
                 DockGlassBackdropHost.Opacity = 1.0;
             if (DockGlassFallbackFill != null && DockGlassFallbackFill.Opacity > 0.0)
                 DockGlassFallbackFill.Opacity = 0.0;
+
+            long now = Environment.TickCount64;
+            if (!_hasAppliedAdaptiveGlassTheme || now - _lastAdaptiveGlassCheckTicks >= 120)
+            {
+                _lastAdaptiveGlassCheckTicks = now;
+                double lum = _liquidGlass.AverageBackgroundBrightness;
+                bool nextIsLight = IsLightGlassBackdrop
+                    ? lum > 0.44
+                    : lum >= 0.54;
+                if (!_hasAppliedAdaptiveGlassTheme || nextIsLight != IsLightGlassBackdrop)
+                {
+                    ApplyDockAdaptiveGlassTheme(nextIsLight);
+                }
+            }
+
             if (!_loggedFirstDockGlassFrame && RuntimeLog.IsEnabled(LogLevel.Info))
             {
                 _loggedFirstDockGlassFrame = true;
-                RuntimeLog.Info("DOCK-GLASS", () => $"Dock live glass presented (gpu={_gpuRefractionConfigured})");
+                RuntimeLog.Info("DOCK-GLASS", () => $"Dock live glass presented (gpu={_gpuRefractionConfigured}, isLight={IsLightGlassBackdrop})");
             }
         }
 
@@ -361,23 +382,97 @@ public partial class DockWindow
         fx.OffY = offY;
         fx.TopCornerR = DockCornerRadiusDip * dpiScale;
         fx.BottomCornerR = DockCornerRadiusDip * dpiScale;
-        fx.PowerFactor = DockGlassPowerFactor;
-        fx.A = 0.65;
-        fx.B = 1.9;
-        fx.C = 4.4;
-        fx.D = 6.0;
-        fx.FPower = 1.0;
-        fx.Noise = 0.05;
-        fx.GlowWeight = 0.22;
-        fx.GlowBias = 0.0;
-        fx.GlowEdge0 = 0.14;
-        fx.GlowEdge1 = 0.0;
-        fx.EdgeBend = 1.15;
-        fx.BevelMode = 0;
-        fx.Chroma = 0.22;
-        fx.SatFactor = 1.18;
-        fx.BrightAdd = -0.02;
-        fx.HighlightStrength = 0.35;
+        fx.PowerFactor = _lastDockGpuGeometry?.PowerFactor ?? DockGlassPowerFactor;
+        fx.A = _lastDockGpuGeometry?.A ?? 0.65;
+        fx.B = _lastDockGpuGeometry?.B ?? 1.9;
+        fx.C = _lastDockGpuGeometry?.C ?? 4.4;
+        fx.D = _lastDockGpuGeometry?.D ?? 6.0;
+        fx.FPower = _lastDockGpuGeometry?.FPower ?? 1.0;
+        fx.Noise = _lastDockGpuGeometry?.Noise ?? 0.04;
+        fx.GlowWeight = _lastDockGpuGeometry?.GlowWeight ?? 0.22;
+        fx.GlowBias = _lastDockGpuGeometry?.GlowBias ?? 0.0;
+        fx.GlowEdge0 = _lastDockGpuGeometry?.GlowEdge0 ?? 0.14;
+        fx.GlowEdge1 = _lastDockGpuGeometry?.GlowEdge1 ?? 0.0;
+        fx.EdgeBend = _lastDockGpuGeometry?.EdgeBend ?? 1.35;
+        fx.BevelMode = _lastDockGpuGeometry?.BevelMode ?? 0;
+        fx.Chroma = _lastDockGpuGeometry?.Chroma ?? 0.30;
+        fx.SatFactor = _lastDockGpuGeometry?.SatFactor ?? 1.22;
+        fx.BrightAdd = _lastDockGpuGeometry?.BrightAdd ?? 0.03;
+        fx.HighlightStrength = 0.45;
+    }
+
+    private void ApplyDockAdaptiveGlassTheme(bool isLight)
+    {
+        IsLightGlassBackdrop = isLight;
+        _hasAppliedAdaptiveGlassTheme = true;
+
+        if (DockGlassTintOverlay != null)
+        {
+            var tint = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            tint.GradientStops.Add(new GradientStop(isLight ? Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x22, 0xFF, 0xFF, 0xFF), 0.0));
+            tint.GradientStops.Add(new GradientStop(isLight ? Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x0C, 0xFF, 0xFF, 0xFF), 0.45));
+            tint.GradientStops.Add(new GradientStop(isLight ? Color.FromArgb(0x20, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x16, 0xFF, 0xFF, 0xFF), 1.0));
+            tint.Freeze();
+            DockGlassTintOverlay.Background = tint;
+        }
+
+        if (DockGlassRimBorder != null)
+        {
+            var rim = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            if (isLight)
+            {
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0xD8, 0xFF, 0xFF, 0xFF), 0.0));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x72, 0xFF, 0xFF, 0xFF), 0.30));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x24, 0x00, 0x00, 0x00), 0.78));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x30, 0x00, 0x00, 0x00), 1.0));
+            }
+            else
+            {
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x90, 0xFF, 0xFF, 0xFF), 0.0));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x3E, 0xFF, 0xFF, 0xFF), 0.30));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF), 0.78));
+                rim.GradientStops.Add(new GradientStop(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF), 1.0));
+            }
+            rim.Freeze();
+            DockGlassRimBorder.BorderBrush = rim;
+        }
+
+        SetDockResourceBrush("DockPrimaryForegroundBrush",
+            isLight ? Color.FromArgb(0xEB, 0x14, 0x17, 0x1F) : Color.FromArgb(0xF2, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockSecondaryForegroundBrush",
+            isLight ? Color.FromArgb(0xA8, 0x1E, 0x24, 0x30) : Color.FromArgb(0x98, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockIconForegroundBrush",
+            isLight ? Color.FromArgb(0xD8, 0x16, 0x1A, 0x24) : Color.FromArgb(0xE6, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockNetArrowBrush",
+            isLight ? Color.FromRgb(0x02, 0x84, 0xC7) : Color.FromRgb(0x38, 0xBD, 0xF8));
+        SetDockResourceBrush("DockWidgetHoverBrush",
+            isLight ? Color.FromArgb(0x1C, 0x00, 0x00, 0x00) : Color.FromArgb(0x24, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockDividerCenterBrush",
+            isLight ? Color.FromArgb(0x26, 0x00, 0x00, 0x00) : Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockSubDividerCenterBrush",
+            isLight ? Color.FromArgb(0x1C, 0x00, 0x00, 0x00) : Color.FromArgb(0x20, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockLauncherDotBrush",
+            isLight ? Color.FromArgb(0xD8, 0x1E, 0x23, 0x30) : Color.FromArgb(0xF5, 0xFF, 0xFF, 0xFF));
+        SetDockResourceBrush("DockLauncherBorderBrush",
+            isLight ? Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x48, 0xFF, 0xFF, 0xFF));
+
+        if (LauncherSquircle != null)
+        {
+            var launcherBg = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+            launcherBg.GradientStops.Add(new GradientStop(isLight ? Color.FromArgb(0x58, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x44, 0xFF, 0xFF, 0xFF), 0.0));
+            launcherBg.GradientStops.Add(new GradientStop(isLight ? Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x20, 0xFF, 0xFF, 0xFF), 1.0));
+            launcherBg.Freeze();
+            LauncherSquircle.Background = launcherBg;
+        }
+
+        RefreshAdaptiveStatusColors();
+    }
+
+    private void SetDockResourceBrush(string key, Color color)
+    {
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        Resources[key] = brush;
     }
 
     private void UpdateDockGlassClip()

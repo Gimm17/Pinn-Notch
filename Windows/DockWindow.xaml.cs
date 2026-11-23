@@ -30,6 +30,8 @@ public partial class DockWindow : Window
         public TranslateTransform Trans { get; set; } = null!;
         public Border Indicator { get; set; } = null!;
         public Border? ActiveGlow { get; set; }
+        public Border? SquircleBorder { get; set; }
+        public TextBlock? FallbackInitial { get; set; }
         public string Title { get; set; } = "";
         public SpringValue ScaleSpring = new(1.0);
         public SpringValue TransXSpring = new(0.0);
@@ -328,14 +330,20 @@ public partial class DockWindow : Window
             var batterySvc = _batteryService ?? App.Services?.GetService(typeof(IBatteryService)) as IBatteryService;
             var info = batterySvc?.GetBatteryInfo();
 
+            bool isLight = IsLightGlassBackdrop;
+            var primaryFg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0xEB, 0x14, 0x17, 0x1F)
+                : Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+            primaryFg.Freeze();
+
             if (info == null || !info.HasBattery || info.Percentage < 0)
             {
                 // Desktop PC or AC connected
                 BatteryFill.Width = 15.6;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));
+                BatteryFill.Background = new SolidColorBrush(isLight ? Color.FromRgb(0x02, 0x84, 0xC7) : Color.FromRgb(0x38, 0xBD, 0xF8));
                 BatteryChargingBolt.Visibility = Visibility.Visible;
                 BatteryPercentText.Text = "AC";
-                BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+                BatteryPercentText.Foreground = primaryFg;
                 BatteryWidget.ToolTip = "Daya Listrik AC (Desktop / Wall Plug / Dock)\n(Klik untuk Pengaturan Daya)";
                 return;
             }
@@ -350,8 +358,8 @@ public partial class DockWindow : Window
             if (info.IsCharging || info.IsPluggedIn)
             {
                 BatteryChargingBolt.Visibility = Visibility.Visible;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x4A, 0xDE, 0x80)); // Luminous Emerald Green
-                BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+                BatteryFill.Background = new SolidColorBrush(isLight ? Color.FromRgb(0x16, 0xA3, 0x4A) : Color.FromRgb(0x4A, 0xDE, 0x80));
+                BatteryPercentText.Foreground = primaryFg;
                 BatteryWidget.ToolTip = $"Baterai: {percent}%\nStatus: Sedang Mengisi Daya (Charging)\nMode: Terhubung Listrik (AC Adapter / Dock)\n\n(Klik untuk Pengaturan Daya)";
             }
             else
@@ -359,13 +367,19 @@ public partial class DockWindow : Window
                 BatteryChargingBolt.Visibility = Visibility.Collapsed;
                 if (percent <= 20)
                 {
-                    BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71));
-                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromRgb(0xF8, 0x71, 0x71));
+                    var lowBrush = new SolidColorBrush(isLight ? Color.FromRgb(0xDC, 0x26, 0x26) : Color.FromRgb(0xF8, 0x71, 0x71));
+                    lowBrush.Freeze();
+                    BatteryFill.Background = lowBrush;
+                    BatteryPercentText.Foreground = lowBrush;
                 }
                 else
                 {
-                    BatteryFill.Background = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-                    BatteryPercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+                    var fillBrush = new SolidColorBrush(isLight
+                        ? Color.FromArgb(0xDC, 0x16, 0x1A, 0x24)
+                        : Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
+                    fillBrush.Freeze();
+                    BatteryFill.Background = fillBrush;
+                    BatteryPercentText.Foreground = primaryFg;
                 }
 
                 string remTime = info.RemainingMinutes > 0 ? $"{info.RemainingMinutes / 60}j {info.RemainingMinutes % 60}m" : "Menghitung...";
@@ -382,11 +396,23 @@ public partial class DockWindow : Window
     {
         try
         {
+            bool isLight = IsLightGlassBackdrop;
+            var primaryFg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0xEB, 0x14, 0x17, 0x1F)
+                : Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+            primaryFg.Freeze();
+            var iconFg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0xD8, 0x16, 0x1A, 0x24)
+                : Color.FromArgb(0xD8, 0xFF, 0xFF, 0xFF));
+            iconFg.Freeze();
+
             var volumeSvc = _volumeService ?? App.Services?.GetService(typeof(IVolumeService)) as IVolumeService;
             if (volumeSvc == null || !volumeSvc.IsAvailable)
             {
                 VolumeIcon.Text = "\uE995";
+                VolumeIcon.Foreground = iconFg;
                 VolumePercentText.Text = "--";
+                VolumePercentText.Foreground = primaryFg;
                 return;
             }
 
@@ -396,10 +422,12 @@ public partial class DockWindow : Window
 
             if (isMuted || volPercent == 0)
             {
+                var muteBrush = new SolidColorBrush(isLight ? Color.FromRgb(0xDC, 0x26, 0x26) : Color.FromRgb(0xE0, 0x40, 0x40));
+                muteBrush.Freeze();
                 VolumeIcon.Text = "\uE74F"; // Mute glyph
-                VolumeIcon.Foreground = new SolidColorBrush(Color.FromRgb(0xE0, 0x40, 0x40));
+                VolumeIcon.Foreground = muteBrush;
                 VolumePercentText.Text = "Mute";
-                VolumePercentText.Foreground = new SolidColorBrush(Color.FromRgb(0xE0, 0x40, 0x40));
+                VolumePercentText.Foreground = muteBrush;
                 VolumeWidget.ToolTip = "Volume Master: Mute (Bungkam)\n• Klik untuk Nyalakan Suara\n• Scroll mouse untuk atur volume";
             }
             else
@@ -411,9 +439,9 @@ public partial class DockWindow : Window
                 else
                     VolumeIcon.Text = "\uE995"; // High
 
-                VolumeIcon.Foreground = new SolidColorBrush(Color.FromArgb(0xD8, 0xFF, 0xFF, 0xFF));
+                VolumeIcon.Foreground = iconFg;
                 VolumePercentText.Text = $"{volPercent}%";
-                VolumePercentText.Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+                VolumePercentText.Foreground = primaryFg;
                 VolumeWidget.ToolTip = $"Volume Master: {volPercent}%\n• Klik untuk Mute / Unmute\n• Scroll mouse untuk atur volume";
             }
         }
@@ -579,21 +607,98 @@ public partial class DockWindow : Window
             new DoubleAnimation(targetHeight, dur) { EasingFunction = ease });
         item.Indicator.CornerRadius = new CornerRadius(targetRadius);
 
+        ApplyIndicatorColors(item, isActive);
+    }
+
+    private void ApplyIndicatorColors(DockItemState item, bool isActive)
+    {
+        bool isLight = IsLightGlassBackdrop;
         if (isActive)
         {
-            item.Indicator.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xFF, 0xFF));
-            item.Indicator.Effect = new DropShadowEffect 
-            { 
-                Color = Color.FromRgb(0x38, 0xBD, 0xF8), 
-                BlurRadius = 8, 
-                ShadowDepth = 0, 
-                Opacity = 0.85 
+            var bg = new SolidColorBrush(isLight
+                ? Color.FromRgb(0x14, 0x17, 0x1F)
+                : Color.FromRgb(0xFF, 0xFF, 0xFF));
+            bg.Freeze();
+            item.Indicator.Background = bg;
+            item.Indicator.Effect = new DropShadowEffect
+            {
+                Color = isLight ? Color.FromRgb(0x02, 0x84, 0xC7) : Color.FromRgb(0x38, 0xBD, 0xF8),
+                BlurRadius = isLight ? 6 : 8,
+                ShadowDepth = 0,
+                Opacity = isLight ? 0.55 : 0.85
             };
         }
         else
         {
-            item.Indicator.Background = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
+            var bg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0x8A, 0x1E, 0x24, 0x30)
+                : Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
+            bg.Freeze();
+            item.Indicator.Background = bg;
             item.Indicator.Effect = null;
+        }
+    }
+
+    private void ApplyDynamicItemAdaptiveBrushes(DockItemState state)
+    {
+        bool isLight = IsLightGlassBackdrop;
+        if (state.SquircleBorder != null)
+        {
+            var borderBrush = new SolidColorBrush(isLight
+                ? Color.FromArgb(0x78, 0xFF, 0xFF, 0xFF)
+                : Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF));
+            borderBrush.Freeze();
+            state.SquircleBorder.BorderBrush = borderBrush;
+
+            var tileBg = new LinearGradientBrush(
+                isLight ? Color.FromArgb(0x58, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF),
+                isLight ? Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF) : Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF),
+                90.0);
+            tileBg.Freeze();
+            state.SquircleBorder.Background = tileBg;
+        }
+
+        if (state.FallbackInitial != null)
+        {
+            var textFg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0xEB, 0x14, 0x17, 0x1F)
+                : Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF));
+            textFg.Freeze();
+            state.FallbackInitial.Foreground = textFg;
+        }
+
+        if (state.ActiveGlow != null)
+        {
+            var glowBorder = new SolidColorBrush(isLight
+                ? Color.FromArgb(0x72, 0x02, 0x84, 0xC7)
+                : Color.FromArgb(0x75, 0xFF, 0xFF, 0xFF));
+            glowBorder.Freeze();
+            var glowBg = new SolidColorBrush(isLight
+                ? Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF)
+                : Color.FromArgb(0x16, 0xFF, 0xFF, 0xFF));
+            glowBg.Freeze();
+            state.ActiveGlow.BorderBrush = glowBorder;
+            state.ActiveGlow.Background = glowBg;
+        }
+    }
+
+    internal void RefreshAdaptiveStatusColors()
+    {
+        if (_isCleanedUp) return;
+        UpdateBatteryStatus();
+        UpdateVolumeStatus();
+
+        List<DockItemState> snapshot;
+        lock (_items)
+        {
+            snapshot = new List<DockItemState>(_items);
+        }
+
+        foreach (var item in snapshot)
+        {
+            ApplyIndicatorColors(item, item.IsActive);
+            if (!item.IsPinned)
+                ApplyDynamicItemAdaptiveBrushes(item);
         }
     }
 
@@ -616,29 +721,25 @@ public partial class DockWindow : Window
             Children = new TransformCollection { scale, trans }
         };
 
-        // Smoked Dark Glass Squircle Container
+        // Clear Adaptive Glass Squircle Container
         var squircleBorder = new Border
         {
             Width = 44,
             Height = 44,
             CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
-            BorderThickness = new Thickness(1),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF)),
-            Background = new LinearGradientBrush(
-                Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF),
-                Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF),
-                90.0)
+            BorderThickness = new Thickness(1)
         };
         squircleBorder.Effect = new DropShadowEffect
         {
             BlurRadius = 8,
             Color = Colors.Black,
-            Opacity = 0.22,
+            Opacity = 0.20,
             ShadowDepth = 2,
             Direction = 270
         };
 
+        TextBlock? fallbackInitial = null;
         // App Icon
         if (app.Icon != null)
         {
@@ -657,16 +758,15 @@ public partial class DockWindow : Window
         else
         {
             string initial = string.IsNullOrWhiteSpace(app.Title) ? "?" : app.Title[0].ToString().ToUpperInvariant();
-            var text = new TextBlock
+            fallbackInitial = new TextBlock
             {
                 Text = initial,
                 FontSize = 17,
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromArgb(0xF0, 0xFF, 0xFF, 0xFF)),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            squircleBorder.Child = text;
+            squircleBorder.Child = fallbackInitial;
         }
         grid.Children.Add(squircleBorder);
 
@@ -677,9 +777,7 @@ public partial class DockWindow : Window
             Height = 44,
             CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
-            BorderBrush = new SolidColorBrush(Color.FromArgb(0x75, 0xFF, 0xFF, 0xFF)),
             BorderThickness = new Thickness(1.2),
-            Background = new SolidColorBrush(Color.FromArgb(0x16, 0xFF, 0xFF, 0xFF)),
             IsHitTestVisible = false,
             Opacity = 0.0
         };
@@ -691,7 +789,6 @@ public partial class DockWindow : Window
             Width = 5,
             Height = 5,
             CornerRadius = new CornerRadius(2.5),
-            Background = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF)),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(0, 0, 0, 1),
@@ -706,6 +803,8 @@ public partial class DockWindow : Window
             Trans = trans,
             Indicator = indicator,
             ActiveGlow = activeGlow,
+            SquircleBorder = squircleBorder,
+            FallbackInitial = fallbackInitial,
             Title = app.Title,
             IsPinned = false,
             WindowHwnd = app.Hwnd,
@@ -713,6 +812,9 @@ public partial class DockWindow : Window
             Tag = app.Key,
             ProcessNames = new[] { app.ProcessName }
         };
+
+        ApplyDynamicItemAdaptiveBrushes(state);
+        ApplyIndicatorColors(state, app.IsActive);
 
         grid.MouseLeftButtonDown += (s, e) =>
         {

@@ -54,6 +54,32 @@ public sealed class SystemTrayAndDockTests
     }
 
     [Fact]
+    public void DockUsesClearGlassCanvasHostWithoutDarkSmokedTint()
+    {
+        var xaml = XDocument.Load(DockXamlPath());
+        XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var backdropHost = xaml.Descendants(ui + "Border")
+            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassBackdropHost");
+
+        var canvas = Assert.Single(backdropHost.Elements(ui + "Canvas"));
+        var backdropImage = Assert.Single(canvas.Elements(ui + "Image"));
+        Assert.Equal("DockGlassBackdropImage", (string?)backdropImage.Attribute(x + "Name"));
+
+        var tintOverlay = xaml.Descendants(ui + "Border")
+            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassTintOverlay");
+
+        var stops = tintOverlay.Descendants(ui + "GradientStop")
+            .Select(s => ((string?)s.Attribute("Color")) ?? "")
+            .ToList();
+
+        Assert.DoesNotContain(stops, c => c.Equals("#5A222636", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(stops, c => c.Equals("#620D0F18", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(stops, c => c.EndsWith("FFFFFF", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void ParseOrderListDecodes64BitRegistryOrderEntries()
     {
         byte[] bytes = new byte[16];
