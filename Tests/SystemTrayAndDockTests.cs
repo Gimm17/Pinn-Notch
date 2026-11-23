@@ -31,11 +31,9 @@ public sealed class SystemTrayAndDockTests
         Assert.Equal("0", (string?)dockPill.Attribute("BorderThickness"));
         Assert.Equal("22", (string?)dockPill.Attribute("CornerRadius"));
 
-        // Verify there is only ONE rounded Border with non-zero BorderThickness inside DockPill's glass stack.
-        var glassClipHost = dockPill.Descendants(ui + "Grid")
-            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassClipHost");
-
-        var rimBorders = glassClipHost.Descendants(ui + "Border")
+        // Verify there is only ONE rounded Border with non-zero BorderThickness at DockPill's background surface level.
+        var dockRootGrid = Assert.Single(dockPill.Elements(ui + "Grid"));
+        var rimBorders = dockRootGrid.Elements(ui + "Border")
             .Where(b =>
             {
                 string? bt = (string?)b.Attribute("BorderThickness");
@@ -44,8 +42,9 @@ public sealed class SystemTrayAndDockTests
             .ToList();
 
         Assert.Single(rimBorders);
-        Assert.Equal("DockGlassRimBorder", (string?)rimBorders[0].Attribute(x + "Name"));
+        Assert.Equal("DockGlassSurface", (string?)rimBorders[0].Attribute(x + "Name"));
         Assert.Equal("0", (string?)rimBorders[0].Attribute("Margin"));
+        Assert.Equal("22", (string?)rimBorders[0].Attribute("CornerRadius"));
 
         // Verify the System Tray chevron button is wired in DockWindow.
         var trayButton = dockPill.Descendants(ui + "Border")
@@ -54,29 +53,31 @@ public sealed class SystemTrayAndDockTests
     }
 
     [Fact]
-    public void DockUsesClearGlassCanvasHostWithoutDarkSmokedTint()
+    public void DockUsesSimpleFrostedGlassWithoutLiquidGlassCapture()
     {
         var xaml = XDocument.Load(DockXamlPath());
         XNamespace ui = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
         XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
 
-        var backdropHost = xaml.Descendants(ui + "Border")
-            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassBackdropHost");
+        Assert.DoesNotContain(xaml.Descendants(), e => (string?)e.Attribute(x + "Name") == "DockGlassBackdropHost");
+        Assert.DoesNotContain(xaml.Descendants(), e => (string?)e.Attribute(x + "Name") == "DockGlassBackdropImage");
 
-        var canvas = Assert.Single(backdropHost.Elements(ui + "Canvas"));
-        var backdropImage = Assert.Single(canvas.Elements(ui + "Image"));
-        Assert.Equal("DockGlassBackdropImage", (string?)backdropImage.Attribute(x + "Name"));
+        var surface = xaml.Descendants(ui + "Border")
+            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassSurface");
 
-        var tintOverlay = xaml.Descendants(ui + "Border")
-            .Single(e => (string?)e.Attribute(x + "Name") == "DockGlassTintOverlay");
-
-        var stops = tintOverlay.Descendants(ui + "GradientStop")
+        var bgStops = surface.Descendants(ui + "Border.Background")
+            .Descendants(ui + "GradientStop")
             .Select(s => ((string?)s.Attribute("Color")) ?? "")
             .ToList();
 
-        Assert.DoesNotContain(stops, c => c.Equals("#5A222636", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(stops, c => c.Equals("#620D0F18", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(stops, c => c.EndsWith("FFFFFF", StringComparison.OrdinalIgnoreCase));
+        Assert.NotEmpty(bgStops);
+        Assert.DoesNotContain(bgStops, c => c.StartsWith("#FF", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(bgStops, c => c.Equals("#5A222636", StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(bgStops, c => c.Equals("#620D0F18", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(bgStops, c => c.Equals("#99F7F9FC", StringComparison.OrdinalIgnoreCase));
+
+        string liquidGlassPartialPath = Path.Combine(Path.GetDirectoryName(DockXamlPath())!, "DockWindow.LiquidGlass.cs");
+        Assert.False(File.Exists(liquidGlassPartialPath));
     }
 
     [Fact]

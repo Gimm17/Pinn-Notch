@@ -18,19 +18,19 @@
         UseLayoutRounding="True">
 
     <Window.Resources>
-        <!-- Adaptive Liquid Glass Brushes (swapped smoothly by backdrop luminance) -->
+        <!-- Frosted Glass Palette (Crisp High-Contrast on Translucent Surface) -->
         <SolidColorBrush x:Key="DockPrimaryForegroundBrush" Color="#EB14171F"/>
         <SolidColorBrush x:Key="DockSecondaryForegroundBrush" Color="#A81E2430"/>
         <SolidColorBrush x:Key="DockIconForegroundBrush" Color="#D8161A24"/>
         <SolidColorBrush x:Key="DockNetArrowBrush" Color="#0284C7"/>
-        <SolidColorBrush x:Key="DockWidgetHoverBrush" Color="#1C000000"/>
-        <SolidColorBrush x:Key="DockDividerCenterBrush" Color="#26000000"/>
-        <SolidColorBrush x:Key="DockSubDividerCenterBrush" Color="#1C000000"/>
+        <SolidColorBrush x:Key="DockWidgetHoverBrush" Color="#18000000"/>
+        <SolidColorBrush x:Key="DockDividerCenterBrush" Color="#24000000"/>
+        <SolidColorBrush x:Key="DockSubDividerCenterBrush" Color="#1A000000"/>
         <SolidColorBrush x:Key="DockLauncherDotBrush" Color="#D81E2330"/>
-        <SolidColorBrush x:Key="DockLauncherBorderBrush" Color="#80FFFFFF"/>
+        <SolidColorBrush x:Key="DockLauncherBorderBrush" Color="#90FFFFFF"/>
 
         <!-- Soft Ambient Floating Shadow -->
-        <DropShadowEffect x:Key="DockShadow" BlurRadius="28" Color="#000000" Opacity="0.32" ShadowDepth="5" Direction="270"/>
+        <DropShadowEffect x:Key="DockShadow" BlurRadius="20" Color="#000000" Opacity="0.20" ShadowDepth="4" Direction="270"/>
         <DropShadowEffect x:Key="IconShadow" BlurRadius="8" Color="#000000" Opacity="0.24" ShadowDepth="2" Direction="270"/>
         <DropShadowEffect x:Key="BadgeShadow" BlurRadius="14" Color="#000000" Opacity="0.50" ShadowDepth="3" Direction="270"/>
 
@@ -177,19 +177,7 @@
             <TranslateTransform x:Name="DockRootTranslate" X="0" Y="0"/>
         </Grid.RenderTransform>
 
-        <!-- Sibling Shadow Layer (avoids nesting DropShadowEffect over ShaderEffect/BlurEffect) -->
-        <Border x:Name="DockPillShadow"
-                Width="{Binding ActualWidth, ElementName=DockPill}"
-                Height="{Binding ActualHeight, ElementName=DockPill}"
-                Margin="{Binding Margin, ElementName=DockPill}"
-                VerticalAlignment="Bottom"
-                HorizontalAlignment="Center"
-                CornerRadius="22"
-                Background="#16000000"
-                Effect="{StaticResource DockShadow}"
-                IsHitTestVisible="False"/>
-
-        <!-- Single-Rounded Floating Liquid Glass Dock Capsule (Padding=0 prevents nested pill artifact) -->
+        <!-- Single-Rounded Floating Translucent Frosted Dock Capsule (Padding=0 prevents nested pill artifact) -->
         <Border x:Name="DockPill"
                 Height="64"
                 VerticalAlignment="Bottom"
@@ -200,93 +188,40 @@
                 Margin="14,0,14,10"
                 MouseRightButtonUp="DockBackground_RightClick">
             <Grid>
-                <!-- Live Liquid Glass Material Stack (wrapped in Canvas so capture image size never stretches DockPill) -->
-                <Canvas IsHitTestVisible="False">
-                    <Grid x:Name="DockGlassClipHost"
-                          Width="{Binding ActualWidth, ElementName=DockPill}"
-                          Height="{Binding ActualHeight, ElementName=DockPill}"
-                          IsHitTestVisible="False"
-                          SizeChanged="DockGlassClipHost_SizeChanged"
-                          LayoutUpdated="DockGlassClipHost_LayoutUpdated">
+                <!-- Clean Translucent Frosted Glass Capsule (sibling behind content so shadow never blurs icons) -->
+                <Border x:Name="DockGlassSurface"
+                        CornerRadius="22"
+                        BorderThickness="1"
+                        Margin="0"
+                        IsHitTestVisible="False"
+                        Effect="{StaticResource DockShadow}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#99F7F9FC" Offset="0.0"/>
+                            <GradientStop Color="#82EEF2F7" Offset="0.5"/>
+                            <GradientStop Color="#8FE6EBF2" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#CCFFFFFF" Offset="0.0"/>
+                            <GradientStop Color="#60FFFFFF" Offset="0.45"/>
+                            <GradientStop Color="#2A000000" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                </Border>
 
-                        <!-- Translucent Frosted Fallback Base (hidden once live Liquid Glass backdrop presents) -->
-                        <Border x:Name="DockGlassFallbackFill"
-                                CornerRadius="22"
-                                IsHitTestVisible="False">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#B8F6F8FC" Offset="0.0"/>
-                                    <GradientStop Color="#A8EBF0F7" Offset="1.0"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Live Desktop Capture Host -->
-                        <Border x:Name="DockGlassBackdropHost"
-                                CornerRadius="22"
-                                ClipToBounds="True"
-                                Visibility="Visible"
-                                Opacity="0"
-                                IsHitTestVisible="False">
-                            <Canvas>
-                                <Image x:Name="DockGlassBackdropImage"
-                                       HorizontalAlignment="Left"
-                                       VerticalAlignment="Top"
-                                       Stretch="Fill"
-                                       Margin="0"
-                                       RenderOptions.BitmapScalingMode="HighQuality"/>
-                            </Canvas>
-                        </Border>
-
-                        <!-- Clear Translucent Glass Veil (adaptive via ApplyDockAdaptiveGlassTheme) -->
-                        <Border x:Name="DockGlassTintOverlay"
-                                CornerRadius="22"
-                                IsHitTestVisible="False">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#2EFFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#14FFFFFF" Offset="0.45"/>
-                                    <GradientStop Color="#20FFFFFF" Offset="1.0"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Subtle Micro-Noise Frost Grain -->
-                        <Border x:Name="DockGlassGrainOverlay"
-                                CornerRadius="22"
-                                Opacity="0.035"
-                                IsHitTestVisible="False"/>
-
-                        <!-- Top Edge Soft Specular Sheen (borderless fill avoids any inner double-rounded line) -->
-                        <Border CornerRadius="22"
-                                BorderThickness="0"
-                                IsHitTestVisible="False">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#38FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#10FFFFFF" Offset="0.25"/>
-                                    <GradientStop Color="#00FFFFFF" Offset="0.52"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Single Crisp Outer Refractive Rim -->
-                        <Border x:Name="DockGlassRimBorder"
-                                CornerRadius="22"
-                                BorderThickness="1"
-                                Margin="0"
-                                IsHitTestVisible="False">
-                            <Border.BorderBrush>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#D8FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#72FFFFFF" Offset="0.30"/>
-                                    <GradientStop Color="#24000000" Offset="0.78"/>
-                                    <GradientStop Color="#30000000" Offset="1.0"/>
-                                </LinearGradientBrush>
-                            </Border.BorderBrush>
-                        </Border>
-                    </Grid>
-                </Canvas>
+                <!-- Subtle Borderless Top Frost Sheen (zero inner double-rounded line) -->
+                <Border CornerRadius="22"
+                        BorderThickness="0"
+                        IsHitTestVisible="False">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#30FFFFFF" Offset="0.0"/>
+                            <GradientStop Color="#00FFFFFF" Offset="0.45"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
 
                 <!-- Horizontal Content: Launcher | Apps | Tray Chevron | Status Bar | Clock -->
                 <StackPanel x:Name="DockContentPanel"
@@ -308,8 +243,8 @@
                         <Border x:Name="LauncherSquircle" Style="{StaticResource SquircleContainer}" VerticalAlignment="Top" BorderBrush="{DynamicResource DockLauncherBorderBrush}" BorderThickness="1">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#58FFFFFF" Offset="0.0"/>
-                                    <GradientStop Color="#30FFFFFF" Offset="1.0"/>
+                                    <GradientStop Color="#66FFFFFF" Offset="0.0"/>
+                                    <GradientStop Color="#38FFFFFF" Offset="1.0"/>
                                 </LinearGradientBrush>
                             </Border.Background>
                             <UniformGrid Rows="2" Columns="2" Width="19" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center">
