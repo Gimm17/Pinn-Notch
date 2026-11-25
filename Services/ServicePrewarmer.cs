@@ -60,13 +60,22 @@ internal static partial class ServicePrewarmer
         WarmupWindowTitleScanner(provider);
 
         RuntimeLog.Log(LogCategory, "background warmup complete");
-        SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: true);
         if (spotlightTask is { IsCompleted: false })
         {
+            SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: false);
             _ = spotlightTask.ContinueWith(
-                static _ => SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: true),
+                static _ => SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: true, force: true),
                 TaskScheduler.Default);
         }
+        else
+        {
+            SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: true, force: true);
+        }
+
+        // One-shot settle pass after deferred WinRT Media/Bluetooth startup (~8s) finishes loading cold metadata pages.
+        _ = Task.Delay(9_000).ContinueWith(
+            static _ => SmartThumbnailCropService.TryMinimizeNativeHeap(trimWorkingSet: true, force: true),
+            TaskScheduler.Default);
     }
 
     private static NotchSettings? WarmupSettings(IServiceProvider provider)

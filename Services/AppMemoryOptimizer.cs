@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.InteropServices;
-using System.Windows.Threading;
 
 namespace VNotch.Services;
 
@@ -54,17 +54,6 @@ public static partial class AppMemoryOptimizer
     private const uint PROCESS_SET_QUOTA = 0x0100;
 
     private static long _lastOptimizationTicks = 0;
-    private static readonly DispatcherTimer _autoTrimTimer;
-
-    static AppMemoryOptimizer()
-    {
-        _autoTrimTimer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = TimeSpan.FromSeconds(30)
-        };
-        _autoTrimTimer.Tick += (_, _) => OptimizeMemory(aggressive: false);
-        _autoTrimTimer.Start();
-    }
 
     /// <summary>
     /// Returns the process IDs of all processes descending from Pinn-Notch or its WebView2 instance.
@@ -143,8 +132,11 @@ public static partial class AppMemoryOptimizer
 
         try
         {
+            if (aggressive)
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+
             // 1. Managed GC collect
-            GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: aggressive);
+            GC.Collect(2, aggressive ? GCCollectionMode.Aggressive : GCCollectionMode.Optimized, blocking: aggressive, compacting: aggressive);
 
             // 2. Trim Pinn-Notch main process working set
             _ = K32EmptyWorkingSet(GetCurrentProcess());

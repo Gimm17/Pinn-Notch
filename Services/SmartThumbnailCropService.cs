@@ -45,7 +45,7 @@ public sealed partial class SmartThumbnailCropService : IDisposable
 
     private static long _lastWorkingSetTrimTicks;
 
-    internal static void TryMinimizeNativeHeap(bool trimWorkingSet = false)
+    internal static void TryMinimizeNativeHeap(bool trimWorkingSet = false, bool force = false)
     {
         try
         {
@@ -59,13 +59,17 @@ public sealed partial class SmartThumbnailCropService : IDisposable
             return;
 
         long now = Environment.TickCount64;
+        if (force)
+            System.Threading.Interlocked.Exchange(ref _lastWorkingSetTrimTicks, now);
         long last = System.Threading.Interlocked.Read(ref _lastWorkingSetTrimTicks);
-        if (now - last < 30_000 || System.Threading.Interlocked.CompareExchange(ref _lastWorkingSetTrimTicks, now, last) != last)
+        if (!force && (now - last < 30_000 || System.Threading.Interlocked.CompareExchange(ref _lastWorkingSetTrimTicks, now, last) != last))
             return;
 
         try
         {
-            GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: false);
+            System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
+                System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect(2, force ? GCCollectionMode.Aggressive : GCCollectionMode.Optimized, blocking: force, compacting: force);
             _ = _heapmin();
             _ = K32EmptyWorkingSet(GetCurrentProcess());
         }

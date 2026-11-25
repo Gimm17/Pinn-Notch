@@ -8,13 +8,20 @@ namespace VNotch.Services;
 
 public sealed class WindowOverlapMonitor : IDisposable
 {
+    private const long BoundsRefreshIntervalMs = 2500;
     private readonly Timer _evalTimer;
     private readonly Dispatcher _dispatcher;
+    private readonly object _boundsLock = new();
     private int _isEvaluating;
+    private int _boundsRefreshQueued;
+    private long _lastBoundsRefreshTicks;
+    private bool _hasCachedBounds;
     private bool _disposed;
 
     private Func<Rect?>? _getDockRect;
     private Func<Rect?>? _getNotchRect;
+    private Rect? _cachedDockRect;
+    private Rect? _cachedNotchRect;
 
     private bool _lastDockOverlapped;
     private bool _lastNotchOverlapped;
@@ -30,25 +37,59 @@ public sealed class WindowOverlapMonitor : IDisposable
     public WindowOverlapMonitor(Dispatcher? dispatcher = null)
     {
         _dispatcher = dispatcher ?? Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
-        _evalTimer = new Timer(OnTimerTick, null, 200, 200);
+        _evalTimer = new Timer(OnTimerTick, null, 650, 650);
     }
 
     public void RegisterDockRegionProvider(Func<Rect?> provider)
     {
         _getDockRect = provider;
+        QueueBoundsRefresh();
         TriggerRecheck();
     }
 
     public void RegisterNotchRegionProvider(Func<Rect?> provider)
     {
         _getNotchRect = provider;
+        QueueBoundsRefresh();
         TriggerRecheck();
     }
 
     public void TriggerRecheck()
     {
         if (_disposed) return;
+        QueueBoundsRefresh();
         ThreadPool.QueueUserWorkItem(_ => Evaluate());
+    }
+
+    private void QueueBoundsRefresh()
+    {
+        if (_disposed || Interlocked.CompareExchange(ref _boundsRefreshQueued, 1, 0) != 0)
+            return;
+
+        try
+        {
+            _dispatcher.BeginInvoke(DispatcherPriority.Background, RefreshBoundsOnUi);
+        }
+        catch
+        {
+            Interlocked.Exchange(ref _boundsRefreshQueued, 0);
+        }
+    }
+
+    private void RefreshBoundsOnUi()
+    {
+        Interlocked.Exchange(ref _boundsRefreshQueued, 0);
+        if (_disposed) return;
+
+        Rect? dockRect = _getDockRect?.Invoke();
+        Rect? notchRect = _getNotchRect?.Invoke();
+        lock (_boundsLock)
+        {
+            _cachedDockRect = dockRect;
+            _cachedNotchRect = notchRect;
+            _hasCachedBounds = true;
+            Volatile.Write(ref _lastBoundsRefreshTicks, Environment.TickCount64);
+        }
     }
 
     private void OnTimerTick(object? state)
@@ -65,28 +106,47 @@ public sealed class WindowOverlapMonitor : IDisposable
 
         try
         {
-            Rect? dockRect = null;
-            Rect? notchRect = null;
+            Rect? dockRect;
+            Rect? notchRect;
+            bool needSyncFirstFetch;
 
-            // Get current bounds safely on dispatcher if needed
-            if (_dispatcher.CheckAccess())
+            lock (_boundsLock)
             {
-                dockRect = _getDockRect?.Invoke();
-                notchRect = _getNotchRect?.Invoke();
+                needSyncFirstFetch = !_hasCachedBounds;
+                dockRect = _cachedDockRect;
+                notchRect = _cachedNotchRect;
+            }
+
+            if (needSyncFirstFetch)
+            {
+                if (_dispatcher.CheckAccess())
+                {
+                    RefreshBoundsOnUi();
+                }
+                else
+                {
+                    try
+                    {
+                        _dispatcher.Invoke(RefreshBoundsOnUi, DispatcherPriority.Normal);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+                }
+
+                lock (_boundsLock)
+                {
+                    dockRect = _cachedDockRect;
+                    notchRect = _cachedNotchRect;
+                }
             }
             else
             {
-                try
+                long nowTicks = Environment.TickCount64;
+                if (nowTicks - Volatile.Read(ref _lastBoundsRefreshTicks) >= BoundsRefreshIntervalMs)
                 {
-                    _dispatcher.Invoke(() =>
-                    {
-                        dockRect = _getDockRect?.Invoke();
-                        notchRect = _getNotchRect?.Invoke();
-                    }, DispatcherPriority.Normal);
-                }
-                catch
-                {
-                    return;
+                    QueueBoundsRefresh();
                 }
             }
 

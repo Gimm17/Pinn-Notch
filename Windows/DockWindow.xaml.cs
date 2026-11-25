@@ -54,12 +54,45 @@ public partial class DockWindow : Window
         public ImageSource? Icon { get; set; }
     }
 
+    private static readonly CultureInfo s_idCulture = new("id-ID");
+    private static readonly SolidColorBrush s_primaryFgBrush = CreateFrozenBrush(0xEB, 0x14, 0x17, 0x1F);
+    private static readonly SolidColorBrush s_iconFgBrush = CreateFrozenBrush(0xD8, 0x16, 0x1A, 0x24);
+    private static readonly SolidColorBrush s_acFillBrush = CreateFrozenBrush(0xFF, 0x02, 0x84, 0xC7);
+    private static readonly SolidColorBrush s_chargingFillBrush = CreateFrozenBrush(0xFF, 0x16, 0xA3, 0x4A);
+    private static readonly SolidColorBrush s_normalBatteryFillBrush = CreateFrozenBrush(0xDC, 0x16, 0x1A, 0x24);
+    private static readonly SolidColorBrush s_lowAlertBrush = CreateFrozenBrush(0xFF, 0xDC, 0x26, 0x26);
+    private static readonly SolidColorBrush s_activeIndBrush = CreateFrozenBrush(0xFF, 0x14, 0x17, 0x1F);
+    private static readonly SolidColorBrush s_inactiveIndBrush = CreateFrozenBrush(0x8A, 0x1E, 0x24, 0x30);
+    private static readonly SolidColorBrush s_tileBorderBrush = CreateFrozenBrush(0x88, 0xFF, 0xFF, 0xFF);
+    private static readonly LinearGradientBrush s_tileBgBrush = CreateFrozenTileBgBrush();
+    private static readonly SolidColorBrush s_glowBorderBrush = CreateFrozenBrush(0x72, 0x02, 0x84, 0xC7);
+    private static readonly SolidColorBrush s_glowBgBrush = CreateFrozenBrush(0x1E, 0xFF, 0xFF, 0xFF);
+
+    private static SolidColorBrush CreateFrozenBrush(byte a, byte r, byte g, byte b)
+    {
+        var brush = new SolidColorBrush(Color.FromArgb(a, r, g, b));
+        brush.Freeze();
+        return brush;
+    }
+
+    private static LinearGradientBrush CreateFrozenTileBgBrush()
+    {
+        var brush = new LinearGradientBrush(
+            Color.FromArgb(0x68, 0xFF, 0xFF, 0xFF),
+            Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF),
+            90.0);
+        brush.Freeze();
+        return brush;
+    }
+
     private readonly ISettingsService _settingsService;
     private readonly WindowOverlapMonitor _overlapMonitor;
     private readonly DispatcherTimer _clockTimer;
     private readonly DispatcherTimer _procCheckTimer;
     private readonly DispatcherTimer _cursorPollTimer;
     private readonly List<DockItemState> _items;
+    private readonly List<DockItemState> _renderSnapshot = new(24);
+    private readonly Dictionary<string, ImageSource?> _runningAppIconCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly Debouncer _fastCheckDebouncer;
     private IntPtr _winEventHook = IntPtr.Zero;
     private WinEventDelegate? _winEventDelegate;
@@ -70,6 +103,9 @@ public partial class DockWindow : Window
     private long _lastBytesReceived = 0;
     private long _lastBytesSent = 0;
     private long _lastNetworkTick = 0;
+    private NetworkInterface[] _cachedNetInterfaces = Array.Empty<NetworkInterface>();
+    private long _lastNetInterfaceRefreshTicks;
+    private long _lastBatteryUpdateTicks;
 
     private bool _isRenderLoopActive;
     private long _lastRenderTimestamp;
@@ -83,6 +119,8 @@ public partial class DockWindow : Window
     private long _hideStartTick;
     private AppDrawerWindow? _appDrawer;
     private SystemTrayPopupWindow? _systemTrayPopup;
+    private volatile bool _isTrayPopupVisible;
+    private bool _hasInitialTrayWarmup;
     private bool _isContextMenuOpen;
     private bool _isTrayMenuHoldActive;
     private IReadOnlyList<TrayIconItem> _cachedTrayIcons = Array.Empty<TrayIconItem>();
@@ -171,17 +209,24 @@ public partial class DockWindow : Window
             new DockItemState { Grid = ItemSettings, Scale = ScaleSettings, Trans = TransSettings, Indicator = IndicatorSettings, ActiveGlow = ActiveGlowSettings, Title = "Pengaturan", IsPinned = true, ProcessNames = new[] { "systemsettings" } }
         };
 
-        // Live Clock Timer
-        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        // Live Clock & Status Timer (2s cadence keeps idle CPU near zero; battery refreshed every 10s)
+        _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _clockTimer.Tick += (_, _) =>
         {
             UpdateClockAndCalendar();
             UpdateNetworkSpeed();
-            UpdateBatteryStatus();
             UpdateVolumeStatus();
+
+            long nowTicks = Environment.TickCount64;
+            if (nowTicks - _lastBatteryUpdateTicks >= 10_000)
+            {
+                _lastBatteryUpdateTicks = nowTicks;
+                UpdateBatteryStatus();
+            }
         };
         _clockTimer.Start();
         UpdateNetworkSpeed();
+        _lastBatteryUpdateTicks = Environment.TickCount64;
         UpdateBatteryStatus();
         UpdateVolumeStatus();
         UpdateClockAndCalendar();
@@ -205,8 +250,8 @@ public partial class DockWindow : Window
             0,
             WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
 
-        // High-frequency, lightweight cursor poll timer (checks only point-in-rect for reveal trigger)
-        _cursorPollTimer = new DispatcherTimer(DispatcherPriority.Input) { Interval = TimeSpan.FromMilliseconds(50) };
+        // Low-overhead cursor poll timer (80ms at Background priority for hover reveal)
+        _cursorPollTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(80) };
         _cursorPollTimer.Tick += CursorPollTimer_Tick;
         _cursorPollTimer.Start();
 
@@ -243,18 +288,29 @@ public partial class DockWindow : Window
     private void UpdateClockAndCalendar()
     {
         var now = DateTime.Now;
-        ClockTimeText.Text = now.ToString("HH:mm");
-        ClockDateText.Text = now.ToString("dd/MM/yyyy");
+        string timeText = now.ToString("HH:mm");
+        if (!string.Equals(ClockTimeText.Text, timeText, StringComparison.Ordinal))
+            ClockTimeText.Text = timeText;
 
+        string dateText = now.ToString("dd/MM/yyyy");
+        if (!string.Equals(ClockDateText.Text, dateText, StringComparison.Ordinal))
+            ClockDateText.Text = dateText;
+
+        string monthText;
         try
         {
-            CalendarMonthText.Text = now.ToString("MMM", new CultureInfo("id-ID")).ToUpperInvariant();
+            monthText = now.ToString("MMM", s_idCulture).ToUpperInvariant();
         }
         catch
         {
-            CalendarMonthText.Text = now.ToString("MMM").ToUpperInvariant();
+            monthText = now.ToString("MMM").ToUpperInvariant();
         }
-        CalendarDayText.Text = now.ToString("dd");
+        if (!string.Equals(CalendarMonthText.Text, monthText, StringComparison.Ordinal))
+            CalendarMonthText.Text = monthText;
+
+        string dayText = now.ToString("dd");
+        if (!string.Equals(CalendarDayText.Text, dayText, StringComparison.Ordinal))
+            CalendarDayText.Text = dayText;
     }
 
     private void UpdateNetworkSpeed()
@@ -265,8 +321,14 @@ public partial class DockWindow : Window
 
         try
         {
-            var interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (var ni in interfaces)
+            long tickNow = Environment.TickCount64;
+            if (_lastNetInterfaceRefreshTicks == 0 || tickNow - _lastNetInterfaceRefreshTicks >= 30_000)
+            {
+                _lastNetInterfaceRefreshTicks = tickNow;
+                _cachedNetInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            }
+
+            foreach (var ni in _cachedNetInterfaces)
             {
                 if (ni.OperationalStatus == OperationalStatus.Up &&
                     ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
@@ -294,8 +356,10 @@ public partial class DockWindow : Window
                 double bytesPerSecDown = deltaReceived / elapsedSeconds;
                 double bytesPerSecUp = deltaSent / elapsedSeconds;
 
-                NetSpeedDownText.Text = FormatNetworkSpeed(bytesPerSecDown);
-                NetSpeedWidget.ToolTip = $"Internet Real-Time:\n↓ Download: {FormatNetworkSpeed(bytesPerSecDown)}\n↑ Upload: {FormatNetworkSpeed(bytesPerSecUp)}\n\n(Klik untuk Pengaturan Jaringan)";
+                string downStr = FormatNetworkSpeed(bytesPerSecDown);
+                if (!string.Equals(NetSpeedDownText.Text, downStr, StringComparison.Ordinal))
+                    NetSpeedDownText.Text = downStr;
+                NetSpeedWidget.ToolTip = $"Internet Real-Time:\n↓ Download: {downStr}\n↑ Upload: {FormatNetworkSpeed(bytesPerSecUp)}\n\n(Klik untuk Pengaturan Jaringan)";
             }
         }
 
@@ -327,23 +391,22 @@ public partial class DockWindow : Window
             var batterySvc = _batteryService ?? App.Services?.GetService(typeof(IBatteryService)) as IBatteryService;
             var info = batterySvc?.GetBatteryInfo();
 
-            var primaryFg = new SolidColorBrush(Color.FromArgb(0xEB, 0x14, 0x17, 0x1F));
-            primaryFg.Freeze();
-
             if (info == null || !info.HasBattery || info.Percentage < 0)
             {
                 // Desktop PC or AC connected
                 BatteryFill.Width = 15.6;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x02, 0x84, 0xC7));
+                BatteryFill.Background = s_acFillBrush;
                 BatteryChargingBolt.Visibility = Visibility.Visible;
                 BatteryPercentText.Text = "AC";
-                BatteryPercentText.Foreground = primaryFg;
+                BatteryPercentText.Foreground = s_primaryFgBrush;
                 BatteryWidget.ToolTip = "Daya Listrik AC (Desktop / Wall Plug / Dock)\n(Klik untuk Pengaturan Daya)";
                 return;
             }
 
             int percent = Math.Clamp(info.Percentage, 0, 100);
-            BatteryPercentText.Text = $"{percent}%";
+            string percentStr = $"{percent}%";
+            if (!string.Equals(BatteryPercentText.Text, percentStr, StringComparison.Ordinal))
+                BatteryPercentText.Text = percentStr;
 
             // Max inner width is 15.6 DIPs (inner cavity: 20 frame width - 2.4 borders - 2 margin)
             double fillWidth = Math.Max(1.5, (percent / 100.0) * 15.6);
@@ -352,8 +415,8 @@ public partial class DockWindow : Window
             if (info.IsCharging || info.IsPluggedIn)
             {
                 BatteryChargingBolt.Visibility = Visibility.Visible;
-                BatteryFill.Background = new SolidColorBrush(Color.FromRgb(0x16, 0xA3, 0x4A));
-                BatteryPercentText.Foreground = primaryFg;
+                BatteryFill.Background = s_chargingFillBrush;
+                BatteryPercentText.Foreground = s_primaryFgBrush;
                 BatteryWidget.ToolTip = $"Baterai: {percent}%\nStatus: Sedang Mengisi Daya (Charging)\nMode: Terhubung Listrik (AC Adapter / Dock)\n\n(Klik untuk Pengaturan Daya)";
             }
             else
@@ -361,17 +424,13 @@ public partial class DockWindow : Window
                 BatteryChargingBolt.Visibility = Visibility.Collapsed;
                 if (percent <= 20)
                 {
-                    var lowBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
-                    lowBrush.Freeze();
-                    BatteryFill.Background = lowBrush;
-                    BatteryPercentText.Foreground = lowBrush;
+                    BatteryFill.Background = s_lowAlertBrush;
+                    BatteryPercentText.Foreground = s_lowAlertBrush;
                 }
                 else
                 {
-                    var fillBrush = new SolidColorBrush(Color.FromArgb(0xDC, 0x16, 0x1A, 0x24));
-                    fillBrush.Freeze();
-                    BatteryFill.Background = fillBrush;
-                    BatteryPercentText.Foreground = primaryFg;
+                    BatteryFill.Background = s_normalBatteryFillBrush;
+                    BatteryPercentText.Foreground = s_primaryFgBrush;
                 }
 
                 string remTime = info.RemainingMinutes > 0 ? $"{info.RemainingMinutes / 60}j {info.RemainingMinutes % 60}m" : "Menghitung...";
@@ -388,18 +447,13 @@ public partial class DockWindow : Window
     {
         try
         {
-            var primaryFg = new SolidColorBrush(Color.FromArgb(0xEB, 0x14, 0x17, 0x1F));
-            primaryFg.Freeze();
-            var iconFg = new SolidColorBrush(Color.FromArgb(0xD8, 0x16, 0x1A, 0x24));
-            iconFg.Freeze();
-
             var volumeSvc = _volumeService ?? App.Services?.GetService(typeof(IVolumeService)) as IVolumeService;
             if (volumeSvc == null || !volumeSvc.IsAvailable)
             {
                 VolumeIcon.Text = "\uE995";
-                VolumeIcon.Foreground = iconFg;
+                VolumeIcon.Foreground = s_iconFgBrush;
                 VolumePercentText.Text = "--";
-                VolumePercentText.Foreground = primaryFg;
+                VolumePercentText.Foreground = s_primaryFgBrush;
                 return;
             }
 
@@ -409,26 +463,24 @@ public partial class DockWindow : Window
 
             if (isMuted || volPercent == 0)
             {
-                var muteBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
-                muteBrush.Freeze();
                 VolumeIcon.Text = "\uE74F"; // Mute glyph
-                VolumeIcon.Foreground = muteBrush;
-                VolumePercentText.Text = "Mute";
-                VolumePercentText.Foreground = muteBrush;
+                VolumeIcon.Foreground = s_lowAlertBrush;
+                if (!string.Equals(VolumePercentText.Text, "Mute", StringComparison.Ordinal))
+                    VolumePercentText.Text = "Mute";
+                VolumePercentText.Foreground = s_lowAlertBrush;
                 VolumeWidget.ToolTip = "Volume Master: Mute (Bungkam)\n• Klik untuk Nyalakan Suara\n• Scroll mouse untuk atur volume";
             }
             else
             {
-                if (volPercent < 33)
-                    VolumeIcon.Text = "\uE993"; // Low
-                else if (volPercent < 66)
-                    VolumeIcon.Text = "\uE994"; // Medium
-                else
-                    VolumeIcon.Text = "\uE995"; // High
+                string glyph = volPercent < 33 ? "\uE993" : (volPercent < 66 ? "\uE994" : "\uE995");
+                if (!string.Equals(VolumeIcon.Text, glyph, StringComparison.Ordinal))
+                    VolumeIcon.Text = glyph;
 
-                VolumeIcon.Foreground = iconFg;
-                VolumePercentText.Text = $"{volPercent}%";
-                VolumePercentText.Foreground = primaryFg;
+                VolumeIcon.Foreground = s_iconFgBrush;
+                string volText = $"{volPercent}%";
+                if (!string.Equals(VolumePercentText.Text, volText, StringComparison.Ordinal))
+                    VolumePercentText.Text = volText;
+                VolumePercentText.Foreground = s_primaryFgBrush;
                 VolumeWidget.ToolTip = $"Volume Master: {volPercent}%\n• Klik untuk Mute / Unmute\n• Scroll mouse untuk atur volume";
             }
         }
@@ -601,9 +653,7 @@ public partial class DockWindow : Window
     {
         if (isActive)
         {
-            var bg = new SolidColorBrush(Color.FromRgb(0x14, 0x17, 0x1F));
-            bg.Freeze();
-            item.Indicator.Background = bg;
+            item.Indicator.Background = s_activeIndBrush;
             item.Indicator.Effect = new DropShadowEffect
             {
                 Color = Color.FromRgb(0x02, 0x84, 0xC7),
@@ -614,9 +664,7 @@ public partial class DockWindow : Window
         }
         else
         {
-            var bg = new SolidColorBrush(Color.FromArgb(0x8A, 0x1E, 0x24, 0x30));
-            bg.Freeze();
-            item.Indicator.Background = bg;
+            item.Indicator.Background = s_inactiveIndBrush;
             item.Indicator.Effect = null;
         }
     }
@@ -641,14 +689,6 @@ public partial class DockWindow : Window
         };
 
         // Frosted Translucent Squircle Container
-        var tileBorder = new SolidColorBrush(Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
-        tileBorder.Freeze();
-        var tileBg = new LinearGradientBrush(
-            Color.FromArgb(0x68, 0xFF, 0xFF, 0xFF),
-            Color.FromArgb(0x38, 0xFF, 0xFF, 0xFF),
-            90.0);
-        tileBg.Freeze();
-
         var squircleBorder = new Border
         {
             Width = 44,
@@ -656,8 +696,8 @@ public partial class DockWindow : Window
             CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
             BorderThickness = new Thickness(1),
-            BorderBrush = tileBorder,
-            Background = tileBg
+            BorderBrush = s_tileBorderBrush,
+            Background = s_tileBgBrush
         };
         squircleBorder.Effect = new DropShadowEffect
         {
@@ -686,14 +726,12 @@ public partial class DockWindow : Window
         else
         {
             string initial = string.IsNullOrWhiteSpace(app.Title) ? "?" : app.Title[0].ToString().ToUpperInvariant();
-            var textFg = new SolidColorBrush(Color.FromArgb(0xEB, 0x14, 0x17, 0x1F));
-            textFg.Freeze();
             var fallbackInitial = new TextBlock
             {
                 Text = initial,
                 FontSize = 17,
                 FontWeight = FontWeights.Bold,
-                Foreground = textFg,
+                Foreground = s_primaryFgBrush,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -702,10 +740,6 @@ public partial class DockWindow : Window
         grid.Children.Add(squircleBorder);
 
         // Subtle Frosted Active Halo
-        var glowBorder = new SolidColorBrush(Color.FromArgb(0x72, 0x02, 0x84, 0xC7));
-        glowBorder.Freeze();
-        var glowBg = new SolidColorBrush(Color.FromArgb(0x1E, 0xFF, 0xFF, 0xFF));
-        glowBg.Freeze();
         var activeGlow = new Border
         {
             Width = 44,
@@ -713,8 +747,8 @@ public partial class DockWindow : Window
             CornerRadius = new CornerRadius(12.5),
             VerticalAlignment = VerticalAlignment.Top,
             BorderThickness = new Thickness(1.2),
-            BorderBrush = glowBorder,
-            Background = glowBg,
+            BorderBrush = s_glowBorderBrush,
+            Background = s_glowBgBrush,
             IsHitTestVisible = false,
             Opacity = 0.0
         };
@@ -1089,7 +1123,13 @@ public partial class DockWindow : Window
 
                     if (!unpinnedMap.TryGetValue(key, out var existingApp))
                     {
-                        var icon = GetWindowIcon(hwnd, exePath);
+                        if (!_runningAppIconCache.TryGetValue(key, out var icon))
+                        {
+                            icon = GetWindowIcon(hwnd, exePath);
+                            if (_runningAppIconCache.Count >= 48)
+                                _runningAppIconCache.Clear();
+                            _runningAppIconCache[key] = icon;
+                        }
                         unpinnedMap[key] = new RunningAppInfo
                         {
                             Key = key,
@@ -1117,8 +1157,9 @@ public partial class DockWindow : Window
                 var unpinnedList = unpinnedMap.Values.Take(10).ToList();
 
                 long nowTicks = Environment.TickCount64;
-                if (nowTicks - _lastTrayCacheTicks >= 4000)
+                if (!_hasInitialTrayWarmup || (_isTrayPopupVisible && nowTicks - _lastTrayCacheTicks >= 4000))
                 {
+                    _hasInitialTrayWarmup = true;
                     _lastTrayCacheTicks = nowTicks;
                     try
                     {
@@ -1281,13 +1322,13 @@ public partial class DockWindow : Window
         dt = Math.Clamp(dt, 0.001, 0.05);
 
         bool stillMoving = false;
-        List<DockItemState> snapshot;
         lock (_items)
         {
-            snapshot = _items.ToList();
+            _renderSnapshot.Clear();
+            _renderSnapshot.AddRange(_items);
         }
 
-        foreach (var item in snapshot)
+        foreach (var item in _renderSnapshot)
         {
             bool sMove = item.ScaleSpring.Update(dt, speed: 28.0);
             bool xMove = item.TransXSpring.Update(dt, speed: 28.0);
@@ -1300,6 +1341,7 @@ public partial class DockWindow : Window
 
             stillMoving |= sMove || xMove || yMove;
         }
+        _renderSnapshot.Clear();
 
         bool txMove = _tooltipXSpring.Update(dt, speed: 32.0);
         bool tyMove = _tooltipYSpring.Update(dt, speed: 32.0);
@@ -1368,6 +1410,9 @@ public partial class DockWindow : Window
             _cursorPollTimer.Stop();
             return;
         }
+
+        if (_isFullscreenAppActive)
+            return;
 
         try
         {
@@ -1922,6 +1967,7 @@ public partial class DockWindow : Window
             };
             _systemTrayPopup.PopupClosed += () =>
             {
+                _isTrayPopupVisible = false;
                 AnimateTrayChevron(0.0);
                 UpdateDockSlideState();
             };
@@ -1929,6 +1975,7 @@ public partial class DockWindow : Window
 
         if (_systemTrayPopup.IsVisible)
         {
+            _isTrayPopupVisible = false;
             _systemTrayPopup.CloseWithAnimation();
             return;
         }
@@ -1948,6 +1995,7 @@ public partial class DockWindow : Window
             }
             catch { }
 
+            _isTrayPopupVisible = true;
             AnimateTrayChevron(180.0);
             _systemTrayPopup.ShowAt(anchorCenterXDip, dockPillTopDip, dockTopPx, _cachedTrayIcons);
             UpdateDockSlideState();

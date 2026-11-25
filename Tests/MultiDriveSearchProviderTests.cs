@@ -39,18 +39,15 @@ public sealed class MultiDriveSearchProviderTests : IDisposable
         string alproFile = @"E:\Kuliah\Tugas\Quiz_Alpro_2026.pdf";
         string alproFolder = @"E:\Kuliah\Tugas_Alpro";
 
-        using var provider = new MultiDriveSearchProvider(_cacheFile);
+        using var provider = new MultiDriveSearchProvider(_cacheFile, Array.Empty<string>(), enableWatchers: false);
+        await provider.WarmupAsync();
 
-        var snapshotField = typeof(MultiDriveSearchProvider)
-            .GetField("_snapshot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        var entries = new[]
+        provider.SeedEntriesForTest(new[]
         {
-            new MultiDriveSearchProvider.IndexedEntry("DragonBall_Story.docx", targetFile, false),
-            new MultiDriveSearchProvider.IndexedEntry("Quiz_Alpro_2026.pdf", alproFile, false),
-            new MultiDriveSearchProvider.IndexedEntry("Tugas_Alpro", alproFolder, true),
-        };
-        snapshotField?.SetValue(provider, entries);
+            (targetFile, false),
+            (alproFile, false),
+            (alproFolder, true),
+        });
 
         // Test 1: Search file
         var results = await provider.SearchAsync("Dragon", 10, CancellationToken.None);
@@ -68,22 +65,19 @@ public sealed class MultiDriveSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_HandlesMultiWordTokens()
     {
-        using var provider = new MultiDriveSearchProvider(_cacheFile);
-
-        var snapshotField = typeof(MultiDriveSearchProvider)
-            .GetField("_snapshot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        using var provider = new MultiDriveSearchProvider(_cacheFile, Array.Empty<string>(), enableWatchers: false);
+        await provider.WarmupAsync();
 
         string p1 = @"D:\Videos\Anime\Super_Dragon_Ball_Z.mp4";
         string p2 = @"D:\Videos\Anime\Dragon_Quest.mp4";
         string p3 = @"D:\Videos\Sports\Ball_Game.mp4";
 
-        var entries = new[]
+        provider.SeedEntriesForTest(new[]
         {
-            new MultiDriveSearchProvider.IndexedEntry("Super_Dragon_Ball_Z.mp4", p1, false),
-            new MultiDriveSearchProvider.IndexedEntry("Dragon_Quest.mp4", p2, false),
-            new MultiDriveSearchProvider.IndexedEntry("Ball_Game.mp4", p3, false),
-        };
-        snapshotField?.SetValue(provider, entries);
+            (p1, false),
+            (p2, false),
+            (p3, false),
+        });
 
         // Searching "dragon ball" should match p1, but not p2 or p3
         var results = await provider.SearchAsync("dragon ball", 10, CancellationToken.None);
@@ -94,7 +88,8 @@ public sealed class MultiDriveSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ReturnsEmptyWhenQueryIsTooShortOrEmpty()
     {
-        using var provider = new MultiDriveSearchProvider(_cacheFile);
+        using var provider = new MultiDriveSearchProvider(_cacheFile, Array.Empty<string>(), enableWatchers: false);
+        await provider.WarmupAsync();
         var resultsShort = await provider.SearchAsync("a", 10, CancellationToken.None);
         Assert.Empty(resultsShort);
 
